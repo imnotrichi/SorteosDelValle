@@ -1,0 +1,26 @@
+{
+  "name": "sorteosdelvalle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imnotrichi/SorteosDelValle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imnotrichi/SorteosDelValle/issues"
+  },
+  "homepage": "https://github.com/imnotrichi/SorteosDelValle#readme",
+  "dependencies": {
+    "mysql2": "^3.15.3",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.3"
+  }
+}
