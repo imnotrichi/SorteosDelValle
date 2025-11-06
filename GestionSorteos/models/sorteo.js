@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
   Sorteo.init({
     titulo: DataTypes.STRING,
     descripcion: DataTypes.STRING,
-    imagen_sorte_url: DataTypes.STRING,
+    imagen_url: DataTypes.STRING,
     rango_numeros: DataTypes.INTEGER,
     inicio_periodo_venta: DataTypes.DATE,
     fin_periodo_venta: DataTypes.DATE,
