@@ -10,10 +10,12 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       tiempo_limite_apartado: {
-        type: Sequelize.DATE
+        type: Sequelize.TIME,
+        allowNull: false
       },
       tiempo_recordatorio_pago: {
-        type: Sequelize.DATE
+        type: Sequelize.TIME,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,

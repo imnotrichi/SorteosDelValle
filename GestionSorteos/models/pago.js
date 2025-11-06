@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Pago.hasOne(models.PagosConComprobante, {foreignKey: 'id_pago'});
-      Pago.hasOne(models.PagosEnLinea,{foreignKey: 'id_pago'});
+      Pago.hasOne(models.PagoConComprobante, {foreignKey: 'id_pago'});
+      Pago.hasOne(models.PagoEnLinea,{foreignKey: 'id_pago'});
     }
   }
   Pago.init({
