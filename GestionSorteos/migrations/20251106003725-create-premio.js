@@ -16,7 +16,11 @@ module.exports = {
         type: Sequelize.STRING
       },
       id_sorteo: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        references: { 
+          model: 'Sorteos',
+          key: 'id'
+        }
       },
       createdAt: {
         allowNull: false,

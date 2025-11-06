@@ -2,21 +2,21 @@
   "development": {
     "username": "root",
     "password": "password",
-    "database": "std_gestionsorteos_db_",
+    "database": "std_gestionsorteos_db",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "test": {
     "username": "root",
     "password": null,
-    "database": "std_gestionsorteos_db",
+    "database": "std_gestionsorteos_db_test",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "production": {
     "username": "root",
     "password": null,
-    "database": "std_gestionsorteos_db",
+    "database": "std_gestionsorteos_db_production",
     "host": "127.0.0.1",
     "dialect": "mysql"
   }

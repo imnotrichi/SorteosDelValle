@@ -12,15 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     
     static associate(models) {
       // define association here
-      Sorteo.hasMany(models.OrganizadorSorteo, {
-        foreignKey: 'id_sorteo'
-      });
-      Sorteo.belongsToMany(models.Organizador, {
-        through: models.OrganizadorSorteo,
-        foreignKey: 'id_sorteo'
-      });
-
-      Sorteo.belongsTo(models.Configuracion, {foreignKey: 'id_configuracion'})
+      //Sorteo.hasMany(models.OrganizadorSorteo, {foreignKey: 'id_sorteo'});
+      //Sorteo.belongsToMany(models.Organizador, {through: models.OrganizadorSorteo,foreignKey: 'id_sorteo'});
+      Sorteo.belongsTo(models.Configuracion, {foreignKey: 'id_configuracion'});
+      Sorteo.hasMany(models.Premio, {foreignKey: 'id_sorteo'})
     }
   }
   Sorteo.init({
