@@ -1,15 +1,15 @@
 {
   "development": {
     "username": "root",
-    "password": "password",
+    "password": "itson",
     "database": "std_gestionsorteos_db",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "test": {
     "username": "root",
-    "password": null,
-    "database": "std_gestionsorteos_db_test",
+    "password": "itson",
+    "database": "std_gestionsorteos_db",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

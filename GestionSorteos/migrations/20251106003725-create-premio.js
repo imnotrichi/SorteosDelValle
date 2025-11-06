@@ -10,17 +10,20 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       titulo: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       imagen_premio_url: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       id_sorteo: {
         type: Sequelize.INTEGER,
         references: { 
           model: 'Sorteos',
           key: 'id'
-        }
+        },
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
