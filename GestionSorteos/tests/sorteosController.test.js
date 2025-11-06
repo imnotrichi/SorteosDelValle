@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 const sorteosController = require('../controllers/sorteosController.js');
 const { Sorteo, Configuracion, Premio } = require("../models/index.js");
 
-let configId;
+let configId = 1;
 
 beforeAll(async () => {
     // Inserta una configuración de prueba
@@ -14,7 +14,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    // Limpieza
+    // Limpieza de la base de datos
     await Premio.destroy({ where: {} });
     await Sorteo.destroy({ where: {} });
     await Configuracion.destroy({ where: {} });
@@ -30,13 +30,14 @@ const setupMocks = () => ({
 });
 
 describe('crearSorteo (Controller)', () => {
-    // Prueba 1: Funciona (la dejamos como está)
+
+    // Prueba 1: Crear un sorteo con datos válidos
     it('debería crear un nuevo sorteo y responder con 200', async () => {
         // Arrange
         const datosSorteo = {
             titulo: "Camioneta F-150 modelo 2025",
             descripcion: "Rifa de una camioneta Ford F-150 del año.",
-            imagen_url: "imagenes/imagenCamioneta.jpeg",
+            imagen_url: "http:imagenes.com/ford-f-150",
             rango_numeros: 100,
             inicio_periodo_venta: "2025-12-06",
             fin_periodo_venta: "2025-12-23",
@@ -45,7 +46,7 @@ describe('crearSorteo (Controller)', () => {
             id_configuracion: configId,
             premiosData: [{
                 titulo: "Camioneta Ford F-150 modelo 2025",
-                imagen_premio_url: "imagenes/imagenCamioneta.jpeg"
+                imagen_premio_url: "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -66,18 +67,21 @@ describe('crearSorteo (Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         expect(sorteoCreado).toHaveProperty('id');
         expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
+        expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
+        expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
+        expect(sorteoCreado.rango_numeros).toBe(datosSorteo.rango_numeros);
+        expect(sorteoCreado.inicio_periodo_venta).toBe(datosSorteo.fin_periodo_venta);
+        expect(sorteoCreado.fecha_realizacion).toBe(datosSorteo.fecha_realizacion);
         expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(sorteoCreado.id_configuracion).toBe(datosSorteo.id_configuracion);
     });
 
-    // --- PRUEBAS CORREGIDAS (2-11) ---
-    // Estas pruebas verifican que la validación de campos requeridos funcione.
-
     // Prueba 2: Intentar crear un sorteo sin título
-    it('debería llamar a next con error si falta el título', async () => {
+    it('debería llamar a next con error si falta el título y responder con 400', async () => {
         // Arrange
         const datosSorteoIncompletos = {
             descripcion: "Rifa de una camioneta Ford F-150 del año.",
-            imagen_url: "imagenes/imagenCamioneta.jpeg",
+            imagen_url: "http:imagenes.com/ford-f-150",
             rango_numeros: 100,
             inicio_periodo_venta: "2025-12-06",
             fin_periodo_venta: "2025-12-23",
@@ -86,18 +90,19 @@ describe('crearSorteo (Controller)', () => {
             id_configuracion: configId,
             premiosData: [{
                 titulo: "Camioneta Ford F-150 modelo 2025",
-                imagen_premio_url: "imagenes/imagenCamioneta.jpeg"
+                imagen_premio_url: "http:imagenes.com/ford-f-150"
             }]
         };
-        const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
+        const { mockRes, mockNext } = setupMocks();
 
         // Act
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
-        expect(mockRes.json).not.toHaveBeenCalled();
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -107,7 +112,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             // falta descripcion
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -124,7 +129,8 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
-        expect(mockRes.json).not.toHaveBeenCalled();
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -151,6 +157,8 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -161,7 +169,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             // falta rango_numeros
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -178,6 +186,8 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -188,7 +198,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             // falta inicio_periodo_venta
             "fin_periodo_venta": "2025-12-23",
@@ -205,6 +215,8 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -215,7 +227,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             // falta fin_periodo_venta
@@ -242,7 +254,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -259,6 +271,8 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -269,7 +283,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -286,6 +300,8 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -296,7 +312,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -313,6 +329,8 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
@@ -323,7 +341,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -340,23 +358,17 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
-
-    // --- PRUEBAS CORREGIDAS (12-14) ---
-    // Estas pruebas verifican el bloque catch del controlador (errores del DAO).
-
     // Prueba 12: Sin el título del premio (falla el DAO, no la validación inicial)
     it('debería llamar a next con error 500 si falta el título del premio', async () => {
-        // Arrange
-        await Premio.destroy({ where: {} });
-        await Sorteo.destroy({ where: {} });
-
         const datosSorteoIncompletos = {
             "titulo": "Sorteo Falla Premio",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -365,7 +377,7 @@ describe('crearSorteo (Controller)', () => {
             "id_configuracion": configId,
             "premiosData": [{
                 // falta titulo
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
         const { mockRes, mockNext } = setupMocks();
@@ -376,20 +388,17 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
-        expect(mockRes.json).not.toHaveBeenCalled();
-        expect(mockNext.mock.calls[0][0].message).toBe('Se deben proporcionar datos válidos para los premios.');
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
     // Prueba 13: Sin la imagen del premio (falla el DAO)
     it('debería llamar a next con error 500 si falta la imagen del premio', async () => {
-        // Arrange
-        await Premio.destroy({ where: {} });
-        await Sorteo.destroy({ where: {} });
-
         const datosSorteoIncompletos = {
             "titulo": "Sorteo Falla Imagen Premio",
             "descripcion": "Rifa...",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -409,8 +418,9 @@ describe('crearSorteo (Controller)', () => {
 
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
-        expect(mockRes.json).not.toHaveBeenCalled();
-        expect(mockNext.mock.calls[0][0].message).toBe('Se deben proporcionar datos válidos para los premios.');
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 
     // Prueba 14: Título duplicado (falla el DAO)
@@ -422,7 +432,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteo = {
             titulo: "Camioneta F-150 modelo 2025",
             descripcion: "Rifa de una camioneta Ford F-150 del año.",
-            imagen_url: "imagenes/imagenCamioneta.jpeg",
+            imagen_url: "http:imagenes.com/ford-f-150",
             rango_numeros: 100,
             inicio_periodo_venta: "2025-12-06",
             fin_periodo_venta: "2025-12-23",
@@ -431,7 +441,7 @@ describe('crearSorteo (Controller)', () => {
             id_configuracion: configId,
             premiosData: [{
                 titulo: "Camioneta Ford F-150 modelo 2025",
-                imagen_premio_url: "imagenes/imagenCamioneta.jpeg"
+                imagen_premio_url: "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -456,11 +466,11 @@ describe('crearSorteo (Controller)', () => {
 
         const error = mockNext.mock.calls[0][0];
 
-        expect(error.statusCode).toBe(404);
+        expect(error.statusCode).toBe(400);
         expect(error.message).toBe("Ya existe un sorteo con ese título.");
     });
-
-    it('debería llamar a next con error 404 si el periodo de venta es inválido (fin < inicio)', async () => {
+    // Prueba 15: Fecha fin de venta menor al inicio
+    it('debería llamar a next con error 400 si el periodo de venta es inválido (fin < inicio)', async () => {
         const { mockRes, mockNext } = setupMocks();
 
         const mockReq = {
@@ -469,7 +479,7 @@ describe('crearSorteo (Controller)', () => {
                 descripcion: "Desc",
                 imagen_url: "img.jpg",
                 rango_numeros: 100,
-                inicio_periodo_venta: "2025-11-01",
+                inicio_periodo_venta: "2025-12-01",
                 fin_periodo_venta: "2025-10-20",   // FIN MENOR AL INICIO
                 fecha_realizacion: "2025-12-20",
                 precio_numero: 100,
@@ -485,11 +495,11 @@ describe('crearSorteo (Controller)', () => {
 
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
-
-        expect(error.statusCode).toBe(404);
+        expect(error.statusCode).toBe(400);
         expect(error.message).toBe("Ingrese un periodo válido.");
     });
 
+    // Prueba 16: Fecha de realización ya pasó
     it('debería llamar a next con error 404 si la fecha de realización ya pasó', async () => {
         const { mockRes, mockNext } = setupMocks();
 
@@ -515,12 +525,11 @@ describe('crearSorteo (Controller)', () => {
 
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
-
-        expect(error.statusCode).toBe(404);
+        expect(error.statusCode).toBe(400);
         expect(error.message).toBe("La fecha de realización del sorteo debe ser válida.");
     });
 
-
+    // Prueba 17: Fecha de inicio de venta ya pasó
     it('debería llamar a next con error 404 si la fecha inicial del periodo de venta ya pasó', async () => {
         const { mockRes, mockNext } = setupMocks();
 
@@ -546,11 +555,12 @@ describe('crearSorteo (Controller)', () => {
 
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
-
-        expect(error.statusCode).toBe(404);
+        expect(error.statusCode).toBe(400);
         expect(error.message).toBe("Ingrese un periodo válido.");
+
     });
 
+    // Prueba 18: Fecha final de venta ya pasó
     it('debería llamar a next con error 404 si la fecha final del periodo de venta ya pasó', async () => {
         const { mockRes, mockNext } = setupMocks();
 
@@ -560,7 +570,7 @@ describe('crearSorteo (Controller)', () => {
                 descripcion: "Desc",
                 imagen_url: "img.jpg",
                 rango_numeros: 100,
-                inicio_periodo_venta: "2025-11-01",
+                inicio_periodo_venta: "2025-12-01",
                 fin_periodo_venta: "2020-01-01",   // YA PASÓ
                 fecha_realizacion: "2025-12-25",
                 precio_numero: 100,
@@ -576,12 +586,12 @@ describe('crearSorteo (Controller)', () => {
 
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
-
-        expect(error.statusCode).toBe(404);
+        expect(error.statusCode).toBe(400);
         expect(error.message).toBe("Ingrese un periodo válido.");
+
     });
 
-
+    // Prueba 19: Precio del número menor a $1
     it('debería llamar a next con error 404 si el precio del número es menor a 1 peso', async () => {
         const { mockRes, mockNext } = setupMocks();
 
@@ -607,8 +617,7 @@ describe('crearSorteo (Controller)', () => {
 
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
-
-        expect(error.statusCode).toBe(404);
+        expect(error.statusCode).toBe(400);
         expect(error.message).toBe("El precio del número no puede ser menor a 1 peso.");
     });
 
