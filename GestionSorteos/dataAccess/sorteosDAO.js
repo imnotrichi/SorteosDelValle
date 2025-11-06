@@ -46,22 +46,35 @@ class SorteosDAO {
     async obtenerSorteoPorTitulo(titulo) {
         try {
             console.log('---> TITULO:', titulo);
-            const sorteo = await Sorteo.findAll({
+
+            const sorteo = await Sorteo.findOne({
                 where: {
                     titulo: {
-                        [Op.eq]: `${titulo}` //Se usa el operador like para los titulos que coincidan con el mandado en el parámetro
+                        [Op.eq]: titulo
                     }
                 },
             });
+
+            // 2. VERIFICAR si se encontró el sorteo
+            if (!sorteo) {
+                // Si no se encuentra, devuelve null o un objeto vacío
+                console.log('Sorteo no encontrado');
+                return null; // O return { sorteo: null, premios: [] };
+            }
+
+            // 3. Ahora sorteo.id es válido
             const premios = await Premio.findAll({
                 where: {
                     id_sorteo: {
                         [Op.eq]: sorteo.id
                     }
                 }
-            })
+            });
+
             return { sorteo, premios };
+
         } catch (error) {
+            console.error("Error al obtener sorteo por título:", error); // Es mejor loguear el error
             throw error;
         }
     }
