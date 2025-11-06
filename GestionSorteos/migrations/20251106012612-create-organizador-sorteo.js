@@ -20,7 +20,14 @@ module.exports = {
 
       },
       id_sorteo: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references:{
+          model: 'Sorteos',
+          key: 'id'
+        },
+        onDelete: 'CASCADE'
+        
       },
       createdAt: {
         allowNull: false,
