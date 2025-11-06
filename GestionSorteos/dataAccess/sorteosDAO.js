@@ -56,7 +56,7 @@ class SorteosDAO {
             const premios = await Premio.findAll({
                 where: {
                     id_sorteo: {
-                        [Op.eq]: id
+                        [Op.eq]: sorteo.id
                     }
                 }
             })
