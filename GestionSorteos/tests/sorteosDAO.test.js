@@ -1,6 +1,6 @@
-import { describe, test, it, expect, beforeAll, afterAll } from "vitest";
-const sorteosDAO = require('../../dataAccess/sorteosDAO.js');
-const { Sorteo, Configuracion, Premio } = require("../../models");
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+const sorteosDAO = require('../dataAccess/sorteosDAO.js');
+const { Sorteo, Configuracion, Premio } = require("../models/index.js");
 
 let configId;
 
@@ -21,7 +21,7 @@ afterAll(async () => {
 });
 
 
-describe('crearSorteo', () => {
+describe('crearSorteo (DAO)', () => {
     // Prueba 1: Crear un sorteo con datos válidos
     it('debería crear un nuevo sorteo en la base de datos', async () => {
         // Arrange

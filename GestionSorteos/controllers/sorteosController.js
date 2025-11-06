@@ -18,28 +18,42 @@ class SorteosController {
                 id_configuracion,
                 premiosData } = req.body;
 
-            if (!titulo || !descripcion || !imagen_url || !rango_numeros || !inicio_periodo_venta || !fin_periodo_venta
-                || !fecha_realizacion || !precio_numero || !id_configuracion || !premiosData) {
-                next(new AppError('Todos los campos son requeridos.', 404));
+            if (!titulo || !descripcion || !imagen_url || rango_numeros == null || !inicio_periodo_venta || !fin_periodo_venta
+                || !fecha_realizacion || precio_numero == null || !id_configuracion || !premiosData) {
+                return next(new AppError('Todos los campos son requeridos.', 404));
             }
 
             if (rango_numeros < 1) {
-                next(new AppError('Se debe ingresar un rango de números mayor a 0.', 404));
+                return next(new AppError('Se debe ingresar un rango de números mayor a 0.', 404));
             }
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
             const fechaFinVenta = new Date(fin_periodo_venta);
-            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date()) {
-                next(new AppError('Ingrese un periodo válido.', 404));
+            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date() || fechaInicioVenta < new Date()) {
+                return next(new AppError('Ingrese un periodo válido.', 404));
             }
 
             const fechaRealizacion = new Date(fecha_realizacion);
             if (fechaRealizacion < new Date()) {
-                next(new AppError('La fecha de realización del sorteo debe ser válida.', 404));
+                return next(new AppError('La fecha de realización del sorteo debe ser válida.', 404));
             }
 
             if (precio_numero < 1) {
-                next(new AppError('El precio del número no puede ser menor a 1 peso.', 404));
+                return next(new AppError('El precio del número no puede ser menor a 1 peso.', 404));
+            }
+
+            if (!Array.isArray(premiosData) || premiosData.length === 0) {
+                return next(new AppError('Se deben proporcionar datos válidos para los premios.', 404));
+            }
+
+            for (const premio of premiosData) {
+                if (!premio.titulo || !premio.imagen_premio_url) {
+                    return next(new AppError('Se deben proporcionar datos válidos para los premios.', 404));
+                }
+            }
+            const sorteoExistente = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
+            if (sorteoExistente) {
+                return next(new AppError('Ya existe un sorteo con ese título.', 404));
             }
 
             const sorteoData = {
