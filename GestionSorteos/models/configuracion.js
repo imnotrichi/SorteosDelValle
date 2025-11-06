@@ -10,12 +10,12 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Configuracion.hasMany(models.Sorteos,{foreignKey: 'id_configuracion'});
+      Configuracion.hasMany(models.Sorteo, { foreignKey: 'id_configuracion' });
     }
   }
   Configuracion.init({
-    tiempo_limite_apartado: DataTypes.DATE,
-    tiempo_recordatorio_pago: DataTypes.DATE
+    tiempo_limite_apartado: DataTypes.TIME,
+    tiempo_recordatorio_pago: DataTypes.TIME
   }, {
     sequelize,
     modelName: 'Configuracion',
