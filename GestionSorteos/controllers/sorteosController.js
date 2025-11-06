@@ -16,11 +16,10 @@ class SorteosController {
                 fecha_realizacion,
                 precio_numero,
                 id_configuracion,
-                titulo_premio,
-                url_imagen_premio } = req.body;
+                premiosData } = req.body;
 
             if (!titulo || !descripcion || !imagen_url || !rango_numeros || !inicio_periodo_venta || !fin_periodo_venta
-                || !fecha_realizacion || !precio_numero || !id_configuracion || !titulo_premio || !url_imagen_premio) {
+                || !fecha_realizacion || !precio_numero || !id_configuracion || !premiosData) {
                 next(new AppError('Todos los campos son requeridos.', 404));
             }
 
@@ -43,10 +42,6 @@ class SorteosController {
                 next(new AppError('El precio del número no puede ser menor a 1 peso.', 404));
             }
 
-            const premioData = {
-                titulo: titulo_premio,
-                imagen_premio_url: url_imagen_premio
-            }
             const sorteoData = {
                 titulo,
                 descripcion,
@@ -57,12 +52,13 @@ class SorteosController {
                 fecha_realizacion,
                 precio_numero,
                 id_configuracion,
-                premioData
+                premiosData
             }
 
             const sorteoCreado = await sorteosDAO.crearSorteo(sorteoData);
             res.status(200).json(sorteoCreado);
         } catch (error) {
+            console.log(error);
             next(new AppError('Ocurrió un error al crear el sorteo', 500));
         }
     }

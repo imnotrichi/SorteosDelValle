@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/imnotrichi/SorteosDelValle#readme",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "morgan": "^1.10.1",
     "mysql2": "^3.15.3",
