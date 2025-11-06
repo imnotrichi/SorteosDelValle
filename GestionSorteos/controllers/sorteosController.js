@@ -5,7 +5,7 @@ class SorteosController {
 
     constructor() { }
 
-    async crearPublicacion(req, res, next) {
+    async crearSorteo(req, res, next) {
         try {
             const { titulo,
                 descripcion,
@@ -62,6 +62,33 @@ class SorteosController {
             next(new AppError('Ocurrió un error al crear el sorteo', 500));
         }
     }
+
+    async obtenerSorteoPorId(req, res, next) {
+        try {
+            const idSorteo = req.params.id;
+
+            const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
+            res.status(200).json(sorteo);
+        } catch (error) {
+            next(new AppError('Ocurrió un error al obtener el sorteo.', 500));
+        }
+    }
+
+    async obtenerSorteoPorTitulo(req, res, next) {
+        try {
+            const titulo = req.query.titulo;
+            console.log('---> TITULO:', titulo);
+
+            if (!titulo) {
+                next(new AppError('Asegúrese de enviar el título para realizar la búsqueda', 404));
+            }
+            const sorteo = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
+            res.status(200).json(sorteo);
+        } catch (error) {
+            next(new AppError('Ocurrió un error al obtener el sorteo.', 500));
+        }
+    }
+
 }
 
 module.exports = new SorteosController();
