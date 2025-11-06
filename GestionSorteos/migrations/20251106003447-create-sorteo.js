@@ -15,7 +15,7 @@ module.exports = {
       descripcion: {
         type: Sequelize.STRING
       },
-      imagen_sorte_url: {
+      imagen_url: {
         type: Sequelize.STRING
       },
       rango_numeros: {
