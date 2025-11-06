@@ -2,18 +2,19 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Clientes', {
-      id_usuario: {
+    await queryInterface.createTable('PagosEnLineas', {
+      id_pago: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.INTEGER,
         references: {
-          model: "Usuarios",
+          model: 'Pagos',
           key: 'id'
         },
+        type: Sequelize.INTEGER,
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
-      },createdAt: {
+      },
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE
       },
@@ -21,10 +22,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
-      
+
+
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Clientes');
+    await queryInterface.dropTable('PagosEnLineas');
   }
 };
