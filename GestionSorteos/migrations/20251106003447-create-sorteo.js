@@ -34,7 +34,11 @@ module.exports = {
         type: Sequelize.DECIMAL
       },
       id_configuracion: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        references: { 
+          model: 'Configuraciones',
+          key: 'id'
+        }
       },
       createdAt: {
         allowNull: false,
