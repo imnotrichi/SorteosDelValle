@@ -11,13 +11,16 @@ class SorteosDAO {
                 ...sorteoData
             });
 
-            for (let i = 0; i < sorteoData.premios.length; i++) {
+            for (let i = 0; i < sorteoData.premiosData.length; i++) {
                 await Premio.create({ 
-                    titulo: sorteoData.premioData[i].titulo, 
-                    imagen_premio_url: sorteoData.premioData[i].imagen_url, 
+                    titulo: sorteoData.premiosData[i].titulo, 
+                    imagen_premio_url: sorteoData.premiosData[i].imagen_premio_url, 
                     id_sorteo: sorteoCreado.id });
             }
+
+            return sorteoCreado;
         } catch (error) {
+            console.log(error);
             throw error;
         }
     }
