@@ -9,13 +9,19 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    
+
     static associate(models) {
       // define association here
-      //Sorteo.hasMany(models.OrganizadorSorteo, {foreignKey: 'id_sorteo'});
-      //Sorteo.belongsToMany(models.Organizador, {through: models.OrganizadorSorteo,foreignKey: 'id_sorteo'});
-      Sorteo.belongsTo(models.Configuracion, {foreignKey: 'id_configuracion'});
-      Sorteo.hasMany(models.Premio, {foreignKey: 'id_sorteo'})
+      Sorteo.belongsToMany(models.Organizador, {
+        through: models.OrganizadorSorteo,
+        foreignKey: 'id_sorteo',
+        otherKey: 'id_organizador'
+      });
+
+      Sorteo.hasMany(models.OrganizadorSorteo, {foreignKey: 'id_sorteo'});
+
+      Sorteo.belongsTo(models.Configuracion, { foreignKey: 'id_configuracion' });
+      Sorteo.hasMany(models.Premio, { foreignKey: 'id_sorteo' })
     }
   }
   Sorteo.init({

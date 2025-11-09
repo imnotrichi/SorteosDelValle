@@ -2,39 +2,32 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Numeros', {
+    await queryInterface.createTable('OrganizadorSorteos', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      numero: {
-        type: Sequelize.INTEGER
-      },
-      estado: {
-        type: Sequelize.STRING
+      id_organizador: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references:{
+          model: 'Organizadores',
+          key: 'id_usuario'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       id_sorteo: {
         type: Sequelize.INTEGER,
-        references: { 
+        allowNull: false,
+        references:{
           model: 'Sorteos',
           key: 'id'
-        }
-      },
-      id_cliente: {
-        type: Sequelize.INTEGER,
-        references:{
-          model: 'Clientes',
-          key: 'id_usuario'
-        }
-      },
-      id_pago: {
-        type: Sequelize.INTEGER,
-        references: { 
-          model: 'Pagos',
-          key: 'id'
-        }
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -47,6 +40,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Numeros');
+    await queryInterface.dropTable('OrganizadorSorteos');
   }
 };
