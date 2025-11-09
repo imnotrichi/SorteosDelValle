@@ -17,7 +17,8 @@ afterAll(async () => {
     // Limpieza
     await Premio.destroy({ where: {} });
     await Sorteo.destroy({ where: {} });
-    await Configuracion.destroy({ where: {} });
+    // Eliminar la configuración de prueba con su id
+    await Configuracion.destroy({ where: { id: configId } });
 });
 
 
@@ -26,9 +27,9 @@ describe('crearSorteo (DAO)', () => {
     it('debería crear un nuevo sorteo en la base de datos', async () => {
         // Arrange
         const datosSorteo = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 1 - DAO",
+            "descripcion": "Descripción del sorteo 1 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo1-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -36,8 +37,8 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 1 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio1-dao"
             }]
         };
 
@@ -60,8 +61,8 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el título', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "descripcion": "Descripción del sorteo 2 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo2-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -69,8 +70,8 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 2 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio2-dao"
             }]
         };
 
@@ -83,8 +84,8 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta la descripción', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 3 - DAO",
+            "imagen_url": "http:imagenes.com/sorteo3-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -92,8 +93,8 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 3 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio3-dao"
             }]
         };
 
@@ -106,8 +107,8 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta la imagen', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
+            "titulo": "Sorteo 4 - DAO",
+            "descripcion": "Descripción del sorteo 4 - DAO.",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -115,8 +116,8 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 4 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio4-dao"
             }]
         };
 
@@ -129,17 +130,17 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el rango de números', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 5 - DAO",
+            "descripcion": "Descripción del sorteo 5 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo5-dao",
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 5 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio5-dao"
             }]
         };
 
@@ -152,17 +153,17 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el inicio de periodo de venta', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 6 - DAO",
+            "descripcion": "Descripción del sorteo 6 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo6-dao",
             "rango_numeros": 100,
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 6 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio6-dao"
             }]
         };
 
@@ -175,17 +176,17 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el fin de periodo de venta', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 7 - DAO",
+            "descripcion": "Descripción del sorteo 7 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo7-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 7 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio7-dao"
             }]
         };
 
@@ -198,17 +199,17 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta la fecha de realización', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 8 - DAO",
+            "descripcion": "Descripción del sorteo 8 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo8-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 8 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio8-dao"
             }]
         };
 
@@ -221,17 +222,17 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el precio por número', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 9 - DAO",
+            "descripcion": "Descripción del sorteo 9 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo9-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 9 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio9-dao "
             }]
         };
 
@@ -244,17 +245,17 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el ID de configuración', async () => {
         // Arrange
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 10 - DAO",
+            "descripcion": "Descripción del sorteo 10 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo10-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 10 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio10-dao"
             }]
         };
 
@@ -266,13 +267,10 @@ describe('crearSorteo (DAO)', () => {
     // Prueba 11: Intentar crear un sorteo sin datos del premio
     it('no debería crear un sorteo si faltan los datos del premio', async () => {
         // Arrange
-        await Premio.destroy({ where: {} });
-        await Sorteo.destroy({ where: {} });
-
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 11 - DAO",
+            "descripcion": "Descripción del sorteo 11 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo11-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -289,13 +287,10 @@ describe('crearSorteo (DAO)', () => {
     // Prueba 12: Intentar crear un sorteo sin el título del premio
     it('no debería crear un sorteo si falta el título del premio', async () => {
         // Arrange
-        await Premio.destroy({ where: {} });
-        await Sorteo.destroy({ where: {} });
-
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 12 - DAO",
+            "descripcion": "Descripción del sorteo 12 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo12-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -303,7 +298,7 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "imagen_premio_url": "http:imagenes.com/premio12-dao"
             }]
         };
 
@@ -315,13 +310,10 @@ describe('crearSorteo (DAO)', () => {
     // Prueba 13: Intentar crear un sorteo sin la imagen del premio
     it('no debería crear un sorteo si falta la imagen del premio', async () => {
         // Arrange
-        await Premio.destroy({ where: {} });
-        await Sorteo.destroy({ where: {} });
-
         const datosSorteoIncompletos = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 13 - DAO",
+            "descripcion": "Descripción del sorteo 13 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo13-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -329,7 +321,7 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025"
+                "titulo": "Premio 13 - DAO"
             }]
         };
 
@@ -341,13 +333,10 @@ describe('crearSorteo (DAO)', () => {
     // Prueba 14: Intentar crear un sorteo con el título duplicado
     it('no debería crear un sorteo si ya existe otro con el mismo título', async () => {
         // Arrange
-        await Premio.destroy({ where: {} });
-        await Sorteo.destroy({ where: {} });
-
         const datosSorteo1 = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 14 - DAO",
+            "descripcion": "Descripción del sorteo 14 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo14-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -355,15 +344,15 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 14 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio14-dao"
             }]
         };
 
         const datosSorteo2 = {
-            "titulo": "Camioneta F-150 modelo 2025",
-            "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "http:imagenes.com/ford-f-150",
+            "titulo": "Sorteo 14 - DAO",
+            "descripcion": "Descripción del sorteo 14 - DAO.",
+            "imagen_url": "http:imagenes.com/sorteo14-dao",
             "rango_numeros": 100,
             "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
@@ -371,8 +360,8 @@ describe('crearSorteo (DAO)', () => {
             "precio_numero": 1000,
             "id_configuracion": configId,
             "premiosData": [{
-                "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "http:imagenes.com/ford-f-150"
+                "titulo": "Premio 14 - DAO",
+                "imagen_premio_url": "http:imagenes.com/premio14-dao"
             }]
         };
 

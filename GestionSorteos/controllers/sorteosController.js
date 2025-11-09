@@ -29,9 +29,6 @@ class SorteosController {
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
             const fechaFinVenta = new Date(fin_periodo_venta);
-            console.log(fechaInicioVenta);
-            console.log(fechaFinVenta);
-            console.log(fechaInicioVenta > fechaFinVenta);
             if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date() || fechaInicioVenta < new Date()) {
                 return next(new AppError('Ingrese un periodo válido.', 400));
             }
