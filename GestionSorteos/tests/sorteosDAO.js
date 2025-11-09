@@ -28,16 +28,16 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteo = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -61,16 +61,16 @@ describe('crearSorteo (DAO)', () => {
         // Arrange
         const datosSorteoIncompletos = {
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -84,16 +84,16 @@ describe('crearSorteo (DAO)', () => {
         // Arrange
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -109,14 +109,14 @@ describe('crearSorteo (DAO)', () => {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -131,15 +131,15 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
-            "inicio_periodo_venta": "2025-11-06",
+            "imagen_url": "http:imagenes.com/ford-f-150",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -154,7 +154,7 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
@@ -162,7 +162,7 @@ describe('crearSorteo (DAO)', () => {
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -177,15 +177,15 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -200,15 +200,15 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -223,15 +223,15 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -246,15 +246,15 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -272,9 +272,9 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
@@ -295,15 +295,15 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
             "premiosData": [{
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
@@ -321,9 +321,9 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteoIncompletos = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
@@ -347,32 +347,32 @@ describe('crearSorteo (DAO)', () => {
         const datosSorteo1 = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
         const datosSorteo2 = {
             "titulo": "Camioneta F-150 modelo 2025",
             "descripcion": "Rifa de una camioneta Ford F-150 del año.",
-            "imagen_url": "imagenes/imagenCamioneta.jpeg",
+            "imagen_url": "http:imagenes.com/ford-f-150",
             "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-11-06",
+            "inicio_periodo_venta": "2025-12-06",
             "fin_periodo_venta": "2025-12-23",
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000,
             "id_configuracion": configId,
             "premiosData": [{
                 "titulo": "Camioneta Ford F-150 modelo 2025",
-                "imagen_premio_url": "imagenes/imagenCamioneta.jpeg"
+                "imagen_premio_url": "http:imagenes.com/ford-f-150"
             }]
         };
 
