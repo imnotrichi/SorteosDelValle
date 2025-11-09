@@ -3,6 +3,7 @@ import FormSection from '../components/formulario.jsx';
 import Input, { TextArea } from '../components/input';
 import FileUpload from '../components/subirImagen.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
+import addIcon from '../assets/añadir.png';
 
 const CrearSorteo = () => {
   const [formData, setFormData] = useState({
@@ -67,8 +68,6 @@ const CrearSorteo = () => {
     e.preventDefault();
     
     try {
-      // hola aquí llamaríamos a la api
-      
       console.log('Datos del sorteo:', {
         ...formData,
         premios,
@@ -174,7 +173,7 @@ const CrearSorteo = () => {
             <FormSection title="Premios">
               <div className="flex flex-col gap-5">
                 {premios.map((premio, index) => (
-                  <div key={premio.id} className="flex flex-col gap-4 p-5 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg">
+                  <div key={premio.id} className="flex flex-col gap-4 p-5 bg-card-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg">
                     <div className="flex justify-between items-center">
                       <p className="text-lg font-bold text-text-light dark:text-text-dark">
                         #{index + 1}
@@ -206,9 +205,9 @@ const CrearSorteo = () => {
                 <button
                   type="button"
                   onClick={handleAñadirPremio}
-                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition-colors"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors"
                 >
-                  <span className="material-symbols-outlined">add_circle</span>
+                  <img src={addIcon} alt="Añadir" className="w-5 h-5 brightness-0 invert" />
                   Añadir premio
                 </button>
               </div>
@@ -266,7 +265,7 @@ const CrearSorteo = () => {
                     <div className="flex items-start gap-2">
                       <div className="flex-1">
                         <Input
-                          label={`#${index + 1} Correo electrónico del organizador`}
+                          label={`#${index + 1}`}
                           type="email"
                           placeholder='ej. "diego.valenzuela247700@potros.itson.edu.mx"'
                           value={org.email}
@@ -289,9 +288,9 @@ const CrearSorteo = () => {
                 <button
                   type="button"
                   onClick={handleAñadirOrganizador}
-                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition-colors"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors"
                 >
-                  <span className="material-symbols-outlined">add_circle</span>
+                  <img src={addIcon} alt="Añadir" className="w-5 h-5 brightness-0 invert" />
                   Añadir organizador
                 </button>
               </div>
@@ -300,13 +299,13 @@ const CrearSorteo = () => {
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 z-10 bg-card-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark">
+        <div className="fixed bottom-0 left-0 right-0 z-10 bg-card-light/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-end items-center gap-3">
               <button 
                 type="button" 
                 onClick={handleCancel}
-                className="flex items-center justify-center rounded-lg h-11 px-6 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-text-light dark:text-text-dark text-sm font-bold transition-colors"
+                className="flex items-center justify-center rounded-lg h-11 px-6 bg-border-light hover:bg-border-light/90 text-text-light dark:text-text-dark text-sm font-bold transition-colors"
               >
                 Cancelar
               </button>
