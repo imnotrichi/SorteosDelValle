@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      OrganizadorSorteo.belongsTo(models.Organizar, {
+      OrganizadorSorteo.belongsTo(models.Organizador, {
         foreignKey: 'id_organizador',
         targetKey: 'id_usuario'
       });
@@ -28,7 +28,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       primaryKey: true
     },
-
     id_sorteo: {
       type: DataTypes.INTEGER,
       allowNull: false,
