@@ -1,4 +1,5 @@
 import React from 'react';
+import uploadIcon from '../assets/subir.png';
 
 const FileUpload = ({ label, id = "dropzone-file" }) => {
   return (
@@ -8,9 +9,7 @@ const FileUpload = ({ label, id = "dropzone-file" }) => {
         htmlFor={id}
         className="flex flex-col items-center justify-center w-full h-44 border-2 border-border-light dark:border-border-dark border-dashed rounded-lg cursor-pointer bg-background-light dark:bg-background-dark hover:bg-primary/5 transition-colors">
         <div className="flex flex-col items-center justify-center py-6">
-          <span className="material-symbols-outlined text-5xl text-text-light/30 dark:text-text-dark/30 mb-3">
-            cloud_upload
-          </span>
+          <img src={uploadIcon} alt="Upload" className="w-8 h-6 mb-2" />
           <p className="text-sm text-text-light/60 dark:text-text-dark/60">
             <span className="font-semibold">Haz clic aquí</span> para subir una imagen
           </p>

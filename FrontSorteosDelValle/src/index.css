@@ -3,6 +3,23 @@
 
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #53EF48;
+  --color-background-light: #E5FBDE;
+  --color-text-light: #1F2300;
+  --color-card-light: #FFFFFF;
+  --color-border-light: #CEE8C7;
+  --color-button-add-light: #89AD80;
+  --color-card-number: #1E6636;
+
+  --font-family-display: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+}
+
 .material-symbols-outlined {
   font-variation-settings:
     'FILL' 0,
