@@ -1,23 +1,59 @@
+import { or } from "sequelize";
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 const sorteosController = require('../controllers/sorteosController.js');
-const { Sorteo, Configuracion, Premio } = require("../models/index.js");
+const { Sorteo, Configuracion, Premio, Organizador, Usuario, OrganizadorSorteo } = require("../models/index.js");
 
 let configId;
+let organizadorId1;
+let organizadorId2;
 
 beforeAll(async () => {
-    // Inserta una configuración de prueba
+    // Insertas una configuración de prueba
     const config = await Configuracion.create({
         "tiempo_limite_apartado": "160:00:00",
         "tiempo_recordatorio_pago": "72:00:00"
     });
     configId = config.id;
+
+    // Creamos los organizadores
+    const datosOrganizador1 = {
+        nombres: "Juan",
+        apellido_paterno: "Perez",
+        apellido_materno: "Gomez"
+    };
+    const usuario1 = await Usuario.create({
+        ...datosOrganizador1
+    });
+    const organizador1 = await Organizador.create({
+        id_usuario: usuario1.id,
+    });
+
+    const datosOrganizador2 = {
+        nombres: "Alberto",
+        apellido_paterno: "Fonseca",
+        apellido_materno: "Valencia"
+    };
+    const usuario2 = await Usuario.create({
+        ...datosOrganizador2
+    });
+    const organizador2 = await Organizador.create({
+        id_usuario: usuario2.id,
+    });
+
+    organizadorId1 = organizador1.id_usuario;
+    organizadorId2 = organizador2.id_usuario;
 });
 
 afterAll(async () => {
-    // Limpieza de la base de datos
+    // Eliminar organizadores y usuarios creados
+    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId1 } });
+    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId2 } });
+    await Organizador.destroy({ where: { id_usuario: organizadorId1 } });
+    await Organizador.destroy({ where: { id_usuario: organizadorId2 } });
+    await Usuario.destroy({ where: { id: organizadorId1 } });
+    await Usuario.destroy({ where: { id: organizadorId2 } });
     await Premio.destroy({ where: {} });
     await Sorteo.destroy({ where: {} });
-    // Eliminar la configuración de prueba con su id
     await Configuracion.destroy({ where: { id: configId } });
 });
 
@@ -31,8 +67,7 @@ const setupMocks = () => ({
 });
 
 describe('crearSorteo (Controller)', () => {
-
-    // Prueba 1: Crear un sorteo con datos válidos
+    // Prueba 1: Crear un sorteo con datos válidos (1 organizador)
     it('debería crear un nuevo sorteo y responder con 200', async () => {
         // Arrange
         const datosSorteo = {
@@ -48,7 +83,8 @@ describe('crearSorteo (Controller)', () => {
             premiosData: [{
                 titulo: "Premio 1 - Controller",
                 imagen_premio_url: "http:imagenes.com/premio1-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
 
         const mockReq = { body: datosSorteo };
@@ -103,7 +139,8 @@ describe('crearSorteo (Controller)', () => {
             premiosData: [{
                 titulo: "Premio 2 - Controller",
                 imagen_premio_url: "http:imagenes.com/premio2-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const mockReq = { body: datosSorteoIncompletos };
         const { mockRes, mockNext } = setupMocks();
@@ -134,7 +171,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 3 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio3-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -165,7 +203,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 4 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio4-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -197,7 +236,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 5 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio5-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -229,7 +269,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 6 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio6-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -261,7 +302,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 7 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio7-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -291,7 +333,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 8 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio8-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -323,7 +366,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 9 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio9-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -355,7 +399,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 10 - Controller",
                 "imagen_premio_url": "http:imagenes.com/premio10-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -384,7 +429,7 @@ describe('crearSorteo (Controller)', () => {
             "fecha_realizacion": "2025-12-24",
             "precio_numero": 1000.00,
             "id_configuracion": configId,
-            // falta premiosData
+            "organizadores": [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -414,7 +459,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 // falta titulo
                 "imagen_premio_url": "http:imagenes.com/premio12-controller"
-            }]
+            }],
+            "organizadores": [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -444,7 +490,8 @@ describe('crearSorteo (Controller)', () => {
             "premiosData": [{
                 "titulo": "Premio 13 - Controller"
                 // falta imagen_premio_url
-            }]
+            }],
+            "organizadores": [organizadorId1]
         };
         const { mockRes, mockNext } = setupMocks();
         const mockReq = { body: datosSorteoIncompletos };
@@ -475,7 +522,8 @@ describe('crearSorteo (Controller)', () => {
             premiosData: [{
                 titulo: "Premio 14 - Controller",
                 imagen_premio_url: "http:imagenes.com/premio14-controller"
-            }]
+            }],
+            organizadores: [organizadorId1]
         };
 
         // Primera llamada: DEBE CREAR el sorteo correctamente
@@ -496,12 +544,11 @@ describe('crearSorteo (Controller)', () => {
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
         expect(mockRes.json).not.toHaveBeenCalled();
-
         const error = mockNext.mock.calls[0][0];
-
         expect(error.statusCode).toBe(400);
         expect(error.message).toBe("Ya existe un sorteo con ese título.");
     });
+
     // Prueba 15: Fecha fin de venta menor al inicio
     it('debería llamar a next con error 400 si el periodo de venta es inválido (fin < inicio)', async () => {
         const { mockRes, mockNext } = setupMocks();
@@ -520,7 +567,8 @@ describe('crearSorteo (Controller)', () => {
                 premiosData: [{
                     titulo: "Premio 15 - Controller",
                     imagen_premio_url: "http:imagenes.com/premio15-controller"
-                }]
+                }],
+                organizadores: [organizadorId1]
             }
         };
 
@@ -550,7 +598,8 @@ describe('crearSorteo (Controller)', () => {
                 premiosData: [{
                     titulo: "Premio 16 - Controller",
                     imagen_premio_url: "http:imagenes.com/premio16-controller"
-                }]
+                }],
+                organizadores: [organizadorId1]
             }
         };
 
@@ -580,7 +629,8 @@ describe('crearSorteo (Controller)', () => {
                 premiosData: [{
                     titulo: "Premio 17 - Controller",
                     imagen_premio_url: "http:imagenes.com/premio17-controller"
-                }]
+                }],
+                organizadores: [organizadorId1]
             }
         };
 
@@ -611,7 +661,8 @@ describe('crearSorteo (Controller)', () => {
                 premiosData: [{
                     titulo: "Premio 18 - Controller",
                     imagen_premio_url: "http:imagenes.com/premio18-controller"
-                }]
+                }],
+                organizadores: [organizadorId1]
             }
         };
 
@@ -642,7 +693,8 @@ describe('crearSorteo (Controller)', () => {
                 premiosData: [{
                     titulo: "Premio 19 - Controller",
                     imagen_premio_url: "http:imagenes.com/premio19-controller"
-                }]
+                }],
+                organizadores: [organizadorId1]
             }
         };
 
@@ -654,4 +706,122 @@ describe('crearSorteo (Controller)', () => {
         expect(error.message).toBe("El precio del número no puede ser menor a 1 peso.");
     });
 
+    // Prueba 20: Crear un sorteo con datos válidos (2 organizadores)
+    it('debería crear un nuevo sorteo y responder con 200', async () => {
+        // Arrange
+        const datosSorteo = {
+            titulo: "Sorteo 20 - Controller",
+            descripcion: "Descripción del sorteo 20 - Controller.",
+            imagen_url: "http:imagenes.com/sorteo20-controller",
+            rango_numeros: 100,
+            inicio_periodo_venta: "2025-12-06",
+            fin_periodo_venta: "2025-12-23",
+            fecha_realizacion: "2025-12-24",
+            precio_numero: 1000,
+            id_configuracion: configId,
+            premiosData: [{
+                titulo: "Premio 20 - Controller",
+                imagen_premio_url: "http:imagenes.com/premio20-controller"
+            }],
+            organizadores: [organizadorId1, organizadorId2]
+        };
+
+        const mockReq = { body: datosSorteo };
+        const mockRes = {
+            status: vi.fn(() => mockRes),
+            json: vi.fn(),
+        };
+        const mockNext = vi.fn();
+
+        // Act
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).not.toHaveBeenCalled();
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalled();
+
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+
+        const toShort = d => new Date(d).toISOString().substring(0, 10);
+
+        expect(sorteoCreado).toHaveProperty('id');
+        expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
+        expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
+        expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
+        expect(sorteoCreado.rango_numeros).toBe(datosSorteo.rango_numeros);
+
+        expect(toShort(sorteoCreado.inicio_periodo_venta))
+            .toBe(datosSorteo.inicio_periodo_venta);
+        expect(toShort(sorteoCreado.fin_periodo_venta))
+            .toBe(datosSorteo.fin_periodo_venta);
+        expect(toShort(sorteoCreado.fecha_realizacion))
+            .toBe(datosSorteo.fecha_realizacion);
+
+        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(sorteoCreado.id_configuracion).toBe(datosSorteo.id_configuracion);
+    });
+
+    // Prueba 21: Sin datos de los organizadores
+    it('debería llamar a next con error si faltan los datos de los organizadores', async () => {
+        // Arrange
+        const datosSorteoIncompletos = {
+            "titulo": "Sorteo 21 - Controller",
+            "descripcion": "Descripción del sorteo 21 - Controller.",
+            "imagen_url": "http:imagenes.com/sorteo21-controller",
+            "rango_numeros": 100,
+            "inicio_periodo_venta": "2025-12-06",
+            "fin_periodo_venta": "2025-12-23",
+            "fecha_realizacion": "2025-12-24",
+            "precio_numero": 1000.00,
+            "id_configuracion": configId,
+            "premiosData": [{
+                "titulo": "Premio 21 - Controller",
+                "imagen_premio_url": "http:imagenes.com/premio21-controller"
+            }]
+        };
+        const { mockRes, mockNext } = setupMocks();
+        const mockReq = { body: datosSorteoIncompletos };
+
+        // Act
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
+    });
+
+    // Prueba 22: Sin datos de los organizadores (array vacío)
+    it('debería llamar a next con error si faltan los datos de los organizadores (array vacío)', async () => {
+        // Arrange
+        const datosSorteoIncompletos = {
+            "titulo": "Sorteo 22 - Controller",
+            "descripcion": "Descripción del sorteo 22 - Controller.",
+            "imagen_url": "http:imagenes.com/sorteo22-controller",
+            "rango_numeros": 100,
+            "inicio_periodo_venta": "2025-12-06",
+            "fin_periodo_venta": "2025-12-23",
+            "fecha_realizacion": "2025-12-24",
+            "precio_numero": 1000.00,
+            "id_configuracion": configId,
+            "premiosData": [{
+                "titulo": "Premio 22 - Controller",
+                "imagen_premio_url": "http:imagenes.com/premio22-controller"
+            }],
+            "organizadores": []
+        };
+        const { mockRes, mockNext } = setupMocks();
+        const mockReq = { body: datosSorteoIncompletos };
+
+        // Act
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(mockNext.mock.calls[0][0].message).toBe('Debe haber al menos un organizador para el sorteo.');
+    });
 });

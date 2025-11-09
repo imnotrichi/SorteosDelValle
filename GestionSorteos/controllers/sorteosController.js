@@ -21,7 +21,7 @@ class SorteosController {
 
             if (!titulo || !descripcion || !imagen_url || rango_numeros == null || !inicio_periodo_venta || !fin_periodo_venta
                 || !fecha_realizacion || precio_numero == null || !id_configuracion || !premiosData || !organizadores) {
-                return next(new AppError('Todos los campos son requeridos.', 404));
+                return next(new AppError('Todos los campos son requeridos.', 400));
             }
 
             if (rango_numeros < 1) {
@@ -48,7 +48,7 @@ class SorteosController {
             }
 
             if (!Array.isArray(organizadores) || organizadores.length === 0) {
-                return next(new AppError('Debe haber al menos un organizador para el sorteo.', 404));
+                return next(new AppError('Debe haber al menos un organizador para el sorteo.', 400));
             }
 
             for (const premio of premiosData) {
@@ -101,7 +101,7 @@ class SorteosController {
             console.log('---> TITULO:', titulo);
 
             if (!titulo) {
-                next(new AppError('Asegúrese de enviar el título para realizar la búsqueda', 404));
+                next(new AppError('Asegúrese de enviar el título para realizar la búsqueda', 400));
             }
             const sorteo = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
             res.status(200).json(sorteo);

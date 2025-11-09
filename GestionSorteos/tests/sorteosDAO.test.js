@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 const sorteosDAO = require('../dataAccess/sorteosDAO.js');
-const { Sorteo, Configuracion, Premio, Organizador, Usuario } = require("../models/index.js");
+const { Sorteo, Configuracion, Premio, Organizador, Usuario, OrganizadorSorteo } = require("../models/index.js");
 
 let configId;
 let organizadorId1;
@@ -44,10 +44,16 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    // Limpieza
+    // Eliminar organizadores y usuarios creados
+    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId1 } });
+    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId2 } });
+    await Organizador.destroy({ where: { id_usuario: organizadorId1 } });
+    await Organizador.destroy({ where: { id_usuario: organizadorId2 } });
+    await Usuario.destroy({ where: { id: organizadorId1 } });
+    await Usuario.destroy({ where: { id: organizadorId2 } });
+
     await Premio.destroy({ where: {} });
     await Sorteo.destroy({ where: {} });
-    // Eliminar la configuración de prueba con su ID
     await Configuracion.destroy({ where: { id: configId } });
 });
 
