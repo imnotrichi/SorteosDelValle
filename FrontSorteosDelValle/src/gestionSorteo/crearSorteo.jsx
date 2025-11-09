@@ -87,10 +87,10 @@ const CrearSorteo = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-body">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 pb-24">
         
-        <h1 className="text-[32px] font-extrabold tracking-tight text-text-light dark:text-text-dark">
+        <h1 className="text-[32px] font-extrabold tracking-tight text-text-light">
           Crear sorteo
         </h1>
 
@@ -173,9 +173,9 @@ const CrearSorteo = () => {
             <FormSection title="Premios">
               <div className="flex flex-col gap-5">
                 {premios.map((premio, index) => (
-                  <div key={premio.id} className="flex flex-col gap-4 p-5 bg-card-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg">
+                  <div key={premio.id} className="flex flex-col gap-4 p-5 bg-background-light border border-border-light rounded-lg">
                     <div className="flex justify-between items-center">
-                      <p className="text-lg font-bold text-text-light dark:text-text-dark">
+                      <p className="text-lg font-bold text-text-light">
                         #{index + 1}
                       </p>
                       {index > 0 && (
@@ -205,7 +205,7 @@ const CrearSorteo = () => {
                 <button
                   type="button"
                   onClick={handleAñadirPremio}
-                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors font-body"
                 >
                   <img src={addIcon} alt="Añadir" className="w-5 h-5 brightness-0 invert" />
                   Añadir premio
@@ -219,7 +219,7 @@ const CrearSorteo = () => {
             <FormSection title="Configuración">
               <div className="flex flex-col gap-5">
                 <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-sm font-medium text-text-light dark:text-text-dark">
+                  <span className="text-sm font-medium text-text-light dark:text-text-dark font-body">
                     Usar configuración global
                   </span>
                   <div className="relative inline-block w-11 h-6">
@@ -288,7 +288,7 @@ const CrearSorteo = () => {
                 <button
                   type="button"
                   onClick={handleAñadirOrganizador}
-                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors font-body"
                 >
                   <img src={addIcon} alt="Añadir" className="w-5 h-5 brightness-0 invert" />
                   Añadir organizador
@@ -299,7 +299,7 @@ const CrearSorteo = () => {
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 z-10 bg-card-light/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark">
+        <div className="fixed bottom-0 left-0 right-0 z-10 bg-card-light/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark font-body">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-end items-center gap-3">
               <button 
