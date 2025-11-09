@@ -9,10 +9,18 @@ class SorteosDAO {
 
     async crearSorteo(sorteoData) {
         try {
+            if (!sorteoData.premiosData || sorteoData.premiosData.length === 0) {
+                throw new Error('Los datos de los premios son requeridos para crear un sorteo.');
+            }
+            if (!sorteoData.organizadores || sorteoData.organizadores.length === 0) {
+                throw new Error('Se requiere al menos un organizador para crear un sorteo.');
+            }
+
             const sorteoCreado = await Sorteo.create({
                 ...sorteoData
             });
 
+            // Crear premios
             for (let i = 0; i < sorteoData.premiosData.length; i++) {
                 await Premio.create({
                     titulo: sorteoData.premiosData[i].titulo,
@@ -21,14 +29,17 @@ class SorteosDAO {
                 });
             }
 
+            // Crear relación organizador-sorteo
             for (let i = 0; i < sorteoData.organizadores.length; i++) {
+                const organizadorId = sorteoData.organizadores[i];
                 await OrganizadorSorteo.create({
-                    id_organizador: sorteoData.organizadores[i].id_usuario,
+                    id_organizador: organizadorId,
                     id_sorteo: sorteoCreado.id
                 });
             }
 
             return sorteoCreado;
+
         } catch (error) {
             console.log(error);
             throw error;
