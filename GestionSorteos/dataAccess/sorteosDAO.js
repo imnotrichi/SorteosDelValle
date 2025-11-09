@@ -1,5 +1,6 @@
 const { Sorteo } = require('../models');
 const { Premio } = require('../models');
+const { OrganizadorSorteo } = require('../models/');
 const { Op } = require('sequelize');
 
 class SorteosDAO {
@@ -16,6 +17,13 @@ class SorteosDAO {
                 await Premio.create({
                     titulo: sorteoData.premiosData[i].titulo,
                     imagen_premio_url: sorteoData.premiosData[i].imagen_premio_url,
+                    id_sorteo: sorteoCreado.id
+                });
+            }
+
+            for (let i = 0; i < sorteoData.organizadores.length; i++) {
+                await OrganizadorSorteo.create({
+                    id_organizador: sorteoData.organizadores[i].id_usuario,
                     id_sorteo: sorteoCreado.id
                 });
             }
