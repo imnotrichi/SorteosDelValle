@@ -16,11 +16,12 @@ class SorteosController {
                 fecha_realizacion,
                 precio_numero,
                 id_configuracion,
-                premiosData } = req.body;
+                premiosData,
+                organizadores } = req.body;
 
             if (!titulo || !descripcion || !imagen_url || rango_numeros == null || !inicio_periodo_venta || !fin_periodo_venta
-                || !fecha_realizacion || precio_numero == null || !id_configuracion || !premiosData) {
-                return next(new AppError('Todos los campos son requeridos.', 400));
+                || !fecha_realizacion || precio_numero == null || !id_configuracion || !premiosData || !organizadores) {
+                return next(new AppError('Todos los campos son requeridos.', 404));
             }
 
             if (rango_numeros < 1) {
@@ -46,6 +47,10 @@ class SorteosController {
                 return next(new AppError('Todos los campos son requeridos.', 400));
             }
 
+            if (!Array.isArray(organizadores) || organizadores.length === 0) {
+                return next(new AppError('Debe haber al menos un organizador para el sorteo.', 404));
+            }
+
             for (const premio of premiosData) {
                 console.log(premio.titulo)
                 if (!premio.titulo || !premio.imagen_premio_url) {
@@ -67,7 +72,8 @@ class SorteosController {
                 fecha_realizacion,
                 precio_numero,
                 id_configuracion,
-                premiosData
+                premiosData,
+                organizadores
             }
 
             const sorteoCreado = await sorteosDAO.crearSorteo(sorteoData);

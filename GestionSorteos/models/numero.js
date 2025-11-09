@@ -13,14 +13,14 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Numero.belongsTo(models.Sorteo, {foreignKey: 'id_sorteo'});
       Numero.belongsTo(models.Pago, {foreignKey: 'id_pago'});
-      //Numero.belongsTo(models.Cliente, {foreignKey: 'id_cliente'});
+      Numero.belongsTo(models.Cliente, {foreignKey: 'id_cliente'});
     }
   }
   Numero.init({
     numero: DataTypes.INTEGER,
     estado: DataTypes.STRING,
     id_sorteo: DataTypes.INTEGER,
-    //id_cliente: DataTypes.INTEGER,
+    id_cliente: DataTypes.INTEGER,
     id_pago: DataTypes.INTEGER
   }, {
     sequelize,
