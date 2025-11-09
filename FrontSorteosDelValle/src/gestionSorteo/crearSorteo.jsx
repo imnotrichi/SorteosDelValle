@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import FormSection from '../components/formulario';
+import FormSection from '../components/formulario.jsx';
 import Input, { TextArea } from '../components/input';
-import FileUpload from '../components/subirImagen';
-import SuccessModal from '../components/mensajeExito';
+import FileUpload from '../components/subirImagen.jsx';
+import SuccessModal from '../components/mensajeExito.jsx';
 
 const CrearSorteo = () => {
   const [formData, setFormData] = useState({
