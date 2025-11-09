@@ -19,7 +19,6 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       Sorteo.hasMany(models.OrganizadorSorteo, {foreignKey: 'id_sorteo'});
-
       Sorteo.belongsTo(models.Configuracion, { foreignKey: 'id_configuracion' });
       Sorteo.hasMany(models.Premio, { foreignKey: 'id_sorteo' })
     }

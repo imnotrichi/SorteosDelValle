@@ -28,7 +28,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       primaryKey: true
     },
-
     id_sorteo: {
       type: DataTypes.INTEGER,
       allowNull: false,
