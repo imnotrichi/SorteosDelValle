@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
 
 @import "tailwindcss";
@@ -12,7 +13,9 @@
   --color-button-add-light: #89AD80;
   --color-card-number: #1E6636;
 
-  --font-family-display: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+  --font-family-header: "Onest", sans-serif;
+  --font-family-title: "Alexandria", sans-serif;
+  --font-family-body: "Onest", sans-serif;
 
   --radius: 0.5rem;
   --radius-lg: 0.75rem;
