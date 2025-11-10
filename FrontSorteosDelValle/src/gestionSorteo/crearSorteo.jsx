@@ -115,7 +115,7 @@ const CrearSorteo = () => {
   };
 
   const handleCancel = () => {
-    // hola aquí va a ir la lógica de cancelar
+    // hola aquí va a ir la lógica de cancelar, aquí debería limpiar el formulario o redirigir a otra página
   };
 
   return (
