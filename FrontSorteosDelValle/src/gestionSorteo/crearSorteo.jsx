@@ -5,6 +5,8 @@ import FileUpload from '../components/subirImagen.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
 import addIcon from '../assets/añadir.png';
 
+const API_GATEWAY_URL = 'http://localhost:8080';
+
 const CrearSorteo = () => {
   const [formData, setFormData] = useState({
     titulo: '',
@@ -66,19 +68,49 @@ const CrearSorteo = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    try {
-      console.log('Datos del sorteo:', {
-        ...formData,
-        premios,
-        organizadores,
-        useGlobalConfig
-      });
+
+    const payload = {
+      titulo: formData.titulo,
+      descripcion: formData.descripcion,
+      imagen_url: "https://ejemplo.com/imagen-sorteo.png", //tengo q cambiar esto
+      rango_numeros: parseInt(formData.rangoNumeros, 10),
+      precio_numero: parseFloat(formData.precioNumero),
+      inicio_periodo_venta: formData.fechaInicioVenta,
+      fin_periodo_venta: formData.fechaFinVenta,
+      fecha_realizacion: formData.fechaRealizacion,
+      organizadores: organizadores.map(o => o.email), //TENGO Q CAMBIAR ESTO TAMBIEN
       
+      premiosData: premios.map(p => ({
+        titulo: p.titulo,
+        imagen_premio_url: `https://ejemplo.com/premio-${p.id}.png` //que no se me olvide cambiar esto
+      })),
+      id_configuracion: 1, //esto tambn lo tengo q checar
+      // Si !useGlobalConfig, debería enviar los tiempos al backend
+      // para que él cree una nueva configuración y use ese id
+    };
+
+    try {
+      const response = await fetch(`${API_GATEWAY_URL}/api/sorteos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Error al crear el sorteo');
+      }
+
+      console.log('Sorteo creado:', result);
       setIsModalOpen(true);
+
     } catch (error) {
-      console.error('Error al crear sorteo:', error);
-      // hola aquí vamos a manejar el error
+      console.error('Error en handleSubmit:', error.message);
+      // hola aquí vamos a manejar el error, tengo q hacer un modal d error bleeeeh
+      alert(`Error: ${error.message}`);
     }
   };
 
