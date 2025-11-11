@@ -89,7 +89,7 @@ afterAll(async () => {
 function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
-/*
+
 describe('crearSorteo (DAO)', () => {
     // Prueba 1: Crear un sorteo con datos válidos (con 1 organizador)
     it('debería crear un nuevo sorteo en la base de datos', async () => {
@@ -319,19 +319,19 @@ describe('crearSorteo (DAO)', () => {
     });
 
 });
-*/
+
 
 
 describe('actualizarSorteo (DAO)', () => {
-    // Prueba 1: Editar un sorteo con datos válidos (con 1 organizador)
-    it('debería editar un sorteo en la base de datos', async () => {
+    // Prueba 1: Actualizar un sorteo con datos válidos (con 1 organizador)
+    it('debería actualizar un sorteo en la base de datos', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);
         const sorteoId = (await sorteosDAO.crearSorteo(datosSorteo)).id;
 
         const datosSorteoActualizado = {
-            "descripcion": "Descripción del sorteo editado - DAO.",
-            "imagen_url": "http:imagenes.com/sorteoeditado-dao",
+            "descripcion": "Descripción del sorteo actualizado - DAO.",
+            "imagen_url": "http:imagenes.com/sorteoactualizado-dao",
             "rango_numeros": 150,
             "inicio_periodo_venta": "2025-12-07",
             "fin_periodo_venta": "2025-12-24",
@@ -339,8 +339,8 @@ describe('actualizarSorteo (DAO)', () => {
             "precio_numero": 1500,
             "id_configuracion": configNuevaId,
             "Premios": [{
-                "titulo": "Premio editado - DAO",
-                "imagen_premio_url": "http:imagenes.com/premioeditado-dao"
+                "titulo": "Premio actualizado - DAO",
+                "imagen_premio_url": "http:imagenes.com/premioactualizado-dao"
             }],
             "OrganizadorSorteos": [organizadorId2]
         };
