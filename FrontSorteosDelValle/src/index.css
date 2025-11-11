@@ -1,7 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
 
 @import "tailwindcss";
+
+@theme {
+  --color-primary: #53EF48;
+  --color-background-light: #E5FBDE;
+  --color-text-light: #1F2300;
+  --color-card-light: #FFFFFF;
+  --color-border-light: #CEE8C7;
+  --color-button-add-light: #89AD80;
+  --color-card-number: #1E6636;
+
+  --font-family-header: "Onest", sans-serif;
+  --font-family-title: "Alexandria", sans-serif;
+  --font-family-body: "Onest", sans-serif;
+
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+}
 
 .material-symbols-outlined {
   font-variation-settings:
@@ -9,13 +29,4 @@
     'wght' 400,
     'GRAD' 0,
     'opsz' 24
-}
-
-.toggle-checkbox:checked {
-  right: 0;
-  border-color: #13ec5b;
-}
-
-.toggle-checkbox:checked + .toggle-label {
-  background-color: #13ec5b;
 }
