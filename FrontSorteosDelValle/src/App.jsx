@@ -1,7 +1,7 @@
 import React from 'react';
 import './index.css';
 import Header from './components/header.jsx';
-import CrearSorteo from './GestionSorteo/crearSorteo.jsx';
+import CrearSorteo from './gestionSorteo/crearSorteo.jsx';
 
 const MainLayout = ({ children }) => {
   return (
