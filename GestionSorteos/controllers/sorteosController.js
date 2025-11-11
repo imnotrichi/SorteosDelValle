@@ -22,7 +22,7 @@ class SorteosController {
 
             if (!titulo || !descripcion || !imagen_url || rango_numeros == null || !inicio_periodo_venta || !fin_periodo_venta
                 || !fecha_realizacion || precio_numero == null || !id_configuracion || !Premios || !organizadores) {
-                return next(new AppError('Todos los campos son requeridos.', 404));
+                return next(new AppError('Todos los campos son requeridos.', 400));
             }
 
             if (rango_numeros < 1) {
@@ -45,11 +45,7 @@ class SorteosController {
             }
 
             if (!Array.isArray(Premios) || Premios.length === 0) {
-                return next(new AppError('Se deben proporcionar datos válidos para los premios.', 404));
-            }
-
-            if (!Array.isArray(Premios) || Premios.length === 0) {
-                return next(new AppError('Debe haber al menos un organizador para el sorteo.', 404));
+                return next(new AppError('Se deben proporcionar datos válidos para los premios.', 400));
             }
 
             for (const premio of Premios) {
@@ -58,16 +54,24 @@ class SorteosController {
                 }
             }
 
-            const sorteoExistente = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
-            if (sorteoExistente) {
-                return next(new AppError('Ya existe un sorteo con ese título.', 400));
+            if (organizadores.length === 0) {
+                return next(new AppError('Se debe seleccionar al menos a un organizador.', 400));
             }
 
             const OrganizadorSorteos = [];
             for (let i = 0; i < organizadores.length; i++) {
                 const organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(organizadores[i].correo);
-                OrganizadorSorteos.push({ id_organizador: organizadorObtenido.id });
+                if (organizadorObtenido) {
+                    OrganizadorSorteos.push({ id_organizador: organizadorObtenido.id });
+                } else {
+                    return next(new AppError('No hay un organizador registrado con ese correo.', 400));
+                }
             }
+
+            const sorteoExistente = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
+            if (sorteoExistente) {
+                return next(new AppError('Ya existe un sorteo con ese título.', 400));
+            }    
 
             const sorteoData = {
                 titulo,
