@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import DetallesSorteoCard from "../components/detallesSorteoCard.jsx";
+import {PremioCard} from "../components/premioCard.jsx";
 const DetallesSorteo = () => {
   const [sorteoData] = useState({
     titulo: "Rifa Smart TV. ¡Mira!",
@@ -156,57 +158,23 @@ const DetallesSorteo = () => {
           <h3 className="text-xl font-bold text-gray-900 mb-6">Premios</h3>
           <div className="min-w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {sorteoData.premios.map((premio) => (
-              <div
+              <PremioCard
                 key={premio.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 "
-              >
-                <div className="border border-blue-700 relative rounded-t-lg overflow-hidden">
-                  <img
-                    src={premio.imagen}
-                    alt={premio.titulo}
-                    className="w-full h-48 object-cover group-hover:scale-105"
-                  />
-                </div>
-
-                <div className="border border-amber-600 min-h-10 flex items-center px-3">
-                  <p className=" border text-sm font-medium text-gray-900">
-                    {premio.titulo}
-                  </p>
-                </div>
-              </div>
+                titulo={premio.titulo}
+                imagen={premio.imagen}
+                
+              />
             ))}
           </div>
         </div>
 
-        <div className="mt-8 border border-amber-700 p-4 rounded-xl bg-white shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Detalles</h3>
+        <DetallesSorteoCard
+          descripcion={sorteoData.descripcion}
+          rangoNumeros={sorteoData.rangoNumeros}
+          PrecioPorNumero={sorteoData.PrecioPorNumero}
+          fechaInicio={sorteoData.fechaInicio}
+        />
 
-          {/* Datos del sorteo*/}
-          <div className="inline-block ">
-            <div className=" border border-amber-600">
-              <p className="max-w-60 border border-b-fuchsia-700">Descripción</p>
-              <p className="text-sm text-gray-500">{sorteoData.descripcion}</p>
-            </div>
-
-            <div className=" border border-amber-600">
-              <p className="max-w-60 border border-b-fuchsia-700">Rango de números</p>
-              <p className="text-sm text-gray-500">{sorteoData.rangoNumeros}</p>
-            </div>
-
-            <div className="border border-amber-600">
-              <p className="max-w-60 border border-b-fuchsia-700">Precio por número</p>
-              <p className="text-sm text-gray-500">
-                ${sorteoData.PrecioPorNumero.toFixed(2)}
-              </p>
-            </div>
-
-            <div className="border border-amber-600">
-              <p className="max-w-60 border border-b-fuchsia-700">Fecha de inicio</p>
-              <p className="text-sm text-gray-500">{sorteoData.fechaInicio}</p>
-            </div>
-
-          </div>
-        </div>
       </div>
     </div>
   );
