@@ -26,22 +26,22 @@ class SorteosController {
             }
 
             if (rango_numeros < 1) {
-                return next(new AppError('Se debe ingresar un rango de números mayor a 0.', 404));
+                return next(new AppError('Se debe ingresar un rango de números mayor a 0.', 400));
             }
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
             const fechaFinVenta = new Date(fin_periodo_venta);
             if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date() || fechaInicioVenta < new Date()) {
-                return next(new AppError('Ingrese un periodo válido.', 404));
+                return next(new AppError('Ingrese un periodo válido.', 400));
             }
 
             const fechaRealizacion = new Date(fecha_realizacion);
             if (fechaRealizacion < new Date()) {
-                return next(new AppError('La fecha de realización del sorteo debe ser válida.', 404));
+                return next(new AppError('La fecha de realización del sorteo debe ser válida.', 400));
             }
 
             if (precio_numero < 1) {
-                return next(new AppError('El precio del número no puede ser menor a 1 peso.', 404));
+                return next(new AppError('El precio del número no puede ser menor a 1 peso.', 400));
             }
 
             if (!Array.isArray(Premios) || Premios.length === 0) {
@@ -54,13 +54,13 @@ class SorteosController {
 
             for (const premio of Premios) {
                 if (!premio.titulo || !premio.imagen_premio_url) {
-                    return next(new AppError('Se deben proporcionar datos válidos para los premios.', 404));
+                    return next(new AppError('Todos los campos son requeridos.', 400));
                 }
             }
 
             const sorteoExistente = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
             if (sorteoExistente) {
-                return next(new AppError('Ya existe un sorteo con ese título.', 404));
+                return next(new AppError('Ya existe un sorteo con ese título.', 400));
             }
 
             const OrganizadorSorteos = [];
