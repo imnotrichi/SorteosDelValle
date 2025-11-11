@@ -23,6 +23,8 @@ module.exports = {
           model: 'Sorteos',
           key: 'id'
         },
+        onUpdate: 'CASCADE', 
+        onDelete: 'CASCADE',
         allowNull: false,
       },
       createdAt: {
