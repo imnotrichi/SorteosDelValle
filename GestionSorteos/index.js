@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const sorteosRouter = require('./routes/sorteosRouter.js');
+const usuariosRouter = require('./routes/usuariosRouter.js');
 
 const { AppError, globalErrorHandler } = require('./utils/appError.js');
 
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(morgan('combined'));
 
 app.use('/api/sorteos', sorteosRouter);
+app.use('/api/usuarios', usuariosRouter);
 
 app.use((req, res, next) => {
     const error = new AppError(`No se ha podido acceder a ${req.originalUrl} en el servidor`, 404);
