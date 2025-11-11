@@ -111,7 +111,7 @@ class SorteosController {
             const titulo = req.query.titulo;
 
             if (!titulo) {
-                next(new AppError('Asegúrese de enviar el título para realizar la búsqueda', 404));
+                next(new AppError('Asegúrese de enviar el título para realizar la búsqueda.', 404));
             }
 
             const sorteo = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
