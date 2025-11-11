@@ -1,3 +1,4 @@
+const { sequelize } = require('../models');
 const { Sorteo } = require('../models');
 const { Premio } = require('../models');
 const { OrganizadorSorteo } = require('../models/');
@@ -9,6 +10,12 @@ class SorteosDAO {
     constructor() { }
 
     async crearSorteo(sorteoData) {
+        if (!sorteoData.Premios || sorteoData.Premios.length === 0) {
+            throw new Error('Los datos de los premios son requeridos para crear un sorteo.');
+        }
+        if (!sorteoData.OrganizadorSorteos || sorteoData.OrganizadorSorteos.length === 0) {
+            throw new Error('Se requiere al menos un organizador para crear un sorteo.');
+        }
         try {
             const sorteoCreado = await Sorteo.create(
                 sorteoData,
@@ -191,8 +198,8 @@ class SorteosDAO {
                 transaction: t
             });
 
-            const nuevosOrganizadores = sorteoData.organizadores.map(org => ({
-                id_organizador: org.id_usuario,
+            const nuevosOrganizadores = sorteoData.OrganizadorSorteos.map(organizadorId => ({
+                id_organizador: organizadorId,
                 id_sorteo: sorteoObtenido.id
             }));
 
@@ -200,8 +207,13 @@ class SorteosDAO {
                 transaction: t
             });
 
-            await t.commit();
+            //////////////////////////////////////////
+            //AGREGAR ALGO PARA ACTUALIZAR LA CONFIG//
+            //////////////////////////////////////////
 
+            await t.commit();
+            
+            console.log(JSON.stringify(sorteoActualizado.toJSON(), null, 2));
             return sorteoActualizado;
         } catch (error) {
             await t.rollback();

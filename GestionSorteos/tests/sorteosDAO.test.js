@@ -2,23 +2,33 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 const sorteosDAO = require('../dataAccess/sorteosDAO.js');
 const { Sorteo, Configuracion, Premio, Organizador, Usuario, OrganizadorSorteo } = require("../models/index.js");
 
-let configId;
+let configGlobalId;
+let configNuevaId;
 let organizadorId1;
 let organizadorId2;
+let datosSorteoBase;
 
 beforeAll(async () => {
     // Insertas una configuración de prueba
-    const config = await Configuracion.create({
+    const configGlobal = await Configuracion.create({
         "tiempo_limite_apartado": "160:00:00",
         "tiempo_recordatorio_pago": "72:00:00"
     });
-    configId = config.id;
+    configGlobalId = configGlobal.id;
+
+    // Insertas una configuración de prueba
+    const configNueva = await Configuracion.create({
+        "tiempo_limite_apartado": "72:00:00",
+        "tiempo_recordatorio_pago": "24:00:00"
+    });
+    configNuevaId = configNueva.id;
 
     // Creamos los organizadores
     const datosOrganizador1 = {
-        nombres: "Juan",
-        apellido_paterno: "Perez",
-        apellido_materno: "Gomez"
+        nombres: "Ricardo Alán",
+        apellido_paterno: "Gutiérrez",
+        apellido_materno: "Garcés",
+        correo: "ricardogutierrez@gmail.com"
     };
     const usuario1 = await Usuario.create({
         ...datosOrganizador1
@@ -28,9 +38,10 @@ beforeAll(async () => {
     });
 
     const datosOrganizador2 = {
-        nombres: "Alberto",
-        apellido_paterno: "Fonseca",
-        apellido_materno: "Valencia"
+        nombres: "Abel Eduardo",
+        apellido_paterno: "Sánchez",
+        apellido_materno: "Guerrerp",
+        correo: "abelsanchez@gmail.com"
     };
     const usuario2 = await Usuario.create({
         ...datosOrganizador2
@@ -41,6 +52,24 @@ beforeAll(async () => {
 
     organizadorId1 = organizador1.id_usuario;
     organizadorId2 = organizador2.id_usuario;
+
+    // Datos a usar/modificar en las pruebas
+    datosSorteoBase = {
+        "titulo": "Sorteo - DAO",
+        "descripcion": "Descripción del sorteo - DAO.",
+        "imagen_url": "http:imagenes.com/sorteo-dao",
+        "rango_numeros": 100,
+        "inicio_periodo_venta": "2025-12-06",
+        "fin_periodo_venta": "2025-12-23",
+        "fecha_realizacion": "2025-12-24",
+        "precio_numero": 1000,
+        "id_configuracion": configGlobalId,
+        "Premios": [{
+            "titulo": "Premio - DAO",
+            "imagen_premio_url": "http:imagenes.com/premio-dao"
+        }],
+        "OrganizadorSorteos": [{ id_organizador: organizadorId1 }]
+    };
 });
 
 afterAll(async () => {
@@ -51,33 +80,22 @@ afterAll(async () => {
     await Organizador.destroy({ where: { id_usuario: organizadorId2 } });
     await Usuario.destroy({ where: { id: organizadorId1 } });
     await Usuario.destroy({ where: { id: organizadorId2 } });
-
     await Premio.destroy({ where: {} });
     await Sorteo.destroy({ where: {} });
-    await Configuracion.destroy({ where: { id: configId } });
+    await Configuracion.destroy({ where: { id: configGlobalId } });
+    await Configuracion.destroy({ where: { id: configNuevaId } });
 });
 
+function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
 
 describe('crearSorteo (DAO)', () => {
     // Prueba 1: Crear un sorteo con datos válidos (con 1 organizador)
     it('debería crear un nuevo sorteo en la base de datos', async () => {
         // Arrange
-        const datosSorteo = {
-            "titulo": "Sorteo 1 - DAO",
-            "descripcion": "Descripción del sorteo 1 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo1-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 1 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio1-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo 1 - DAO";
 
         // Act
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
@@ -91,352 +109,162 @@ describe('crearSorteo (DAO)', () => {
         expect(new Date(sorteoCreado.inicio_periodo_venta)).toEqual(new Date(datosSorteo.inicio_periodo_venta));
         expect(new Date(sorteoCreado.fin_periodo_venta)).toEqual(new Date(datosSorteo.fin_periodo_venta));
         expect(new Date(sorteoCreado.fecha_realizacion)).toEqual(new Date(datosSorteo.fecha_realizacion));
-        expect(sorteoCreado.precio_numero).toBe
+        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(sorteoCreado.id_configuracion).toBe(configGlobalId);
     });
 
     // Prueba 2: Intentar crear un sorteo sin título
     it('no debería crear un sorteo si falta el título', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "descripcion": "Descripción del sorteo 2 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo2-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 2 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio2-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.titulo;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'titulo' doesn't have a default value");
     });
 
     // Prueba 3: Intentar crear un sorteo sin descripción
     it('no debería crear un sorteo si falta la descripción', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 3 - DAO",
-            "imagen_url": "http:imagenes.com/sorteo3-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 3 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio3-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.descripcion;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'descripcion' doesn't have a default value");
     });
 
     // Prueba 4: Intentar crear un sorteo sin imagen
     it('no debería crear un sorteo si falta la imagen', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 4 - DAO",
-            "descripcion": "Descripción del sorteo 4 - DAO.",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 4 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio4-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.imagen_url;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'imagen_url' doesn't have a default value");
     });
 
     // Prueba 5: Intentar crear un sorteo sin rango de números
     it('no debería crear un sorteo si falta el rango de números', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 5 - DAO",
-            "descripcion": "Descripción del sorteo 5 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo5-dao",
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 5 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio5-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.rango_numeros;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'rango_numeros' doesn't have a default value");
     });
 
     // Prueba 6: Intentar crear un sorteo sin inicio de periodo de venta
     it('no debería crear un sorteo si falta el inicio de periodo de venta', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 6 - DAO",
-            "descripcion": "Descripción del sorteo 6 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo6-dao",
-            "rango_numeros": 100,
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 6 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio6-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.inicio_periodo_venta;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'inicio_periodo_venta' doesn't have a default value");
     });
 
     // Prueba 7: Intentar crear un sorteo sin fin de periodo de venta
     it('no debería crear un sorteo si falta el fin de periodo de venta', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 7 - DAO",
-            "descripcion": "Descripción del sorteo 7 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo7-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 7 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio7-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.fin_periodo_venta;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'fin_periodo_venta' doesn't have a default value");
     });
 
     // Prueba 8: Intentar crear un sorteo sin fecha de realización
     it('no debería crear un sorteo si falta la fecha de realización', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 8 - DAO",
-            "descripcion": "Descripción del sorteo 8 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo8-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 8 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio8-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.fecha_realizacion;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'fecha_realizacion' doesn't have a default value");
     });
 
     // Prueba 9: Intentar crear un sorteo sin precio por número
     it('no debería crear un sorteo si falta el precio por número', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 9 - DAO",
-            "descripcion": "Descripción del sorteo 9 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo9-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 9 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio9-dao "
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.precio_numero;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'precio_numero' doesn't have a default value");
     });
 
     // Prueba 10: Intentar crear un sorteo sin ID de configuración
     it('no debería crear un sorteo si falta el ID de configuración', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 10 - DAO",
-            "descripcion": "Descripción del sorteo 10 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo10-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "premiosData": [{
-                "titulo": "Premio 10 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio10-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.id_configuracion;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'id_configuracion' doesn't have a default value");
     });
 
     // Prueba 11: Intentar crear un sorteo sin datos del premio
     it('no debería crear un sorteo si faltan los datos del premio', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 11 - DAO",
-            "descripcion": "Descripción del sorteo 11 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo11-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 11 - DAO";
+        delete datosSorteoIncompleto.Premios;
+        console.log(datosSorteoIncompleto);
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Los datos de los premios son requeridos para crear un sorteo.");
     });
 
     // Prueba 12: Intentar crear un sorteo con el arreglo de premios vacío
     it('no debería crear un sorteo si faltan los datos del premio', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 12 - DAO",
-            "descripcion": "Descripción del sorteo 12 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo12-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.Premios = [];
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Los datos de los premios son requeridos para crear un sorteo.");
     });
 
     // Prueba 13: Intentar crear un sorteo sin el título del premio
     it('no debería crear un sorteo si falta el título del premio', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 13 - DAO",
-            "descripcion": "Descripción del sorteo 13 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo13-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "imagen_premio_url": "http:imagenes.com/premio13-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.Premios[0].titulo;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Field 'titulo' doesn't have a default value");
     });
 
     // Prueba 14: Intentar crear un sorteo sin la imagen del premio
     it('no debería crear un sorteo si falta la imagen del premio', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 14 - DAO",
-            "descripcion": "Descripción del sorteo 14 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo14-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000.00,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 14 - DAO"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.Premios[0].imagen_premio_url;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
-            .rejects.toThrow("Field 'imagen_premio_url' doesn't have a default value");
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
+            .rejects.toThrow("Validation error");
     });
 
     // Prueba 15: Intentar crear un sorteo con el título duplicado
     it('no debería crear un sorteo si ya existe otro con el mismo título', async () => {
         // Arrange
-        const datosSorteo1 = {
-            "titulo": "Sorteo 15 - DAO",
-            "descripcion": "Descripción del sorteo 15 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo15-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 15 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio15-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
-
-        const datosSorteo2 = {
-            "titulo": "Sorteo 15 - DAO",
-            "descripcion": "Descripción del sorteo 15 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo15-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 15 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio15-dao"
-            }],
-            "organizadores": [organizadorId1]
-        };
+        const datosSorteo1 = deepClone(datosSorteoBase);
+        datosSorteo1.titulo = "Sorteo 15 - DAO";
+        const datosSorteo2 = deepClone(datosSorteoBase);
+        datosSorteo2.titulo = "Sorteo 15 - DAO";
 
         // Act
         await sorteosDAO.crearSorteo(datosSorteo1);
@@ -448,22 +276,9 @@ describe('crearSorteo (DAO)', () => {
     // Prueba 16: Crear un sorteo con datos válidos (con 2 organizadores)
     it('debería crear un nuevo sorteo en la base de datos', async () => {
         // Arrange
-        const datosSorteo = {
-            "titulo": "Sorteo 16 - DAO",
-            "descripcion": "Descripción del sorteo 16 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo16-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 16 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio16-dao"
-            }],
-            "organizadores": [organizadorId1, organizadorId2]
-        };
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo 16 - DAO";
+        datosSorteo.OrganizadorSorteos.push({ id_organizador: organizadorId2 });
 
         // Act
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
@@ -483,24 +298,11 @@ describe('crearSorteo (DAO)', () => {
     // Prueba 17: Intentar crear un sorteo sin organizadores
     it('no debería crear un sorteo sin los datos de los organizadores', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 17 - DAO",
-            "descripcion": "Descripción del sorteo 17 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo17-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 17 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio17-dao"
-            }]
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        delete datosSorteoIncompleto.OrganizadorSorteos;
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Se requiere al menos un organizador para crear un sorteo.");
 
     });
@@ -508,25 +310,53 @@ describe('crearSorteo (DAO)', () => {
     // Prueba 18: Intentar crear un sorteo con el arreglo de organizadores vacío
     it('no debería crear un sorteo sin los datos de los organizadores', async () => {
         // Arrange
-        const datosSorteoIncompletos = {
-            "titulo": "Sorteo 18 - DAO",
-            "descripcion": "Descripción del sorteo 18 - DAO.",
-            "imagen_url": "http:imagenes.com/sorteo18-dao",
-            "rango_numeros": 100,
-            "inicio_periodo_venta": "2025-12-06",
-            "fin_periodo_venta": "2025-12-23",
-            "fecha_realizacion": "2025-12-24",
-            "precio_numero": 1000,
-            "id_configuracion": configId,
-            "premiosData": [{
-                "titulo": "Premio 18 - DAO",
-                "imagen_premio_url": "http:imagenes.com/premio18-dao"
-            }],
-            "organizadores": []
-        };
+        const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.OrganizadorSorteos = [];
 
         // Act + Assert
-        await expect(sorteosDAO.crearSorteo(datosSorteoIncompletos))
+        await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
             .rejects.toThrow("Se requiere al menos un organizador para crear un sorteo.");
+    });
+
+});
+
+
+
+describe('actualizarSorteo (DAO)', () => {
+    // Prueba 1: Actualizar un sorteo con datos válidos (con 1 organizador)
+    it('debería actualizar un sorteo en la base de datos', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        const sorteoId = (await sorteosDAO.crearSorteo(datosSorteo)).id;
+
+        const datosSorteoActualizado = {
+            "descripcion": "Descripción del sorteo actualizado - DAO.",
+            "imagen_url": "http:imagenes.com/sorteoactualizado-dao",
+            "rango_numeros": 150,
+            "inicio_periodo_venta": "2025-12-07",
+            "fin_periodo_venta": "2025-12-24",
+            "fecha_realizacion": "2025-12-25",
+            "precio_numero": 1500,
+            "id_configuracion": configNuevaId,
+            "Premios": [{
+                "titulo": "Premio actualizado - DAO",
+                "imagen_premio_url": "http:imagenes.com/premioactualizado-dao"
+            }],
+            "OrganizadorSorteos": [organizadorId2]
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoId, datosSorteoActualizado);
+
+        // Assert
+        expect(sorteoActualizado.descripcion).toBe(datosSorteoActualizado.descripcion);
+        expect(sorteoActualizado.imagen_url).toBe(datosSorteoActualizado.imagen_url);
+        expect(sorteoActualizado.rango_numeros).toBe(datosSorteoActualizado.rango_numeros);
+        expect(new Date(sorteoActualizado.inicio_periodo_venta)).toEqual(new Date(datosSorteoActualizado.inicio_periodo_venta));
+        expect(new Date(sorteoActualizado.fin_periodo_venta)).toEqual(new Date(datosSorteoActualizado.fin_periodo_venta));
+        expect(new Date(sorteoActualizado.fecha_realizacion)).toEqual(new Date(datosSorteoActualizado.fecha_realizacion));
+        expect(sorteoActualizado.precio_numero).toBe(datosSorteoActualizado.precio_numero);
+        expect(sorteoActualizado.Premios[0].titulo).toBe(datosSorteoActualizado.Premios[0].titulo);
+        expect(sorteoActualizado.Premios[0].imagen_premio_url).toBe(datosSorteoActualizado.Premios[0].imagen_premio_url);
     });
 });
