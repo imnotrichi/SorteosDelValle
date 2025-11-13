@@ -3,6 +3,7 @@ import FormSection from '../components/formulario.jsx';
 import Input, { TextArea } from '../components/input';
 import FileUpload from '../components/subirImagen.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
+import ErrorModal from '../components/mensajeError.jsx';
 import addIcon from '../assets/añadir.png';
 
 const CLOUDINARY_CLOUD_NAME = "drczej3mh";
@@ -65,6 +66,8 @@ const CrearSorteo = ({ currentUserEmail }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
+
+  const [error, setError] = useState(null);
 
   const handleAñadirPremio = () => {
     const newId = premios.length + 1;
@@ -189,6 +192,8 @@ const CrearSorteo = ({ currentUserEmail }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setError(null);
+
     if (!validateForm()) {
       return;
     }
@@ -262,7 +267,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
     } catch (error) {
       console.error('Error al crear sorteo:', error);
-      alert(`Ocurrió un error: ${error.message}`);
+      setError(error.message);
     } finally {
       setIsUploading(false);
     }
@@ -292,67 +297,85 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
     setUseGlobalConfig(false);
     setIsModalOpen(false);
+    setError(null);
   };
 
   const validateForm = () => {
+    const today = getTodayDate();
+
     if (!formData.titulo.trim()) {
-      alert('El título es obligatorio');
+      setError('El título del sorteo es obligatorio.');
       return false;
     }
     if (!formData.descripcion.trim()) {
-      alert('La descripción es obligatoria');
+      setError('La descripción del sorteo es obligatoria.');
       return false;
     }
-    if (!formData.rangoNumeros) {
-      alert('El rango de números es obligatorio');
+    if (!formData.imagen) {
+      setError('La imagen principal del sorteo es obligatoria.');
       return false;
     }
-    if (!formData.precioNumero) {
-      alert('El precio por número es obligatorio');
+    if (!formData.rangoNumeros || parseInt(formData.rangoNumeros, 10) < 1) {
+      setError('El rango de números debe ser un número mayor a 0.');
       return false;
     }
-    if (!formData.fechaInicioVenta) {
-      alert('La fecha de inicio de venta es obligatoria');
+    if (!formData.precioNumero || parseFloat(formData.precioNumero) < 1) {
+      setError('El precio por número debe ser al menos 1.');
       return false;
     }
-    if (!formData.fechaFinVenta) {
-      alert('La fecha de fin de venta es obligatoria');
+    
+    if (!formData.fechaInicioVenta || formData.fechaInicioVenta < today) {
+      setError('La fecha de inicio de venta debe ser hoy o una fecha futura.');
       return false;
     }
-    if (!formData.fechaRealizacion) {
-      alert('La fecha de realización es obligatoria');
+    if (!formData.fechaFinVenta || formData.fechaFinVenta < formData.fechaInicioVenta) {
+      setError('La fecha de fin de venta no puede ser anterior a la fecha de inicio.');
+      return false;
+    }
+    if (!formData.fechaRealizacion || formData.fechaRealizacion < formData.fechaFinVenta) {
+      setError('La fecha de realización no puede ser anterior a la fecha de fin de venta.');
       return false;
     }
 
     if (premios.length === 0) {
-      alert('Debe haber al menos un premio');
+      setError('Debe haber al menos un premio.');
       return false;
     }
     for (let premio of premios) {
       if (!premio.titulo.trim()) {
-        alert('Todos los premios deben tener un título');
+        setError('Todos los premios deben tener un título.');
         return false;
       }
       if (!premio.imagen) {
-        alert('Todos los premios deben tener una imagen');
+        setError('Todos los premios deben tener una imagen.');
         return false;
       }
     }
 
     if (organizadores.length === 0) {
-        alert('Debe haber al menos un organizador');
+        setError('Debe haber al menos un organizador.');
         return false;
     }
     for (let org of organizadores) {
       if (!org.email.trim()) {
-        alert('Todos los organizadores deben tener un email');
+        setError('Todos los organizadores deben tener un email válido.');
+        return false;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(org.email)) {
+        setError(`El email "${org.email}" no es válido.`);
         return false;
       }
     }
 
     if (!useGlobalConfig) {
-      if (!formData.tiempoLimiteApartado || !formData.tiempoRecordatorioPago) {
-        alert('Debe llenar ambos tiempos de configuración o activar la configuración global');
+      if (!formData.tiempoLimiteApartado || parseInt(formData.tiempoLimiteApartado, 10) <= 0) {
+        setError('El tiempo límite de apartado debe ser un número mayor a 0 si no usas la configuración global.');
+        return false;
+      }
+      if (!formData.tiempoRecordatorioPago || parseInt(formData.tiempoRecordatorioPago, 10) <= 0) {
+        setError('El tiempo de recordatorio de pago debe ser un número mayor a 0 si no usas la configuración global.');
         return false;
       }
     }
@@ -609,8 +632,17 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
       <SuccessModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          handleCancel();
+        }}
         title="¡El sorteo se ha creado con éxito!"
+      />
+
+      <ErrorModal
+        isOpen={!!error}
+        onClose={() => setError(null)}
+        message={error}
       />
     </div>
   );
