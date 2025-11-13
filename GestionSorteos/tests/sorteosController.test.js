@@ -951,7 +951,7 @@ describe('actualizarSorteo (Controller)', () => {
     });
 
     // GST-02X
-    it('GST-022: debería llamar a next con error 400 se trata de actualizar el rango de números si ya hay vendidos', async () => {
+    it('GST-023: debería llamar a next con error 400 se trata de actualizar el rango de números si ya hay vendidos', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo - GST-023X";
@@ -988,13 +988,13 @@ describe('actualizarSorteo (Controller)', () => {
     });
 
     // GST-02X
-    it('GST-02X: debería llamar a next con error 400 si el sorteo ya inició', async () => {
+    it('GST-024X: debería llamar a next con error 400 si se actualiza la fecha de inicio del periodo de venta, pero el sorteo ya inició', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo - GST024X";
-        datosSorteo.fin_periodo_venta = "2025-12-30";
         datosSorteo.inicio_periodo_venta = "2025-11-01";
-        datosSorteo.fecha_realizacion = "2025-11-2";
+        datosSorteo.fin_periodo_venta = "2025-12-30";
+        datosSorteo.fecha_realizacion = "2026-01-01";
         datosSorteo.Premios = {
             "titulo": "Premio - Controller",
             "imagen_premio_url": "http:imagenes.com/premio-controller"
@@ -1002,8 +1002,8 @@ describe('actualizarSorteo (Controller)', () => {
         datosSorteo.OrganizadorSorteos = [{ id_organizador: organizadorId1 }];
         datosSorteo.id_configuracion = configId;
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
-        mockReq = {
-            params: { id: sorteoCreado.id }, body: { inicio_periodo_venta: "2025-10-30" }
+        const mockReq = {
+            params: { id: sorteoCreado.id }, body: { inicio_periodo_venta: "2025-11-25" }
         };
 
         // Act
@@ -1014,6 +1014,35 @@ describe('actualizarSorteo (Controller)', () => {
         const error = mockNext.mock.calls[0][0];
         expect(error.statusCode).toBe(400);
         expect(error.message).toBe("Ingrese un periodo válido.");
+    });
+
+    // GST-02X
+    it('GST-025X: debería llamar a next con error 400 si se actualiza cualquier dato del sorteo, pero el sorteo ya se realizó', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - GST025X";
+        datosSorteo.inicio_periodo_venta = "2025-10-01";
+        datosSorteo.fin_periodo_venta = "2025-10-20";
+        datosSorteo.fecha_realizacion = "2025-10-25";
+        datosSorteo.Premios = {
+            "titulo": "Premio - Controller",
+            "imagen_premio_url": "http:imagenes.com/premio-controller"
+        }
+        datosSorteo.OrganizadorSorteos = [{ id_organizador: organizadorId1 }];
+        datosSorteo.id_configuracion = configId;
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const mockReq = {
+            params: { id: sorteoCreado.id }, body: {  } // No mandamos nada porque aunque le mandemos nos debe dar para atrás
+        };
+
+        // Act
+        await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toBe("No se puede actualizar este sorteo porque ya pasó.");
     });
 });
 
@@ -1119,7 +1148,7 @@ describe('eliminarSorteo (Controller)', () => {
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
         expect(error.statusCode).toBe(405);
-        expect(error.message).toBe("No se puede eliminar este sorteo ya pasó.");
+        expect(error.message).toBe("No se puede eliminar este sorteo porque ya pasó.");
 
     });
 });

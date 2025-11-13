@@ -238,6 +238,10 @@ class SorteosController {
                 return next(new AppError('El sorteo no existe.', 404));
             }
 
+            if (sorteoExists.fecha_realizacion < new Date()) {
+                return next(new AppError('No se puede actualizar este sorteo porque ya pasó.', 405));
+            }
+
             const {
                 descripcion,
                 imagen_url,
@@ -352,7 +356,7 @@ class SorteosController {
             }
 
             if (sorteoExists.fecha_realizacion < new Date()) {
-                return next(new AppError('No se puede eliminar este sorteo ya pasó.', 405));
+                return next(new AppError('No se puede eliminar este sorteo porque ya pasó.', 405));
             }
 
             const numerosSorteo = await numerosDAO.obtenerNumerosPorSorteo(idSorteo);
