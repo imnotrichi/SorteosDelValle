@@ -1,39 +1,37 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom"; // 1. Importa los componentes de rutas
 import "./index.css";
 import Header from "./components/header.jsx";
-import CrearSorteo from "./GestionSorteo/crearSorteo.jsx";
+import CrearSorteo from "./gestionSorteo/crearSorteo.jsx";
 import MisSorteos from "./gestionSorteo/misSorteos.jsx";
-import DetallesSorteo from "./gestionSorteo/detallesSorteo.jsx";  
-
-const MainLayout = ({ children, onNavigate }) => {
+import DetallesSorteo from "./gestionSorteo/detallesSorteo.jsx";
+//Aun no existe import EditarSorteo from "./gestionSorteo/editarSorteo.jsx";
+//TODO: IMPORTAR COMPONENTE DE EDICION
+//TODO: EditarSorteo
+const MainLayout = ({ children }) => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background-light font-display text-text-light">
-      <Header onNavigate={onNavigate} />
+      <Header onNavigate={navigate} />
       <main>{children}</main>
     </div>
   );
 };
 
 function App() {
-  //NOTE: Si quieren probar otra página, cambienle el valor de useState
-  const [paginaActual, setPaginaActual] = useState("detallesSorteo");
+  return (
+    <MainLayout>
+      <Routes>
+        <Route path="/" element={<MisSorteos />} />
+        <Route path="/crearSorteo" element={<CrearSorteo />} />
+        <Route path="/misSorteos" element={<MisSorteos />} />
 
-  const navegarA = (pagina) => {
-    setPaginaActual(pagina);
-  };
+        <Route path="/sorteos/:id" element={<DetallesSorteo />} />
+        {/* <Route path="/editar/:id" element={<EditarSorteo />} /> */}
 
-  const renderizarPagina = () => {
-    if (paginaActual === "misSorteos") {
-      return <MisSorteos onNavigate={navegarA} />;
-    } else if (paginaActual === "crearSorteo") {
-      return <CrearSorteo onNavigate={navegarA} />;
-    }
-     else if (paginaActual === "detallesSorteo") {
-      return <DetallesSorteo onNavigate={navegarA} />;
-    }
-    //TODO: Aquí se agregan todas las paginas
-  };
-  return <MainLayout onNavigate={navegarA}>{renderizarPagina()}</MainLayout>;
+      </Routes>
+    </MainLayout>
+  )
 }
 
 export default App;
