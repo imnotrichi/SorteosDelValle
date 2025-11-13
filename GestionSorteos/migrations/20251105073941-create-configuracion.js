@@ -17,6 +17,14 @@ module.exports = {
         type: Sequelize.TIME,
         allowNull: false
       },
+      id_organizador: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Organizadores',
+          key: 'id_usuario'
+        }
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
