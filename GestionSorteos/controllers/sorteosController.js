@@ -3,10 +3,20 @@ const usuariosDAO = require('../dataAccess/usuariosDAO.js');
 const configuracionesDAO = require('../dataAccess/configuracionesDAO.js');
 const numerosDAO = require('../dataAccess/numerosDAO.js');
 const { AppError } = require('../utils/appError.js');
+const { json } = require('express');
 
 class SorteosController {
 
-    constructor() { }
+    constructor() {
+        this.crearSorteo = this.crearSorteo.bind(this);
+        this.obtenerSorteoPorId = this.obtenerSorteoPorId.bind(this);
+        this.obtenerSorteoPorTitulo = this.obtenerSorteoPorTitulo.bind(this);
+        this.obtenerSorteosPorOrganizador = this.obtenerSorteosPorOrganizador.bind(this);
+        this.obtenerSorteosActivos = this.obtenerSorteosActivos.bind(this);
+        this.obtenerSorteosFinalizados = this.obtenerSorteosFinalizados.bind(this);
+        this.actualizarSorteo = this.actualizarSorteo.bind(this);
+        this.eliminarSorteo = this.eliminarSorteo.bind(this);
+    }
 
     async crearSorteo(req, res, next) {
         try {
@@ -81,7 +91,7 @@ class SorteosController {
             for (let i = 0; i < organizadoresData.length; i++) {
                 const organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(organizadoresData[i].correo);
                 organizadores.push({ id_organizador: organizadorObtenido.id });
-            }   
+            }
 
             const sorteoData = {
                 titulo,
@@ -113,9 +123,14 @@ class SorteosController {
                 next(new AppError('Se debe proporcionar el id para realizar la búsqueda.', 400));
             }
 
+            const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(idSorteo);
+            const existe = numerosExist.length > 0;
+
             const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
-            res.status(200).json(sorteo);
+            const respuestaJSON = this.#formatearJsonSorteo(sorteo, existe);
+            res.status(200).json(respuestaJSON);
         } catch (error) {
+            console.log(error);
             next(new AppError('Ocurrió un error al obtener el sorteo.', 500));
         }
     }
@@ -129,8 +144,14 @@ class SorteosController {
             }
 
             const sorteo = await sorteosDAO.obtenerSorteoPorTitulo(titulo);
-            res.status(200).json(sorteo);
+
+            const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
+            const existe = numerosExist.length > 0;
+
+            const respuestaJSON = this.#formatearJsonSorteo(sorteo, existe);
+            res.status(200).json(respuestaJSON);
         } catch (error) {
+            console.log(error);
             next(new AppError('Ocurrió un error al obtener el sorteo.', 500));
         }
     }
@@ -144,8 +165,18 @@ class SorteosController {
             }
 
             const sorteos = await sorteosDAO.obtenerSorteosPorOrganizador(idOrganizador);
-            res.status(200).json(sorteos);
+
+            let respuestaJSON = [];
+            for (const sorteo of sorteos) {
+                const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
+                const existe = numerosExist.length > 0;
+
+                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, existe));
+            }
+
+            res.status(200).json(respuestaJSON);
         } catch (error) {
+            console.log(error)
             next(new AppError('Ocurrió un error al obtener los sorteos.', 500));
         }
     }
@@ -153,7 +184,16 @@ class SorteosController {
     async obtenerSorteosActivos(req, res, next) {
         try {
             const sorteos = await sorteosDAO.obtenerSorteosActivos();
-            res.status(200).json(sorteos);
+
+            let respuestaJSON = [];
+            for (const sorteo of sorteos) {
+                const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
+                const existe = numerosExist.length > 0;
+
+                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, existe));
+            }
+
+            res.status(200).json(respuestaJSON);
         } catch (error) {
             next(new AppError('Ocurrió un error al obtener los sorteos.', 500));
         }
@@ -162,7 +202,16 @@ class SorteosController {
     async obtenerSorteosFinalizados(req, res, next) {
         try {
             const sorteos = await sorteosDAO.obtenerSorteosFinalizados();
-            res.status(200).json(sorteos);
+
+            let respuestaJSON = [];
+            for (const sorteo of sorteos) {
+                const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
+                const existe = numerosExist.length > 0;
+
+                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, existe));
+            }
+
+            res.status(200).json(respuestaJSON);
         } catch (error) {
             next(new AppError('Ocurrió un error al obtener los sorteos.', 500));
         }
@@ -196,18 +245,22 @@ class SorteosController {
                 next(new AppError('No se proporcionó ningún dato para realizar la actualización.', 400));
             }
 
-            const numerosSorteo = await numerosDAO.obtenerNumerosPorSorteo(idSorteo);
-            if (numerosSorteo) {
+            const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteoExists.id);
+            const existe = numerosExist.length > 0;
 
+            if (existe) {
                 if (rango_numeros < 1) {
                     return next(new AppError('Se debe ingresar un rango de números mayor a 0.', 400));
                 }
 
-                if (sorteoExists.rango_numeros < rango_numeros) {
-                    next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos', 405));
+                if (sorteoExists.rango_numeros > rango_numeros) {
+                    next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos.', 405));
                 }
 
-                
+                const fechaInicioVentaBoletos = new Date(inicio_periodo_venta);
+                if (fechaInicioVentaBoletos < new Date(sorteoExists.inicio_periodo_venta)) {
+                    next(new AppError('No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.', 405));
+                }
             }
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
@@ -243,9 +296,21 @@ class SorteosController {
                 configuracion = await configuracionesDAO.crearConfiguracion(configuracionData);
             }
 
+            const sorteoData = {
+                descripcion,
+                imagen_url,
+                rango_numeros,
+                inicio_periodo_venta,
+                fin_periodo_venta,
+                fecha_realizacion,
+                id_configuracion: configuracion.id,
+                OrganizadorSorteos: organizadores
+            }
+
             const sorteoActualizado = await sorteosDAO.actualizarSorteo(idSorteo, sorteoData);
             res.status(200).json(sorteoActualizado);
         } catch (error) {
+            console.log(error);
             next(new AppError('Ocurrió un error al actualizar el sorteo.', 500));
         }
     }
@@ -273,6 +338,51 @@ class SorteosController {
         } catch (error) {
             next(new AppError('Ocurrió un error al eliminar el sorteo.', 500));
         }
+    }
+
+    #formatearJsonSorteo(jsonSorteo, numeros_vendidos) {
+        const premios = [];
+        jsonSorteo.Premios.forEach(premio => {
+            const premioObtenido = {
+                id: premio.id,
+                titulo: premio.titulo,
+                imagen_premio_url: premio.imagen_premio_url,
+            }
+
+            premios.push(premioObtenido);
+        });
+
+        const organizadores = [];
+        jsonSorteo.OrganizadorSorteos.forEach(organizador => {
+            const organizadorObtenido = {
+                id: organizador.id_organizador,
+                correo: organizador.Organizador.Usuario.correo
+            }
+
+            organizadores.push(organizadorObtenido);
+        });
+
+        const sorteoData = {
+            id: jsonSorteo.id,
+            titulo: jsonSorteo.titulo,
+            descripcion: jsonSorteo.descripcion,
+            imagen_url: jsonSorteo.imagen_url,
+            rango_numeros: jsonSorteo.rango_numeros,
+            inicio_periodo_venta: jsonSorteo.inicio_periodo_venta,
+            fin_periodo_venta: jsonSorteo.fin_periodo_venta,
+            fecha_realizacion: jsonSorteo.fecha_realizacion,
+            precio_numero: jsonSorteo.precio_numero,
+            numeros_vendidos: numeros_vendidos,
+            premiosData: premios,
+            organizadoresData: organizadores,
+            configuracionData: {
+                id: jsonSorteo.Configuracion.id,
+                tiempo_limite_apartado: jsonSorteo.Configuracion.tiempo_limite_apartado,
+                tiempo_recordatorio_pago: jsonSorteo.Configuracion.tiempo_recordatorio_pago
+            }
+        }
+
+        return sorteoData;
     }
 
 }
