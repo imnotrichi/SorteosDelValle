@@ -19,11 +19,19 @@ const MainLayout = ({ children }) => {
 };
 
 function App() {
+
+  const [currentUser] = useState({
+    email: "abel@example.com" 
+  });
+
   return (
     <MainLayout>
       <Routes>
         <Route path="/" element={<MisSorteos />} />
-        <Route path="/crearSorteo" element={<CrearSorteo />} />
+        <Route 
+          path="/crearSorteo" 
+          element={<CrearSorteo currentUserEmail={currentUser.email} />} 
+        />
         <Route path="/misSorteos" element={<MisSorteos />} />
 
         <Route path="/sorteos/:id" element={<DetallesSorteo />} />
