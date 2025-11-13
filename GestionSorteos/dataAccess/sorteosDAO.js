@@ -188,33 +188,60 @@ class SorteosDAO {
         try {
             const sorteoObtenido = await this.obtenerSorteoPorId(idSorteo);
 
+            // Actualizar los datos del sorteo
             const sorteoActualizado = await sorteoObtenido.update(
                 sorteoData,
                 { transaction: t }
             );
 
+            // Eliminar los organizadores antiguos
             await OrganizadorSorteo.destroy({
                 where: { id_sorteo: sorteoObtenido.id },
                 transaction: t
             });
 
-            const nuevosOrganizadores = sorteoData.OrganizadorSorteos.map(organizadorId => ({
-                id_organizador: organizadorId,
-                id_sorteo: sorteoObtenido.id
-            }));
+            // Crear nuevos organizadores si hay
+            if (sorteoData.OrganizadorSorteos) {
+                const nuevosOrganizadores = sorteoData.OrganizadorSorteos.map(organizadorId => ({
+                    id_organizador: organizadorId,
+                    id_sorteo: sorteoObtenido.id
+                }));
+                await OrganizadorSorteo.bulkCreate(nuevosOrganizadores, {
+                    transaction: t
+                });
+            }
 
-            await OrganizadorSorteo.bulkCreate(nuevosOrganizadores, {
-                transaction: t
-            });
+            if (sorteoData.Premios) {
+                for (const premio of sorteoData.Premios) {
+                    // Campos que se cambiaron
+                    const camposActualizar = {};
+
+                    if (premio.imagen_premio_url !== undefined) {
+                        camposActualizar.imagen_premio_url = premio.imagen_premio_url;
+                    }
+                    if (premio.titulo !== undefined) {
+                        camposActualizar.titulo = premio.titulo;
+                    }
+
+                    // Solo actualizamos si hay algo que modificar
+                    if (Object.keys(camposActualizar).length > 0) {
+                        await Premio.update(
+                            camposActualizar,
+                            { where: { id: premio.id }, transaction: t }
+                        );
+                    }
+                }
+            }
 
             //////////////////////////////////////////
             //AGREGAR ALGO PARA ACTUALIZAR LA CONFIG//
             //////////////////////////////////////////
 
             await t.commit();
-            
-            console.log(JSON.stringify(sorteoActualizado.toJSON(), null, 2));
-            return sorteoActualizado;
+
+            // Obtener el sorteo con las asociaciones actualizadas
+            const sorteoConAsociaciones = await this.obtenerSorteoPorId(idSorteo);
+            return sorteoConAsociaciones;
         } catch (error) {
             await t.rollback();
             console.log(error);

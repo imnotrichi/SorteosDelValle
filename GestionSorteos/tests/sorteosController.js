@@ -105,11 +105,7 @@ describe('crearSorteo (Controller)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
 
         const mockReq = { body: datosSorteo };
-        const mockRes = {
-            status: vi.fn(() => mockRes),
-            json: vi.fn(),
-        };
-        const mockNext = vi.fn();
+        const { mockRes, mockNext } = setupMocks();
 
         // Act
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
@@ -580,101 +576,473 @@ describe('crearSorteo (Controller)', () => {
         expect(error.statusCode).toBe(400);
         expect(mockNext.mock.calls[0][0].message).toBe('No hay un organizador registrado con ese correo.');
     });
-/*
-    // Prueba 25: Crear un sorteo con una nueva configuración
-    it('debería crear un nuevo sorteo y responder con 200', async () => {
-        // Arrange
-        const datosSorteo = deepClone(datosSorteoBase);
-        datosSorteo.titulo = "Sorteo 25 - Controller";
-        datosSorteo.config_global = false;
-        datosSorteo.tiempo_limite_apartado = 7;
-        datosSorteo.tiempo_recordatorio_pago = 3;
-        const mockReq = { body: datosSorteo };
-        const mockRes = {
-            status: vi.fn(() => mockRes),
-            json: vi.fn(),
-        };
-        const mockNext = vi.fn();
+    /*
+        // Prueba 25: Crear un sorteo con una nueva configuración
+        it('debería crear un nuevo sorteo y responder con 200', async () => {
+            // Arrange
+            const datosSorteo = deepClone(datosSorteoBase);
+            datosSorteo.titulo = "Sorteo 25 - Controller";
+            datosSorteo.config_global = false;
+            datosSorteo.tiempo_limite_apartado = 7;
+            datosSorteo.tiempo_recordatorio_pago = 3;
+            const mockReq = { body: datosSorteo };
+            const mockRes = {
+                status: vi.fn(() => mockRes),
+                json: vi.fn(),
+            };
+            const mockNext = vi.fn();
+    
+            // Act
+            await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+    
+            // Assert
+            expect(mockNext).not.toHaveBeenCalled();
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+            expect(mockRes.json).toHaveBeenCalled();
+            const sorteoCreado = mockRes.json.mock.calls[0][0];
+            const toShort = d => new Date(d).toISOString().substring(0, 10);
+            expect(sorteoCreado).toHaveProperty('id');
+            expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
+            expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
+            expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
+            expect(sorteoCreado.rango_numeros).toBe(datosSorteo.rango_numeros);
+            expect(toShort(sorteoCreado.inicio_periodo_venta))
+                .toBe(datosSorteo.inicio_periodo_venta);
+            expect(toShort(sorteoCreado.fin_periodo_venta))
+                .toBe(datosSorteo.fin_periodo_venta);
+            expect(toShort(sorteoCreado.fecha_realizacion))
+                .toBe(datosSorteo.fecha_realizacion);
+            expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+            expect(sorteoCreado.id_configuracion).toBe(datosSorteo.id_configuracion);
+        });
+    
+        // Prueba 26: Intentar crear un sorteo sin ninguna configuración
+        it('debería llamar a next con error 400 si no se pone ninguna configuración', async () => {
+            // Arrange
+            const datosSorteoIncompleto = deepClone(datosSorteoBase);
+            datosSorteoIncompleto.config_global = false;
+            // El tiempo límite de apartado y el tiempo de recordatorio de pago no están por defecto
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { body: datosSorteoIncompleto };
+    
+            // Act
+            await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+    
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
+        });
+    
+        // Prueba 27: Intentar crear un sorteo pero el tiempo límite de apartado es menor a 1
+        it('debería llamar a next con error 400 si el tiempo límite de apartado es menor a 1', async () => {
+            // Arrange
+            const datosSorteoIncompleto = deepClone(datosSorteoBase);
+            datosSorteoIncompleto.config_global = false;
+            datosSorteo.tiempo_limite_apartado = 0;
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { body: datosSorteoIncompleto };
+    
+            // Act
+            await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+    
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(mockNext.mock.calls[0][0].message).toBe('Ingrese un tiempo límite de apartado válido.');
+        });
+    
+        // Prueba 28: Intentar crear un sorteo pero el tiempo de recordatorio de pago es menor a 1
+        it('debería llamar a next con error 400 si el tiempo de recordatorio de pago es menor a 1', async () => {
+            // Arrange
+            const datosSorteoIncompleto = deepClone(datosSorteoBase);
+            datosSorteoIncompleto.config_global = false;
+            datosSorteo.tiempo_recordatorio_pago = 0;
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { body: datosSorteoIncompleto };
+    
+            // Act
+            await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+    
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(mockNext.mock.calls[0][0].message).toBe('Ingrese un tiempo de recordatorio de pago válido.');
+        });
+    */
 
-        // Act
-        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+    describe('actualizarSorteo (Controller)', () => {
+        // GST-001
+        it('debería actualizar un sorteo exitosamente y responder con 200', async () => {
+            // Arrange
+            const datosSorteo = deepClone(datosSorteoBase);
+            datosSorteo.titulo = "Sorteo GST-001";
+            let mockReq = { body: datosSorteo };
+            let { mockRes, mockNext } = setupMocks();
+            const sorteoCreado = await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+            const sorteoId = sorteoCreado.id;
 
-        // Assert
-        expect(mockNext).not.toHaveBeenCalled();
-        expect(mockRes.status).toHaveBeenCalledWith(200);
-        expect(mockRes.json).toHaveBeenCalled();
-        const sorteoCreado = mockRes.json.mock.calls[0][0];
-        const toShort = d => new Date(d).toISOString().substring(0, 10);
-        expect(sorteoCreado).toHaveProperty('id');
-        expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
-        expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
-        expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
-        expect(sorteoCreado.rango_numeros).toBe(datosSorteo.rango_numeros);
-        expect(toShort(sorteoCreado.inicio_periodo_venta))
-            .toBe(datosSorteo.inicio_periodo_venta);
-        expect(toShort(sorteoCreado.fin_periodo_venta))
-            .toBe(datosSorteo.fin_periodo_venta);
-        expect(toShort(sorteoCreado.fecha_realizacion))
-            .toBe(datosSorteo.fecha_realizacion);
-        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
-        expect(sorteoCreado.id_configuracion).toBe(datosSorteo.id_configuracion);
+            const datosSorteoActualizado = {
+                "descripcion": "Descripción del sorteo actualizado - Controller.",
+                "imagen_url": "http:imagenes.com/sorteoactualizado-controller",
+                "rango_numeros": 150,
+                "inicio_periodo_venta": "2025-12-07",
+                "fin_periodo_venta": "2025-12-24",
+                "fecha_realizacion": "2025-12-25",
+                /////////////////////////////////////////////////////////////
+                //NO ME ACUERDO SI EL PRECIO POR NÚMERO SE PUEDE ACTUALIZAR//
+                /////////////////////////////////////////////////////////////
+                "precio_numero": 1500,
+                /////////////////////////////////////////////////////////////
+                //NO ME ACUERDO SI EL PRECIO POR NÚMERO SE PUEDE ACTUALIZAR//
+                /////////////////////////////////////////////////////////////
+                "config_global": false,
+                "tiempo_limite_apartado": 10,
+                "tiempo_recordatorio_pago": 20,
+                "Premios": [{
+                    "id": sorteoCreado.Premios[0].id,
+                    "titulo": "Premio actualizado - Controller",
+                    "imagen_premio_url": "http:imagenes.com/premioactualizado-controller"
+                }],
+                "OrganizadorSorteos": [organizadorCorreo2]
+            };
+
+            mockRes, mockNext = setupMocks();
+            mockReq = { params: { id: sorteoId }, body: datosSorteoActualizado };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).not.toHaveBeenCalled();
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+            expect(mockRes.json).toHaveBeenCalled();
+            const sorteoActualizado = mockRes.json.mock.calls[0][0];
+            expect(sorteoActualizado.descripcion).toBe(datosSorteoActualizado.descripcion);
+            expect(sorteoActualizado.imagen_url).toBe(datosSorteoActualizado.imagen_url);
+            expect(sorteoActualizado.rango_numeros).toBe(datosSorteoActualizado.rango_numeros);
+            expect(toShort(sorteoActualizado.inicio_periodo_venta)).toBe(datosSorteoActualizado.inicio_periodo_venta);
+            expect(toShort(sorteoActualizado.fin_periodo_venta)).toBe(datosSorteoActualizado.fin_periodo_venta);
+            expect(toShort(sorteoActualizado.fecha_realizacion)).toBe(datosSorteoActualizado.fecha_realizacion);
+            expect(sorteoActualizado.precio_numero).toBe(datosSorteoActualizado.precio_numero);
+            expect(sorteoActualizado.Premios[0].id).toBe(datosSorteoActualizado.Premios[0].id);
+            expect(sorteoActualizado.Premios[0].titulo).toBe(datosSorteoActualizado.Premios[0].titulo);
+            expect(sorteoActualizado.Premios[0].imagen_premio_url).toBe(datosSorteoActualizado.Premios[0].imagen_premio_url);
+        });
+
+        it('debería llamar a next con error 404 si el sorteo a actualizar no existe', async () => {
+            // Arrange
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { params: { id: 99999 }, body: { descripcion: "Test" } };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(404);
+            expect(error.message).toBe("El sorteo no existe.");
+        });
+
+        // ID: GST-013
+        it('GST-013: debería llamar a next con error 400 si no se proporciona ningún dato (body vacío)', async () => {
+            // Arrange
+            const datosSorteo = deepClone(datosSorteoBase);
+            datosSorteo.titulo = "Sorteo - GST 013";
+            const mockReq = { params: { id: sorteoId }, body: {} };
+            const { mockRes, mockNext } = setupMocks();
+            const sorteoCreado = await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+            const sorteoId = sorteoCreado.id;
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(404);
+            expect(error.message).toBe("No se proporcionó ningún dato para realizar la actualización.");
+        });
+
+        // ID: GST-014
+        it('GST-014: debería llamar a next con error 400 si el rango de números es menor a 1', async () => {
+            // Arrange
+            const datosSorteo = deepClone(datosSorteoBase);
+            datosSorteo.titulo = "Sorteo - GST 014";
+            datosSorteo.rango_numeros = 0;
+            const mockReq = { params: { id: sorteoId }, body: datosSorteo };
+            const { mockRes, mockNext } = setupMocks();
+            const sorteoCreado = await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+            const sorteoId = sorteoCreado.id;
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("El rango no puede ser menor a 1.");
+        });
+
+        // ID: GST-015
+        it('GST-015: debería llamar a next con error 400 si la fecha de inicio de venta ya pasó', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-015";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { params: { id: sorteoId }, body: { inicio_periodo_venta: "2020-01-01" } };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("La fecha de inicio de venta ya pasó.");
+        });
+
+        // ID: GST-016
+        it('GST-016: debería llamar a next con error 400 si la fecha de fin de venta ya pasó', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-016";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { params: { id: sorteoId }, body: { fin_periodo_venta: "2020-01-01" } };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("La fecha de fin de venta ya pasó.");
+        });
+
+        // ID: GST-017
+        it('GST-017: debería llamar a next con error 400 si la fecha de inicio es posterior a la de fin', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-017";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = {
+                params: { id: sorteoId }, body: {
+                    inicio_periodo_venta: "2025-12-23",
+                    fin_periodo_venta: "2025-12-06"
+                }
+            };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("Se debe ingresar un periodo válido.");
+        });
+
+        // ID: GST-018
+        it('GST-018: debería llamar a next con error 400 si la fecha de realización ya pasó', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-018";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { params: { id: sorteoId }, body: { fecha_realizacion: "2020-01-01" } };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("La fecha de realización ya pasó.");
+        });
+
+        // ID: GST-019
+        it('GST-019: debería llamar a next con error 400 si el precio por número es menor a 1', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-019";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { params: { id: sorteoId }, body: { precio_numero: 0 } };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("El precio por número no puede ser menor a $1.");
+        });
+
+        // ID: GST-020
+        it('GST-020: debería llamar a next con error 400 si el tiempo límite de apartado es menor a 1', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-020";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            // Asumiendo que el controlador puede crear/actualizar config desde el body
+            const mockReq = {
+                params: { id: sorteoId }, body: {
+                    tiempo_limite_apartado: 0,
+                    tiempo_recordatorio_pago: 4 // Se provee el otro campo para que sea válido
+                }
+            };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("El tiempo límite de apartado no puede ser menor a 1.");
+        });
+
+        // ID: GST-021
+        it('GST-021: debería llamar a next con error 400 si el tiempo de recordatorio es menor a 1', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-021";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = {
+                params: { id: sorteoId }, body: {
+                    tiempo_limite_apartado: 7,
+                    tiempo_recordatorio_pago: 0
+                }
+            };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            expect(error.message).toBe("El tiempo de recordatorio de pago no puede ser menor a 1.");
+        });
+
+        // ID: GST-022
+        it('GST-022: debería llamar a next con error 400 si un correo de organizador no existe', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-022";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = {
+                params: { id: sorteoId }, body: {
+                    organizadores: [{ correo: "correofalso@falso.falacia.com" }]
+                }
+            };
+
+            // Act
+            await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(400);
+            // El mensaje lógico (basado en la prueba de creación) es este:
+            expect(error.message).toBe("No hay un organizador registrado con ese correo.");
+        });
     });
 
-    // Prueba 26: Intentar crear un sorteo sin ninguna configuración
-    it('debería llamar a next con error 400 si no se pone ninguna configuración', async () => {
-        // Arrange
-        const datosSorteoIncompleto = deepClone(datosSorteoBase);
-        datosSorteoIncompleto.config_global = false;
-        // El tiempo límite de apartado y el tiempo de recordatorio de pago no están por defecto
-        const { mockRes, mockNext } = setupMocks();
-        const mockReq = { body: datosSorteoIncompleto };
 
-        // Act
-        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+    describe('eliminarSorteo (Controller)', () => {
 
-        // Assert
-        expect(mockNext).toHaveBeenCalledTimes(1);
-        const error = mockNext.mock.calls[0][0];
-        expect(error.statusCode).toBe(400);
-        expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
+        // ID: GST-025
+        it('GST-025: debería eliminar un sorteo existente y responder con 200', async () => {
+            // Arrange
+            // Crear el sorteo base para la prueba
+            const { mockRes: mockResCrear, mockNext: mockNextCrear } = setupMocks();
+            const datosCrear = deepClone(datosSorteoBase);
+            datosCrear.titulo = "Sorteo GST-025";
+            await sorteosController.crearSorteo({ body: datosCrear }, mockResCrear, mockNextCrear);
+            if (mockNextCrear.mock.calls.length > 0) { throw new Error(`Fallo al crear sorteo de prueba: ${mockNextCrear.mock.calls[0][0].message}`); }
+            const sorteoId = mockResCrear.json.mock.calls[0][0].id;
+
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { params: { id: sorteoId } };
+
+            // Act
+            await sorteosController.eliminarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).not.toHaveBeenCalled();
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+            expect(mockRes.json).toHaveBeenCalledWith({ message: "Sorteo eliminado exitosamente." });
+        });
+
+        // ID: GST-026
+        it('GST-026: debería llamar a next con error 404 si el sorteo a eliminar no existe', async () => {
+            // Arrange
+            const { mockRes, mockNext } = setupMocks();
+            const mockReq = { params: { id: 99999 } }; // ID Inexistente
+
+            // Act
+            await sorteosController.eliminarSorteo(mockReq, mockRes, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledTimes(1);
+            const error = mockNext.mock.calls[0][0];
+            expect(error.statusCode).toBe(404);
+            expect(error.message).toBe("El sorteo no existe.");
+        });
     });
-
-    // Prueba 27: Intentar crear un sorteo pero el tiempo límite de apartado es menor a 1
-    it('debería llamar a next con error 400 si el tiempo límite de apartado es menor a 1', async () => {
-        // Arrange
-        const datosSorteoIncompleto = deepClone(datosSorteoBase);
-        datosSorteoIncompleto.config_global = false;
-        datosSorteo.tiempo_limite_apartado = 0;
-        const { mockRes, mockNext } = setupMocks();
-        const mockReq = { body: datosSorteoIncompleto };
-
-        // Act
-        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
-
-        // Assert
-        expect(mockNext).toHaveBeenCalledTimes(1);
-        const error = mockNext.mock.calls[0][0];
-        expect(error.statusCode).toBe(400);
-        expect(mockNext.mock.calls[0][0].message).toBe('Ingrese un tiempo límite de apartado válido.');
-    });
-
-    // Prueba 28: Intentar crear un sorteo pero el tiempo de recordatorio de pago es menor a 1
-    it('debería llamar a next con error 400 si el tiempo de recordatorio de pago es menor a 1', async () => {
-        // Arrange
-        const datosSorteoIncompleto = deepClone(datosSorteoBase);
-        datosSorteoIncompleto.config_global = false;
-        datosSorteo.tiempo_recordatorio_pago = 0;
-        const { mockRes, mockNext } = setupMocks();
-        const mockReq = { body: datosSorteoIncompleto };
-
-        // Act
-        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
-
-        // Assert
-        expect(mockNext).toHaveBeenCalledTimes(1);
-        const error = mockNext.mock.calls[0][0];
-        expect(error.statusCode).toBe(400);
-        expect(mockNext.mock.calls[0][0].message).toBe('Ingrese un tiempo de recordatorio de pago válido.');
-    });
-*/
 });

@@ -320,14 +320,14 @@ describe('crearSorteo (DAO)', () => {
 
 });
 
-
-
 describe('actualizarSorteo (DAO)', () => {
-    // Prueba 1: Actualizar un sorteo con datos válidos (con 1 organizador)
-    it('debería actualizar un sorteo en la base de datos', async () => {
+    // ID: GST-001
+    it('GST-001: debería actualizar todos los datos válidos de un sorteo', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);
-        const sorteoId = (await sorteosDAO.crearSorteo(datosSorteo)).id;
+        datosSorteo.titulo = "Sorteo GST-001"; // Título único
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const sorteoId = sorteoCreado.id;
 
         const datosSorteoActualizado = {
             "descripcion": "Descripción del sorteo actualizado - DAO.",
@@ -339,13 +339,15 @@ describe('actualizarSorteo (DAO)', () => {
             "precio_numero": 1500,
             "id_configuracion": configNuevaId,
             "Premios": [{
+                "id": sorteoCreado.Premios[0].id,
                 "titulo": "Premio actualizado - DAO",
                 "imagen_premio_url": "http:imagenes.com/premioactualizado-dao"
             }],
-            "OrganizadorSorteos": [organizadorId2]
+            "OrganizadorSorteos": [organizadorId2] // Se espera una lista de IDs
         };
 
         // Act
+        console.log(sorteoId);
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoId, datosSorteoActualizado);
 
         // Assert
@@ -355,8 +357,252 @@ describe('actualizarSorteo (DAO)', () => {
         expect(new Date(sorteoActualizado.inicio_periodo_venta)).toEqual(new Date(datosSorteoActualizado.inicio_periodo_venta));
         expect(new Date(sorteoActualizado.fin_periodo_venta)).toEqual(new Date(datosSorteoActualizado.fin_periodo_venta));
         expect(new Date(sorteoActualizado.fecha_realizacion)).toEqual(new Date(datosSorteoActualizado.fecha_realizacion));
-        expect(sorteoActualizado.precio_numero).toBe(datosSorteoActualizado.precio_numero);
+        expect(Number(sorteoActualizado.precio_numero)).toBe(datosSorteoActualizado.precio_numero);
+        expect(sorteoActualizado.id_configuracion).toBe(datosSorteoActualizado.id_configuracion);
         expect(sorteoActualizado.Premios[0].titulo).toBe(datosSorteoActualizado.Premios[0].titulo);
         expect(sorteoActualizado.Premios[0].imagen_premio_url).toBe(datosSorteoActualizado.Premios[0].imagen_premio_url);
+
+        // Verificar organizadores en la tabla de unión
+        const orgSorteos = await OrganizadorSorteo.findAll({ where: { id_sorteo: sorteoId } });
+        expect(orgSorteos).toHaveLength(1);
+        expect(orgSorteos[0].id_organizador).toBe(organizadorId2);
+    });
+
+    // ID: GST-002
+    it('GST-002: debería actualizar solo la descripción', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-002";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = {
+            descripcion: "Descripción del sorteo actualizado - DAO"
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(sorteoActualizado.descripcion).toBe(datosActualizados.descripcion);
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo); // Verificar que otros datos no cambiaron
+    });
+
+    // ID: GST-003
+    it('GST-003: debería actualizar solo la imagen del sorteo', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-003";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = {
+            imagen_url: "http:imagenes.com/sorteoactualizado-dao"
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(sorteoActualizado.imagen_url).toBe(datosActualizados.imagen_url);
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo);
+    });
+
+    // ID: GST-004
+    it('GST-004: debería actualizar solo el rango de números', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-004";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = { rango_numeros: 150 };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(sorteoActualizado.rango_numeros).toBe(datosActualizados.rango_numeros);
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo);
+    });
+
+    // ID: GST-005
+    it('GST-005: debería actualizar solo la fecha de inicio de venta', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-005";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = {
+            inicio_periodo_venta: "2025-12-07"
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(new Date(sorteoActualizado.inicio_periodo_venta)).toEqual(new Date(datosActualizados.inicio_periodo_venta));
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo);
+    });
+
+    // ID: GST-006
+    it('GST-006: debería actualizar solo la fecha de fin de venta', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-006";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = {
+            fin_periodo_venta: "2025-12-24"
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(new Date(sorteoActualizado.fin_periodo_venta)).toEqual(new Date(datosActualizados.fin_periodo_venta));
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo);
+    });
+
+    // ID: GST-007
+    it('GST-007: debería actualizar solo la fecha de realización', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-007";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = {
+            fecha_realizacion: "2025-12-25"
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(new Date(sorteoActualizado.fecha_realizacion)).toEqual(new Date(datosActualizados.fecha_realizacion));
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo);
+    });
+
+    // ID: GST-008
+    it('GST-008: debería actualizar solo el precio por número', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-008";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = { precio_numero: 1500.0 };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(Number(sorteoActualizado.precio_numero)).toBe(datosActualizados.precio_numero);
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo);
+    });
+
+    // ID: GST-009
+    it('GST-009: debería actualizar solo la configuración', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-009";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        expect(sorteoCreado.id_configuracion).toBe(configGlobalId); // Verificar estado inicial
+        const datosActualizados = {
+            id_configuracion: configNuevaId
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(sorteoActualizado.id_configuracion).toBe(configNuevaId);
+        expect(sorteoActualizado.titulo).toBe(datosSorteo.titulo);
+    });
+
+    // ID: GST-010
+    it('GST-010: debería actualizar solo el título de un premio', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-010";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = {
+            Premios: [{
+                id: sorteoCreado.Premios[0].id, // Se debe pasar el ID del premio a actualizar
+                titulo: "Premio actualizado - DAO"
+            }]
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(sorteoActualizado.Premios).toHaveLength(1);
+        expect(sorteoActualizado.Premios[0].titulo).toBe(datosActualizados.Premios[0].titulo);
+        // Verificar que el otro campo del premio no cambió
+        expect(sorteoActualizado.Premios[0].imagen_premio_url).toBe(datosSorteo.Premios[0].imagen_premio_url);
+    });
+
+    // ID: GST-011
+    it('GST-011: debería actualizar solo la imagen de un premio', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-011";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const datosActualizados = {
+            Premios: [{
+                id: sorteoCreado.Premios[0].id, // Se debe pasar el ID del premio a actualizar
+                imagen_premio_url: "http:imagenes.com/premioactualizado-dao"
+            }]
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        expect(sorteoActualizado.Premios).toHaveLength(1);
+        expect(sorteoActualizado.Premios[0].imagen_premio_url).toBe(datosActualizados.Premios[0].imagen_premio_url);
+        // Verificar que el otro campo del premio no cambió
+        expect(sorteoActualizado.Premios[0].titulo).toBe(datosSorteo.Premios[0].titulo);
+    });
+
+    // ID: GST-012
+    it('GST-012: debería actualizar solo los organizadores', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase); // Inicia con organizadorId1
+        datosSorteo.titulo = "Sorteo GST-012";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+
+        const datosActualizados = {
+            OrganizadorSorteos: [organizadorId2] // Se pasa la lista de IDs de organizador
+        };
+
+        // Act
+        const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
+
+        // Assert
+        // Verificar la tabla de unión directamente
+        const orgSorteos = await OrganizadorSorteo.findAll({ where: { id_sorteo: sorteoActualizado.id } });
+        expect(orgSorteos).toHaveLength(1);
+        expect(orgSorteos[0].id_organizador).toBe(organizadorId2);
+    });
+
+});
+
+describe('eliminarSorteo (DAO)', () => {
+    // ID: GST-023
+    it('GST-023: debería eliminar un sorteo existente', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo GST-023";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const sorteoId = sorteoCreado.id;
+
+        // Act
+        const resultado = await sorteosDAO.eliminarSorteo(sorteoId);
+
+        // Assert
+        const sorteoEliminado = await Sorteo.findByPk(sorteoId);
+        expect(sorteoEliminado).toBeNull();
+    });
+
+    // ID: GST-024
+    it('GST-024: no debería eliminar nada y devolver 0 si el ID no existe', async () => {
+        // Arrange
+        const idInexistente = 999999; // Un ID que seguramente no existe
+
+        // Act + Assert
+        await expect(sorteosDAO.eliminarSorteo(idInexistente))
+            .rejects.toThrow("El sorteo no existe.");
+
     });
 });
