@@ -21,14 +21,22 @@ const sorteosServiceUrl = process.env.SORTEOS_SERVICE_URL;
 const usuariosServiceUrl = process.env.USUARIOS_SERVICE_URL;
 
 if (sorteosServiceUrl) {
-  app.use('/api/sorteos', proxy(sorteosServiceUrl));
+  app.use('/api/sorteos', proxy(sorteosServiceUrl,{
+    proxyReqPathResolver: function (req) {
+     return req.originalUrl;
+    }
+  }));
   console.log(`Proxy activado para /api/sorteos -> ${sorteosServiceUrl}`);
 }
 
-if (usuariosServiceUrl) {
-  app.use('/api/usuarios', proxy(usuariosServiceUrl));
-  console.log(`Proxy activado para /api/usuarios -> ${usuariosServiceUrl}`);
-}
+//if (usuariosServiceUrl) {
+//  app.use('/api/usuarios', proxy(usuariosServiceUrl),{
+//    proxyReqPathResolver: function(req){
+//      return req.originalUrl;
+//    }
+//  });
+//  console.log(`Proxy activado para /api/usuarios -> ${usuariosServiceUrl}`);
+//}
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Ruta no encontrada en el API Gateway' });
