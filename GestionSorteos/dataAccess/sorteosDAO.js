@@ -33,7 +33,8 @@ class SorteosDAO {
                 }
             );
 
-            return sorteoCreado;
+            const sorteo = await this.obtenerSorteoPorId(sorteoCreado.id);
+            return sorteo;
         } catch (error) {
             console.log(error);
             throw error;
@@ -255,12 +256,12 @@ class SorteosDAO {
                 id_organizador: organizador.id_organizador
             }));
 
-            // 3. Crear nuevas entradas de asociación de manera eficiente
             if (nuevosRegistros.length > 0) {
                 await OrganizadorSorteo.bulkCreate(nuevosRegistros);
             }
 
-            const sorteo = await sorteoBuscado.update(sorteoData, { new: true });
+            await sorteoBuscado.update(sorteoData, { new: true });
+            const sorteo = await this.obtenerSorteoPorId(idSorteo);
             return sorteo;
         } catch (error) {
             console.log(error);
