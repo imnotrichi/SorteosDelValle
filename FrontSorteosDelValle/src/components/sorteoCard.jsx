@@ -1,25 +1,8 @@
 import React from "react";
 
-export function SorteoCard({ sorteo }) {
+export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoletoClick, onNavigateInfo}) {
   const isActivo = sorteo.estado === "Activo";
-  const onEditar = (e) => {
-    e.stopPropagation();
-    console.log("Editar");
-  };
-
-  const onVerBoletos = (e) => {
-    e.stopPropagation();
-    console.log("Ver boletos");
-  };
-
-  const onEliminar = (e) => {
-    e.stopPropagation();
-    console.log("Eliminar");
-  };
-
-  const onNavigateInfo = () => {
-    console.log("Ir a ver info del sorteo:", sorteo.id);
-  };
+  
 
   return (
     <div className="max-w-3xs cursor-pointer min-w-3xs bg-white rounded-xl shadow-md overflow-hidden border border-gray-200"
@@ -27,7 +10,7 @@ export function SorteoCard({ sorteo }) {
       {/* Imagen */}
       <div className="w-full h-40 overflow-hidden">
         <img
-          src={sorteo.imagen}
+          src={sorteo.imagen_url}
           alt={sorteo.titulo}
           className="w-full h-full object-cover"
         />
@@ -36,7 +19,7 @@ export function SorteoCard({ sorteo }) {
       {/* Contenido */}
       <div className="p-4">
         {/* Título */}
-        <h3 className="h-15 border text-lg font-semibold text-gray-800 mb-2">
+        <h3 className="h-15 text-lg font-semibold text-gray-800 mb-2">
           {sorteo.titulo}
         </h3>
 
@@ -59,14 +42,20 @@ export function SorteoCard({ sorteo }) {
           {/* Editar | Ver boletos */}
           <div className="text-sm text-gray-500 font-medium flex gap-2">
             <button
-              onClick={onEditar}
+              onClick={(e)=>{
+                e.stopPropagation();
+                onEditarClick();
+              }}
               className="hover:text-gray-700 transition-colors"
             >
               Editar
             </button>
             <span>|</span>
             <button
-              onClick={onVerBoletos}
+              onClick={(e)=>{
+                e.stopPropagation();
+                onVerBoletoClick();
+              }}
               className="hover:text-gray-700 transition-colors"
             >
               Ver boletos
@@ -75,7 +64,10 @@ export function SorteoCard({ sorteo }) {
 
           {/* Icono eliminar */}
           <button
-            onClick={onEliminar}
+            onClick={(e)=>{
+              e.stopPropagation();
+              onEliminarClick();
+            }}
             className="text-red-600 hover:text-red-700 transition-colors"
           >
             <svg
