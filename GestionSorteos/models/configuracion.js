@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   Configuracion.init({
     tiempo_limite_apartado: DataTypes.TIME,
-    tiempo_recordatorio_pago: DataTypes.TIME
+    tiempo_recordatorio_pago: DataTypes.TIME,
+    id_organizador: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Configuracion',

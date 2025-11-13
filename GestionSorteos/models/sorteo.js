@@ -15,9 +15,10 @@ module.exports = (sequelize, DataTypes) => {
       Sorteo.belongsToMany(models.Organizador, {
         through: models.OrganizadorSorteo,
         foreignKey: 'id_sorteo',
-        otherKey: 'id_organizador'
+        otherKey: 'id_organizador',
+        as: 'organizadores'
       });
-
+      
       Sorteo.hasMany(models.OrganizadorSorteo, { foreignKey: 'id_sorteo' });
       Sorteo.belongsTo(models.Configuracion, { foreignKey: 'id_configuracion' });
       Sorteo.hasMany(models.Premio, { foreignKey: 'id_sorteo' })

@@ -20,16 +20,14 @@ class SorteosDAO {
             const sorteoCreado = await Sorteo.create(
                 sorteoData,
                 {
-                    include: [
-                        {
-                            model: Premio,
-                            as: 'Premios'
-                        },
-                        {
-                            model: OrganizadorSorteo,
-                            as: 'OrganizadorSorteos'
-                        }
-                    ]
+                    include: [{
+                        model: Premio,
+                        as: 'Premios'
+                    },
+                    {
+                        model: OrganizadorSorteo,
+                        as: 'OrganizadorSorteos'
+                    }]
                 }
             );
 
@@ -120,6 +118,7 @@ class SorteosDAO {
 
             return sorteos;
         } catch (error) {
+            console.log(error);
             throw error;
         }
     }
@@ -183,41 +182,9 @@ class SorteosDAO {
     }
 
     async actualizarSorteo(idSorteo, sorteoData) {
-        const t = await sequelize.transaction(); // Iniciar una transacción
-
         try {
-            const sorteoObtenido = await this.obtenerSorteoPorId(idSorteo);
-
-            const sorteoActualizado = await sorteoObtenido.update(
-                sorteoData,
-                { transaction: t }
-            );
-
-            await OrganizadorSorteo.destroy({
-                where: { id_sorteo: sorteoObtenido.id },
-                transaction: t
-            });
-
-            const nuevosOrganizadores = sorteoData.OrganizadorSorteos.map(organizadorId => ({
-                id_organizador: organizadorId,
-                id_sorteo: sorteoObtenido.id
-            }));
-
-            await OrganizadorSorteo.bulkCreate(nuevosOrganizadores, {
-                transaction: t
-            });
-
-            //////////////////////////////////////////
-            //AGREGAR ALGO PARA ACTUALIZAR LA CONFIG//
-            //////////////////////////////////////////
-
-            await t.commit();
-            
-            console.log(JSON.stringify(sorteoActualizado.toJSON(), null, 2));
-            return sorteoActualizado;
+            const sorteoBuscado = await this.obtenerSorteoPorId(idSorteo);
         } catch (error) {
-            await t.rollback();
-            console.log(error);
             throw error;
         }
     }
