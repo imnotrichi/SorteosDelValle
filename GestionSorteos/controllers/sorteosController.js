@@ -73,12 +73,17 @@ class SorteosController {
             let configuracion;
             if (global) {
                 const organizador = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrganizador);
+                if (!organizador) {
+                    return next(new AppError('No hay un organizador registrado con ese correo.', 400));
+                }
                 configuracion = await configuracionesDAO.obtenerConfiguracionGlobalOrganizador(organizador.id);
                 if (!configuracion) {
                     configuracion = await configuracionesDAO.obtenerConfiguracionGlobal();
                 }
-            } else {
+            } else if (!global && (configuracionData.tiempo_limite_apartado && configuracionData.tiempo_recordatorio_pago)) {
                 configuracion = await configuracionesDAO.crearConfiguracion(configuracionData);
+            } else {
+                return next(new AppError('Todos los campos son requeridos.', 400));
             }
 
             for (const premio of premiosData) {
@@ -90,6 +95,9 @@ class SorteosController {
             const organizadores = [];
             for (let i = 0; i < organizadoresData.length; i++) {
                 const organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(organizadoresData[i].correo);
+                if (!organizadorObtenido) {
+                    return next(new AppError('No hay un organizador registrado con ese correo.', 400));
+                }
                 organizadores.push({ id_organizador: organizadorObtenido.id });
             }
 
@@ -222,12 +230,12 @@ class SorteosController {
             const idSorteo = req.params.id;
 
             if (!idSorteo) {
-                next(new AppError('Es necesario el id del sorteo para actualizarlo.', 400));
+                return next(new AppError('Es necesario el id del sorteo para actualizarlo.', 400));
             }
 
             const sorteoExists = await sorteosDAO.obtenerSorteoPorId(idSorteo);
             if (!sorteoExists) {
-                next(new AppError('El sorteo no existe.', 400));
+                return next(new AppError('El sorteo no existe.', 404));
             }
 
             const {
@@ -240,9 +248,9 @@ class SorteosController {
                 configuracionData,
                 organizadoresData } = req.body;
 
-            if (!descripcion && !imagen_url && !rango_numeros && !inicio_periodo_venta &&
+            if (!descripcion && !imagen_url && rango_numeros == null && !inicio_periodo_venta &&
                 !fin_periodo_venta && !fecha_realizacion && !configuracionData && !organizadoresData) {
-                next(new AppError('No se proporcionó ningún dato para realizar la actualización.', 400));
+                return next(new AppError('No se proporcionó ningún dato para realizar la actualización.', 400));
             }
 
             const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteoExists.id);
@@ -254,13 +262,17 @@ class SorteosController {
                 }
 
                 if (sorteoExists.rango_numeros > rango_numeros) {
-                    next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos.', 405));
+                    return next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos.', 405));
                 }
 
                 const fechaInicioVentaBoletos = new Date(inicio_periodo_venta);
                 if (fechaInicioVentaBoletos < new Date(sorteoExists.inicio_periodo_venta)) {
-                    next(new AppError('No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.', 405));
+                    return next(new AppError('No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.', 405));
                 }
+            }
+
+            if (rango_numeros <= 0) {
+                return next(new AppError('El rango no puede ser menor a 1.', 400));
             }
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
@@ -288,12 +300,23 @@ class SorteosController {
             let configuracion;
             if (global) {
                 const organizador = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrganizador);
+                if (!organizador) {
+                    return next(new AppError('No hay un organizador registrado con ese correo.', 400));
+                }
                 configuracion = await configuracionesDAO.obtenerConfiguracionGlobalOrganizador(organizador.id);
                 if (!configuracion) {
                     configuracion = await configuracionesDAO.obtenerConfiguracionGlobal();
                 }
-            } else {
+            } else if (!global && (configuracionData.tiempo_limite_apartado && configuracionData.tiempo_recordatorio_pago)) {
                 configuracion = await configuracionesDAO.crearConfiguracion(configuracionData);
+            } else {
+                return next(new AppError('Todos los campos son requeridos.', 400));
+            }
+
+            for (const premio of premiosData) {
+                if (!premio.titulo || !premio.imagen_premio_url) {
+                    return next(new AppError('Todos los campos son requeridos.', 400));
+                }
             }
 
             const sorteoData = {
@@ -320,17 +343,21 @@ class SorteosController {
             const idSorteo = req.params.id;
 
             if (!idSorteo) {
-                next(new AppError('Es necesario el id del sorteo para eliminarlo.', 400));
+                return next(new AppError('Es necesario el id del sorteo para eliminarlo.', 400));
             }
 
             const sorteoExists = await sorteosDAO.obtenerSorteoPorId(idSorteo);
             if (!sorteoExists) {
-                next(new AppError('El sorteo no existe.', 400));
+                return next(new AppError('El sorteo no existe.', 404));
+            }
+
+            if (sorteoExists.fecha_realizacion < new Date()) {
+                return next(new AppError('No se puede eliminar este sorteo ya pasó.', 405));
             }
 
             const numerosSorteo = await numerosDAO.obtenerNumerosPorSorteo(idSorteo);
-            if (numerosSorteo) {
-                next(new AppError('No se puede eliminar este sorteo porque ya hay números vendidos', 405));
+            if (!Array.isArray(numerosSorteo) || numerosSorteo.length > 0) {
+                return next(new AppError('No se puede eliminar este sorteo porque ya hay números vendidos.', 405));
             }
 
             await sorteosDAO.eliminarSorteo(idSorteo);

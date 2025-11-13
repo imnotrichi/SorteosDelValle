@@ -12,10 +12,9 @@ class NumerosDAO {
 
             const numeros = await Numero.findAll({
                 where: {
-                    id_sorteo: idSorteo 
+                    id_sorteo: idSorteo
                 }
             });
-
             return numeros;
         } catch (error) {
             throw error;

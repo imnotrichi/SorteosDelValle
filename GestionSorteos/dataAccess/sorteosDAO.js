@@ -244,21 +244,24 @@ class SorteosDAO {
                 OrganizadorSorteos
             } = sorteoData;
 
-            await OrganizadorSorteo.destroy({
-                where: {
-                    id_sorteo: idSorteo
+            if (OrganizadorSorteos) {
+                await OrganizadorSorteo.destroy({
+                    where: {
+                        id_sorteo: idSorteo
+                    }
+                });
+
+                const nuevosRegistros = OrganizadorSorteos.map(organizador => ({
+                    id_sorteo: idSorteo,
+                    id_organizador: organizador.id_organizador
+                }));
+                
+                // 3. Crear nuevas entradas de asociación de manera eficiente
+                if (nuevosRegistros.length > 0) {
+                    await OrganizadorSorteo.bulkCreate(nuevosRegistros);
                 }
-            });
-
-            const nuevosRegistros = OrganizadorSorteos.map(organizador => ({
-                id_sorteo: idSorteo,
-                id_organizador: organizador.id_organizador
-            }));
-
-            // 3. Crear nuevas entradas de asociación de manera eficiente
-            if (nuevosRegistros.length > 0) {
-                await OrganizadorSorteo.bulkCreate(nuevosRegistros);
             }
+
 
             const sorteo = await sorteoBuscado.update(sorteoData, { new: true });
             return sorteo;
