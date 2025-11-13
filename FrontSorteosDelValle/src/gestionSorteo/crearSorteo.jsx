@@ -122,7 +122,9 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
   const handleConfigInputChange = (field, value) => {
     const numValue = parseInt(value, 10);
-    if (value === '' || numValue >= 0) {
+    const maxDias = 34;
+
+    if (value === '' || (numValue >= 0 && numValue <= maxDias)) {
       setFormData({ ...formData, [field]: value });
     }
   };
@@ -150,27 +152,53 @@ const CrearSorteo = ({ currentUserEmail }) => {
     return `${year}-${month}-${day}`;
   };
 
+  const getTomorrowDate = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const year = tomorrow.getFullYear();
+    const month = (tomorrow.getMonth() + 1).toString().padStart(2, '0');
+    const day = tomorrow.getDate().toString().padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  };
+
+  const getNextDay = (dateString) => {
+    if (!dateString) {
+      return getTomorrowDate(); 
+    }
+
+    const [year, month, day] = dateString.split('-').map(Number);
+    const nextDay = new Date(year, month - 1, day);
+    
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const nextYear = nextDay.getFullYear();
+    const nextMonth = (nextDay.getMonth() + 1).toString().padStart(2, '0');
+    const nextDayDate = nextDay.getDate().toString().padStart(2, '0');
+    
+    return `${nextYear}-${nextMonth}-${nextDayDate}`;
+  };
+
   const handleFechaInicioVentaChange = (value) => {
-    const today = getTodayDate();
-    if (value >= today) {
+    const tomorrow = getTomorrowDate();
+    if (value >= tomorrow) {
       setFormData({ ...formData, fechaInicioVenta: value });
     }
   };
 
   const handleFechaFinVentaChange = (value) => {
-    const today = getTodayDate();
-    if (value >= today && value >= formData.fechaInicioVenta) {
+    const tomorrow = getTomorrowDate();
+    if (value >= tomorrow && value >= formData.fechaInicioVenta) {
       setFormData({ ...formData, fechaFinVenta: value });
     }
   };
 
   const handleFechaRealizacionChange = (value) => {
-    const today = getTodayDate();
-    if (
-      value >= today &&
-      value >= formData.fechaInicioVenta &&
-      value >= formData.fechaFinVenta
-    ) {
+    const minDate = getNextDay(formData.fechaFinVenta); 
+
+    if (value >= minDate) {
       setFormData({ ...formData, fechaRealizacion: value });
     }
   };
@@ -242,9 +270,9 @@ const CrearSorteo = ({ currentUserEmail }) => {
         imagen_url: imagenSorteoUrl,
         rango_numeros: parseInt(formData.rangoNumeros, 10),
         precio_numero: parseFloat(formData.precioNumero, 10),
-        inicio_periodo_venta: `${formData.fechaInicioVenta}T23:59:59`,
-        fin_periodo_venta: `${formData.fechaFinVenta}T23:59:59`,
-        fecha_realizacion: `${formData.fechaRealizacion}T23:59:59`,
+        inicio_periodo_venta: `${formData.fechaInicioVenta}T00:00:00`,
+        fin_periodo_venta: `${formData.fechaFinVenta}T00:00:00`,
+        fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`,
         configuracionData: configuracionData,
         premiosData: premiosConUrl,
         organizadoresData: organizadoresData
@@ -336,6 +364,10 @@ const CrearSorteo = ({ currentUserEmail }) => {
       setError('La fecha de realización no puede ser anterior a la fecha de fin de venta.');
       return false;
     }
+    if (formData.fechaRealizacion <= formData.fechaFinVenta) { 
+      alert('La fecha de realización debe ser al menos un día después de la fecha de fin de venta.');
+      return false;
+    }
 
     if (premios.length === 0) {
       setError('Debe haber al menos un premio.');
@@ -380,6 +412,12 @@ const CrearSorteo = ({ currentUserEmail }) => {
       }
     }
 
+    const maxDias = 34;
+      if (parseInt(formData.tiempoLimiteApartado, 10) > maxDias || parseInt(formData.tiempoRecordatorioPago, 10) > maxDias) {
+        alert(`El tiempo máximo permitido es de ${maxDias} días.`);
+        return false;
+      }
+
     return true;
   };
 
@@ -416,6 +454,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   label="Imagen"
                   id="sorteo-imagen"
                   onChange={handleSorteoImageChange}
+                  fileValue={formData.imagen}
                 />
               </div>
             </FormSection>
@@ -451,7 +490,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   type="date"
                   value={formData.fechaInicioVenta}
                   onChange={(e) => handleFechaInicioVentaChange(e.target.value)}
-                  min={getTodayDate()}
+                  min={getTomorrowDate()}
                   required
                 />
                 <Input
@@ -459,7 +498,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   type="date"
                   value={formData.fechaFinVenta}
                   onChange={(e) => handleFechaFinVentaChange(e.target.value)}
-                  min={formData.fechaInicioVenta || getTodayDate()}
+                  min={getNextDay(formData.fechaInicioVenta)}
                   required
                 />
                 <Input
@@ -467,7 +506,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   type="date"
                   value={formData.fechaRealizacion}
                   onChange={(e) => handleFechaRealizacionChange(e.target.value)}
-                  min={formData.fechaFinVenta || getTodayDate()}
+                  min={getNextDay(formData.fechaFinVenta)}
                   required
                 />
               </div>
@@ -503,6 +542,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       label="Imagen"
                       id={`premio-imagen-${premio.id}`}
                       onChange={(e) => handlePremioImageChange(premio.id, e)}
+                      fileValue={premio.imagen}
                     />
                   </div>
                 ))}
@@ -547,6 +587,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       placeholder="ej. 7"
                       helperText="días"
                       min="1"
+                      max="34"
                       value={formData.tiempoLimiteApartado}
                       onChange={(e) => handleConfigInputChange('tiempoLimiteApartado', e.target.value)}
                     />
@@ -556,6 +597,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       placeholder="ej. 3"
                       helperText="días"
                       min="1"
+                      max="34"
                       value={formData.tiempoRecordatorioPago}
                       onChange={(e) => handleConfigInputChange('tiempoRecordatorioPago', e.target.value)}
                     />

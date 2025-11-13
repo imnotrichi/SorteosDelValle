@@ -90,6 +90,11 @@ class SorteosController {
             const organizadores = [];
             for (let i = 0; i < organizadoresData.length; i++) {
                 const organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(organizadoresData[i].correo);
+
+                if (!organizadorObtenido) {
+                    return next(new AppError(`El correo del organizador '${organizadoresData[i].correo}' no se encuentra registrado.`, 400));
+                }
+                
                 organizadores.push({ id_organizador: organizadorObtenido.id });
             }
 

@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import uploadIcon from '../assets/subir.png';
 
-const FileUpload = ({ label, id = "dropzone-file", onChange }) => {
+const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue }) => {
   
   const [fileName, setFileName] = useState(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (fileValue) {
+      setFileName(fileValue.name);
+    } else {
+      setFileName(null);
+      if (inputRef.current) {
+        inputRef.current.value = null;
+      }
+    }
+  }, [fileValue]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -48,6 +60,7 @@ const FileUpload = ({ label, id = "dropzone-file", onChange }) => {
           className="hidden" 
           accept="image/png,image/jpeg,image/jpg"
           onChange={handleFileChange}
+          ref={inputRef}
         />
       </label>
     </div>
