@@ -1,6 +1,7 @@
 
 export function PremioCard({ id, titulo, imagen }) {
-    <div
+
+    return (<div
         key={id}
         className="bg-white rounded-lg shadow-sm border border-gray-200 "
     >
@@ -18,6 +19,8 @@ export function PremioCard({ id, titulo, imagen }) {
             </p>
         </div>
     </div>
+
+    )
 }
 
 
