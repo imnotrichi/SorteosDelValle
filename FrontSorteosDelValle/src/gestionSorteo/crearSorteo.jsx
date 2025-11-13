@@ -122,7 +122,9 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
   const handleConfigInputChange = (field, value) => {
     const numValue = parseInt(value, 10);
-    if (value === '' || numValue >= 0) {
+    const maxDias = 34;
+
+    if (value === '' || (numValue >= 0 && numValue <= maxDias)) {
       setFormData({ ...formData, [field]: value });
     }
   };
@@ -336,6 +338,10 @@ const CrearSorteo = ({ currentUserEmail }) => {
       setError('La fecha de realización no puede ser anterior a la fecha de fin de venta.');
       return false;
     }
+    if (formData.fechaRealizacion < formData.fechaFinVenta) {
+      alert('La fecha de realización no puede ser anterior a la fecha de fin de venta.');
+      return false;
+    }
 
     if (premios.length === 0) {
       setError('Debe haber al menos un premio.');
@@ -380,6 +386,12 @@ const CrearSorteo = ({ currentUserEmail }) => {
       }
     }
 
+    const maxDias = 34;
+      if (parseInt(formData.tiempoLimiteApartado, 10) > maxDias || parseInt(formData.tiempoRecordatorioPago, 10) > maxDias) {
+        alert(`El tiempo máximo permitido es de ${maxDias} días.`);
+        return false;
+      }
+
     return true;
   };
 
@@ -416,6 +428,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   label="Imagen"
                   id="sorteo-imagen"
                   onChange={handleSorteoImageChange}
+                  fileValue={formData.imagen}
                 />
               </div>
             </FormSection>
@@ -459,7 +472,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   type="date"
                   value={formData.fechaFinVenta}
                   onChange={(e) => handleFechaFinVentaChange(e.target.value)}
-                  min={formData.fechaInicioVenta || getTodayDate()}
+                  min={formData.fechaInicioVenta}
                   required
                 />
                 <Input
@@ -467,7 +480,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   type="date"
                   value={formData.fechaRealizacion}
                   onChange={(e) => handleFechaRealizacionChange(e.target.value)}
-                  min={formData.fechaFinVenta || getTodayDate()}
+                  min={formData.fechaFinVenta}
                   required
                 />
               </div>
@@ -503,6 +516,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       label="Imagen"
                       id={`premio-imagen-${premio.id}`}
                       onChange={(e) => handlePremioImageChange(premio.id, e)}
+                      fileValue={premio.imagen}
                     />
                   </div>
                 ))}
@@ -547,6 +561,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       placeholder="ej. 7"
                       helperText="días"
                       min="1"
+                      max="34"
                       value={formData.tiempoLimiteApartado}
                       onChange={(e) => handleConfigInputChange('tiempoLimiteApartado', e.target.value)}
                     />
@@ -556,6 +571,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       placeholder="ej. 3"
                       helperText="días"
                       min="1"
+                      max="34"
                       value={formData.tiempoRecordatorioPago}
                       onChange={(e) => handleConfigInputChange('tiempoRecordatorioPago', e.target.value)}
                     />
