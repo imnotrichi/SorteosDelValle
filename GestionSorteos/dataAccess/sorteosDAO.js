@@ -3,6 +3,8 @@ const { Sorteo } = require('../models');
 const { Premio } = require('../models');
 const { OrganizadorSorteo } = require('../models/');
 const { Configuracion } = require('../models/');
+const { Organizador } = require('../models/');
+const { Usuario } = require('../models/');
 const { Op } = require('sequelize');
 
 class SorteosDAO {
@@ -32,7 +34,6 @@ class SorteosDAO {
             );
 
             return sorteoCreado;
-
         } catch (error) {
             console.log(error);
             throw error;
@@ -51,7 +52,15 @@ class SorteosDAO {
                 },
                 {
                     model: OrganizadorSorteo,
-                    as: 'OrganizadorSorteos'
+                    as: 'OrganizadorSorteos',
+                    include: [{
+                        model: Organizador,
+                        as: 'Organizador',
+                        include: [{
+                            model: Usuario,
+                            as: 'Usuario'
+                        }]
+                    }]
                 },
                 {
                     model: Configuracion,
@@ -80,7 +89,15 @@ class SorteosDAO {
                 },
                 {
                     model: OrganizadorSorteo,
-                    as: 'OrganizadorSorteos'
+                    as: 'OrganizadorSorteos',
+                    include: [{
+                        model: Organizador,
+                        as: 'Organizador',
+                        include: [{
+                            model: Usuario,
+                            as: 'Usuario'
+                        }]
+                    }]
                 },
                 {
                     model: Configuracion,
@@ -111,6 +128,17 @@ class SorteosDAO {
                     as: 'Premios'
                 },
                 {
+                    model: OrganizadorSorteo,
+                    include: [{
+                        model: Organizador,
+                        as: 'Organizador',
+                        include: [{
+                            model: Usuario,
+                            as: 'Usuario'
+                        }]
+                    }]
+                },
+                {
                     model: Configuracion,
                     as: 'Configuracion'
                 }]
@@ -138,7 +166,15 @@ class SorteosDAO {
                 },
                 {
                     model: OrganizadorSorteo,
-                    as: 'OrganizadorSorteos'
+                    as: 'OrganizadorSorteos',
+                    include: [{
+                        model: Organizador,
+                        as: 'Organizador',
+                        include: [{
+                            model: Usuario,
+                            as: 'Usuario'
+                        }]
+                    }]
                 },
                 {
                     model: Configuracion,
@@ -167,7 +203,15 @@ class SorteosDAO {
                 },
                 {
                     model: OrganizadorSorteo,
-                    as: 'OrganizadorSorteos'
+                    as: 'OrganizadorSorteos',
+                    include: [{
+                        model: Organizador,
+                        as: 'Organizador',
+                        include: [{
+                            model: Usuario,
+                            as: 'Usuario'
+                        }]
+                    }]
                 },
                 {
                     model: Configuracion,
@@ -184,7 +228,42 @@ class SorteosDAO {
     async actualizarSorteo(idSorteo, sorteoData) {
         try {
             const sorteoBuscado = await this.obtenerSorteoPorId(idSorteo);
+
+            if (!sorteoBuscado) {
+                throw new Error('El sorteo no existe.');
+            }
+
+            const {
+                descripcion,
+                imagen_url,
+                rango_numeros,
+                inicio_periodo_venta,
+                fin_periodo_venta,
+                fecha_realizacion,
+                id_configuracion,
+                OrganizadorSorteos
+            } = sorteoData;
+
+            await OrganizadorSorteo.destroy({
+                where: {
+                    id_sorteo: idSorteo
+                }
+            });
+
+            const nuevosRegistros = OrganizadorSorteos.map(organizador => ({
+                id_sorteo: idSorteo,
+                id_organizador: organizador.id_organizador
+            }));
+
+            // 3. Crear nuevas entradas de asociación de manera eficiente
+            if (nuevosRegistros.length > 0) {
+                await OrganizadorSorteo.bulkCreate(nuevosRegistros);
+            }
+
+            const sorteo = await sorteoBuscado.update(sorteoData, { new: true });
+            return sorteo;
         } catch (error) {
+            console.log(error);
             throw error;
         }
     }
@@ -200,7 +279,6 @@ class SorteosDAO {
             await sorteoObtenido.destroy();
             return 'Se eliminó el sorteo correctamente.';
         } catch (error) {
-            console.log(error);
             throw error;
         }
     }
