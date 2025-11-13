@@ -39,7 +39,7 @@ const handleImageUpload = async (file) => {
   }
 };
 
-const CrearSorteo = () => {
+const CrearSorteo = ({ currentUserEmail }) => {
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
@@ -58,7 +58,7 @@ const CrearSorteo = () => {
   ]);
 
   const [organizadores, setOrganizadores] = useState([
-    { id: 1, email: "abel@example.com" }
+    { id: 1, email: currentUserEmail }
   ]);
 
   const [useGlobalConfig, setUseGlobalConfig] = useState(false);
@@ -287,7 +287,7 @@ const CrearSorteo = () => {
     ]);
 
     setOrganizadores([
-      { id: 1, email: "abel@example.com" }
+      { id: 1, email: currentUserEmail }
     ]);
 
     setUseGlobalConfig(false);
@@ -548,12 +548,13 @@ const CrearSorteo = () => {
                     <div className="flex items-start gap-2">
                       <div className="flex-1">
                         <Input
-                          label={`#${index + 1}`}
+                          label={index === 0 ? "#1" : `#${index + 1}`}
                           type="email"
                           placeholder='ej. "diego.valenzuela247700@potros.itson.edu.mx"'
                           value={org.email}
                           onChange={(e) => handleOrganizadorChange(org.id, e.target.value)}
                           required
+                          disabled={index === 0}
                         />
                       </div>
                       {index > 0 && (
