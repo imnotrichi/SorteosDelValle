@@ -148,7 +148,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
     const year = today.getFullYear();
     const month = (today.getMonth() + 1).toString().padStart(2, '0');
     const day = today.getDate().toString().padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   };
 
@@ -156,28 +156,28 @@ const CrearSorteo = ({ currentUserEmail }) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     const year = tomorrow.getFullYear();
     const month = (tomorrow.getMonth() + 1).toString().padStart(2, '0');
     const day = tomorrow.getDate().toString().padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   };
 
   const getNextDay = (dateString) => {
     if (!dateString) {
-      return getTomorrowDate(); 
+      return getTomorrowDate();
     }
 
     const [year, month, day] = dateString.split('-').map(Number);
     const nextDay = new Date(year, month - 1, day);
-    
+
     nextDay.setDate(nextDay.getDate() + 1);
 
     const nextYear = nextDay.getFullYear();
     const nextMonth = (nextDay.getMonth() + 1).toString().padStart(2, '0');
     const nextDayDate = nextDay.getDate().toString().padStart(2, '0');
-    
+
     return `${nextYear}-${nextMonth}-${nextDayDate}`;
   };
 
@@ -196,7 +196,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
   };
 
   const handleFechaRealizacionChange = (value) => {
-    const minDate = getNextDay(formData.fechaFinVenta); 
+    const minDate = getNextDay(formData.fechaFinVenta);
 
     if (value >= minDate) {
       setFormData({ ...formData, fechaRealizacion: value });
@@ -258,7 +258,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
         tiempo_recordatorio_pago: useGlobalConfig
           ? "00:00:00"
           : convertirDiasAFormatoHoras(formData.tiempoRecordatorioPago),
-        
+
         correoOrganizador: organizadores[0].email
       };
 
@@ -351,7 +351,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
       setError('El precio por número debe ser al menos 1.');
       return false;
     }
-    
+
     if (!formData.fechaInicioVenta || formData.fechaInicioVenta < today) {
       setError('La fecha de inicio de venta debe ser hoy o una fecha futura.');
       return false;
@@ -364,7 +364,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
       setError('La fecha de realización no puede ser anterior a la fecha de fin de venta.');
       return false;
     }
-    if (formData.fechaRealizacion <= formData.fechaFinVenta) { 
+    if (formData.fechaRealizacion <= formData.fechaFinVenta) {
       alert('La fecha de realización debe ser al menos un día después de la fecha de fin de venta.');
       return false;
     }
@@ -385,8 +385,8 @@ const CrearSorteo = ({ currentUserEmail }) => {
     }
 
     if (organizadores.length === 0) {
-        setError('Debe haber al menos un organizador.');
-        return false;
+      setError('Debe haber al menos un organizador.');
+      return false;
     }
     for (let org of organizadores) {
       if (!org.email.trim()) {
@@ -413,10 +413,10 @@ const CrearSorteo = ({ currentUserEmail }) => {
     }
 
     const maxDias = 34;
-      if (parseInt(formData.tiempoLimiteApartado, 10) > maxDias || parseInt(formData.tiempoRecordatorioPago, 10) > maxDias) {
-        alert(`El tiempo máximo permitido es de ${maxDias} días.`);
-        return false;
-      }
+    if (parseInt(formData.tiempoLimiteApartado, 10) > maxDias || parseInt(formData.tiempoRecordatorioPago, 10) > maxDias) {
+      alert(`El tiempo máximo permitido es de ${maxDias} días.`);
+      return false;
+    }
 
     return true;
   };
