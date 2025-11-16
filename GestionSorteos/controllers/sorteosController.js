@@ -132,10 +132,9 @@ class SorteosController {
             }
 
             const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(idSorteo);
-            const existe = numerosExist.length > 0;
 
             const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
-            const respuestaJSON = this.#formatearJsonSorteo(sorteo, existe);
+            const respuestaJSON = this.#formatearJsonSorteo(sorteo, numerosExist.length);
             res.status(200).json(respuestaJSON);
         } catch (error) {
             console.log(error);
@@ -156,7 +155,7 @@ class SorteosController {
             const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
             const existe = numerosExist.length > 0;
 
-            const respuestaJSON = this.#formatearJsonSorteo(sorteo, existe);
+            const respuestaJSON = this.#formatearJsonSorteo(sorteo, numerosExist.length);
             res.status(200).json(respuestaJSON);
         } catch (error) {
             console.log(error);
@@ -179,7 +178,7 @@ class SorteosController {
                 const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
                 const existe = numerosExist.length > 0;
 
-                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, existe));
+                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, numerosExist.length));
             }
 
             res.status(200).json(respuestaJSON);
@@ -198,7 +197,7 @@ class SorteosController {
                 const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
                 const existe = numerosExist.length > 0;
 
-                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, existe));
+                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, numerosExist.length));
             }
 
             res.status(200).json(respuestaJSON);
@@ -216,7 +215,7 @@ class SorteosController {
                 const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
                 const existe = numerosExist.length > 0;
 
-                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, existe));
+                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, numerosExist.length));
             }
 
             res.status(200).json(respuestaJSON);

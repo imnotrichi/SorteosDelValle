@@ -141,7 +141,7 @@ const EditarSorteo = () => {
     }, [id, navigate]);
 
     //TODO: Verificar esta parte ya que por el momento solo obtiene un true
-    const hayBoletosVendidos = sorteoOriginal?.numeros_vendidos === true;
+    const hayBoletosVendidos = sorteoOriginal?.numeros_vendidos > 0;
     const minRangePermitido = hayBoletosVendidos ? sorteoOriginal.rango_numeros : 1;
 
     const handleAnadirPremio = () => {
@@ -716,7 +716,7 @@ const EditarSorteo = () => {
 
             </form>
 
-            
+
 
             <SuccessModal
                 isOpen={isModalOpen}
