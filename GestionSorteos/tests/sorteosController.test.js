@@ -588,7 +588,7 @@ describe('crearSorteo (Controller)', () => {
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
         expect(error.statusCode).toBe(400);
-        expect(mockNext.mock.calls[0][0].message).toBe('No hay un organizador registrado con ese correo.');
+        expect(mockNext.mock.calls[0][0].message).toBe(`El correo del organizador 'correofalso@falso.falacia.com' no se encuentra registrado.`);
     });
 
     // Prueba 26: Intentar crear un sorteo sin ninguna configuración
@@ -929,7 +929,7 @@ describe('actualizarSorteo (Controller)', () => {
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
         expect(error.statusCode).toBe(400);
-        expect(mockNext.mock.calls[0][0].message).toBe('No hay un organizador registrado con ese correo.');
+        expect(mockNext.mock.calls[0][0].message).toBe(`El correo del organizador 'correofalso@falso.falacia.com' no se encuentra registrado.`);
     });
 
     // GST-02X
