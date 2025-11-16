@@ -255,7 +255,7 @@ class SorteosDAO {
                     id_sorteo: idSorteo,
                     id_organizador: organizador.id_organizador
                 }));
-                
+
                 // 3. Crear nuevas entradas de asociación de manera eficiente
                 if (nuevosRegistros.length > 0) {
                     await OrganizadorSorteo.bulkCreate(nuevosRegistros);
@@ -286,6 +286,27 @@ class SorteosDAO {
         }
     }
 
+    async obtenerRangoNumeros(id) {
+        try {
+            const sorteoBuscado = await this.obtenerSorteoPorId(id);
+
+            if (!sorteoBuscado) {
+                throw new Error('El sorteo no existe.');
+            }
+            
+            const sorteo = await Sorteo.findOne({
+                where: {
+                    id: id
+                },
+                attributes: ["id", "rango_numeros"]
+            });
+
+            return sorteo.rango_numeros;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    }
 }
 
 module.exports = new SorteosDAO();

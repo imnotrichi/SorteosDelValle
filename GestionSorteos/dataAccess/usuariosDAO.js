@@ -1,6 +1,4 @@
 const { Usuario } = require('../models/');
-const { Organizador } = require('../models/');
-const { Cliente } = require('../models/');
 const { Op } = require('sequelize');
 
 class UsuariosDAO {
