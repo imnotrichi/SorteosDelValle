@@ -11,9 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Numero.belongsTo(models.Sorteo, {foreignKey: 'id_sorteo'});
-      Numero.belongsTo(models.Pago, {foreignKey: 'id_pago'});
-      Numero.belongsTo(models.Cliente, {foreignKey: 'id_cliente'});
+      Numero.belongsTo(models.Sorteo, { foreignKey: 'id_sorteo' });
+      Numero.belongsTo(models.Pago, { foreignKey: 'id_pago' });
+      Numero.belongsTo(models.Cliente, { foreignKey: 'id_cliente' });
     }
   }
   Numero.init({
@@ -25,6 +25,17 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Numero',
+    /**
+     * Declaramos también la restricción aquí por SI Sequelize recrea la tabla.
+     * La DB manda, pero esto mantiene coherencia en el modelo.
+     */
+    indexes: [
+      {
+        unique: true,
+        fields: ["numero", "id_sorteo"],
+        name: "unique_numero_por_sorteo"
+      }
+    ]
   });
   return Numero;
 };

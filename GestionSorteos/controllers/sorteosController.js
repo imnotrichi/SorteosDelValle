@@ -415,7 +415,6 @@ class SorteosController {
 
         return sorteoData;
     }
-
 }
 
 module.exports = new SorteosController();
