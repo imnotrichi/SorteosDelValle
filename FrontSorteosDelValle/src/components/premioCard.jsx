@@ -5,7 +5,7 @@ export function PremioCard({ id, titulo, imagen }) {
         key={id}
         className="bg-white rounded-lg shadow-sm border border-gray-200 "
     >
-        <div className="border border-blue-700 relative rounded-t-lg overflow-hidden">
+        <div className="relative rounded-t-lg overflow-hidden">
             <img
                 src={imagen}
                 alt={titulo}
@@ -13,8 +13,8 @@ export function PremioCard({ id, titulo, imagen }) {
             />
         </div>
 
-        <div className="border border-amber-600 min-h-10 flex items-center px-3">
-            <p className=" border text-sm font-medium text-gray-900">
+        <div className=" min-h-10 flex items-center px-3">
+            <p className=" text-sm font-medium text-gray-900">
                 {titulo}
             </p>
         </div>

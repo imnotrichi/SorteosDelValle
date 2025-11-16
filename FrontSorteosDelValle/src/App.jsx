@@ -8,6 +8,7 @@ import DetallesSorteo from "./gestionSorteo/detallesSorteo.jsx";
 import Inicio from "./gestionSorteoCliente/inicio.jsx";
 import DetalleSorteo from "./gestionSorteoCliente/detalleSorteo.jsx";
 import NumerosSorteo from "./gestionSorteoCliente/numerosSorteo.jsx";
+import EditarSorteo from "./gestionSorteo/editarSorteo.jsx"
 //Aun no existe import EditarSorteo from "./gestionSorteo/editarSorteo.jsx";
 //TODO: IMPORTAR COMPONENTE DE EDICION
 //TODO: EditarSorteo
@@ -37,9 +38,9 @@ function App() {
         path="/crearSorteo" 
         element={<MainLayout><CrearSorteo currentUserEmail={currentUser.email}/></MainLayout>} 
       />
-      <Route path="/admin/misSorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
-      <Route path="/sorteos/1" element={<MainLayout><DetallesSorteo/></MainLayout>} />
-      {/* <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} /> */}
+      <Route path="/admin/mis-sorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
+      <Route path="/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo/></MainLayout>} />
+      <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
     </Routes>
   )
 }
