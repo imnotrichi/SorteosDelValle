@@ -28,22 +28,19 @@ function App() {
   });
 
   return (
-    <MainLayout>
       <Routes>
       <Route path="/" element={<Inicio />} />
       <Route path="/sorteo/:id" element={<DetalleSorteo />} />
       <Route path="/sorteo/:id/numeros" element={<NumerosSorteo />} />
-
-      <Route path="/admin" element={<MisSorteos />} />
+      <Route path="/admin" element={<MainLayout><MisSorteos/></MainLayout>} />
       <Route 
         path="/crearSorteo" 
-        element={<CrearSorteo currentUserEmail={currentUser.email} />} 
+        element={<MainLayout><CrearSorteo currentUserEmail={currentUser.email}/></MainLayout>} 
       />
       <Route path="/admin/misSorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
-      <Route path="/sorteos/1" element={<DetallesSorteo />} />
+      <Route path="/sorteos/1" element={<MainLayout><DetallesSorteo/></MainLayout>} />
       {/* <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} /> */}
     </Routes>
-    </MainLayout>
   )
 }
 
