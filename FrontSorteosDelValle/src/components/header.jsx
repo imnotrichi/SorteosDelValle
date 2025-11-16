@@ -25,7 +25,7 @@ const Header = ({onNavigate}) => {
                 Reportes
                 </button>
             </nav>
-            <button onClick={() => onNavigate('/crear-sorteo')} className="hidden sm:flex items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-text-light text-sm font-bold">
+            <button onClick={() => onNavigate('/crearSorteo')} className="hidden sm:flex items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-text-light text-sm font-bold">
               Crear sorteo
             </button>
             <div className="flex items-center gap-2 pl-4">
