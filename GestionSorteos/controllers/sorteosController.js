@@ -239,7 +239,7 @@ class SorteosController {
             }
 
             if (sorteoExists.fecha_realizacion < new Date()) {
-                return next(new AppError('No se puede actualizar este sorteo porque ya pasó.', 405));
+                return next(new AppError('No se puede actualizar este sorteo porque ya pasó.', 400));
             }
 
             const {
@@ -285,6 +285,10 @@ class SorteosController {
                 return next(new AppError('Ingrese un periodo válido.', 400));
             }
 
+            if (inicio_periodo_venta != sorteoExists.inicio_periodo_venta && sorteoExists.inicio_periodo_venta < new Date()) {
+                return next(new AppError('No se puede cambiar la fecha de inicio porque ya empezaron a venderse números.', 400));
+            }
+
             const fechaRealizacion = new Date(fecha_realizacion);
             if (fechaRealizacion < new Date()) {
                 return next(new AppError('La fecha de realización del sorteo debe ser válida.', 400));
@@ -317,12 +321,6 @@ class SorteosController {
                 return next(new AppError('Todos los campos son requeridos.', 400));
             }
 
-            for (const premio of premiosData) {
-                if (!premio.titulo || !premio.imagen_premio_url) {
-                    return next(new AppError('Todos los campos son requeridos.', 400));
-                }
-            }
-
             const sorteoData = {
                 descripcion,
                 imagen_url,
@@ -333,6 +331,8 @@ class SorteosController {
                 id_configuracion: configuracion.id,
                 OrganizadorSorteos: organizadores
             }
+
+            console.log(sorteoData);
 
             const sorteoActualizado = await sorteosDAO.actualizarSorteo(idSorteo, sorteoData);
             res.status(200).json(sorteoActualizado);

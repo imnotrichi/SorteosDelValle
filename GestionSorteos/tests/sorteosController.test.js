@@ -99,7 +99,6 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
-    /*
     await Sorteo.destroy({ where: {} });
 
     await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId1 } });
@@ -114,27 +113,12 @@ afterAll(async () => {
 
     await Usuario.destroy({ where: { id: organizadorId1 } });
     await Usuario.destroy({ where: { id: organizadorId2 } });
-    */
-    await Sorteo.destroy({ where: {} });
-
-    await OrganizadorSorteo.destroy({ where: {} });
-    await OrganizadorSorteo.destroy({ where: {} });
-
-    await Premio.destroy({ where: {} });
-
-    await Configuracion.destroy({ where: {} });
-
-    await Organizador.destroy({ where: {} });
-    await Organizador.destroy({ where: {} });
-
-    await Usuario.destroy({ where: {} });
-    await Usuario.destroy({ where: {} });
 });
 
 function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
-/*
+
 describe('crearSorteo (Controller)', () => {
     // Prueba 1: Crear un sorteo con datos válidos (1 organizador)
     it('debería crear un nuevo sorteo y responder con 200', async () => {
@@ -667,11 +651,10 @@ describe('crearSorteo (Controller)', () => {
         expect(mockNext.mock.calls[0][0].message).toBe('Todos los campos son requeridos.');
     });
 });
-*/
+
 
 
 describe('actualizarSorteo (Controller)', () => {
-    /*
     // GST-001
     it('debería actualizar un sorteo exitosamente y responder con 200', async () => {
         // Arrange
@@ -773,7 +756,6 @@ describe('actualizarSorteo (Controller)', () => {
         expect(error.statusCode).toBe(400);
         expect(error.message).toBe("El rango no puede ser menor a 1.");
     });
-*/
 
     // GST-015
     it('GST-015: debería llamar a next con error 400 si la fecha de inicio de venta ya pasó', async () => {
@@ -971,7 +953,7 @@ describe('actualizarSorteo (Controller)', () => {
         });
 
         // Act
-        const mockReqEliminar = { params: { id: foCreado.id }, body: { rango_numeros: 50 } };
+        const mockReqEliminar = { params: { id: sorteoCreado.id }, body: { rango_numeros: 50 } };
         await sorteosController.actualizarSorteo(mockReqEliminar, mockRes, mockNext);
 
         // Assert
@@ -1013,7 +995,7 @@ describe('actualizarSorteo (Controller)', () => {
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
         expect(error.statusCode).toBe(400);
-        expect(error.message).toBe("Ingrese un periodo válido.");
+        expect(error.message).toBe("No se puede cambiar la fecha de inicio porque ya empezaron a venderse números.");
     });
 
     // GST-02X
@@ -1032,7 +1014,7 @@ describe('actualizarSorteo (Controller)', () => {
         datosSorteo.id_configuracion = configId;
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
         const mockReq = {
-            params: { id: sorteoCreado.id }, body: {  } // No mandamos nada porque aunque le mandemos nos debe dar para atrás
+            params: { id: sorteoCreado.id }, body: {} // No mandamos nada porque aunque le mandemos nos debe dar para atrás
         };
 
         // Act
@@ -1046,7 +1028,7 @@ describe('actualizarSorteo (Controller)', () => {
     });
 });
 
-/*
+
 describe('eliminarSorteo (Controller)', () => {
     // ID: GST-025
     it('GST-025: debería eliminar un sorteo existente y responder con 200', async () => {
@@ -1152,4 +1134,3 @@ describe('eliminarSorteo (Controller)', () => {
 
     });
 });
-*/
