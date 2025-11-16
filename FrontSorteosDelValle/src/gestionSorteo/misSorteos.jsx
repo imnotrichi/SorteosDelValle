@@ -87,7 +87,8 @@ const MisSorteos = ({ onNavigate }) => {
   }
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">Error: {error}</div>;
+    console.log(error);
+    return <div className="p-8 text-center text-red-500">Error: Ha Ocurrió un error al cargar los sorteos.</div>;
   }
 
 
@@ -107,7 +108,7 @@ const MisSorteos = ({ onNavigate }) => {
             key={sorteo.id}
             sorteo={sorteo}
           onNavigateInfo={()=> navigate(`/sorteos/${sorteo.id}`)}
-          onEditarClick={() => navigate(`/sorteos/editar/${sorteo.id}`)}
+          onEditarClick={() => navigate(`/admin/editar/${sorteo.id}`)}
           onVerBoletoClick={() => navigate(`/sorteos/${sorteo.id}/boletos`)}
           onEliminarClick={() => handleEliminarSorteo(sorteo.id)}
           />

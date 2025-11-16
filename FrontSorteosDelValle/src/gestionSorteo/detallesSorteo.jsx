@@ -1,46 +1,100 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DetallesSorteoCard from "../components/detallesSorteoCard.jsx";
-import {PremioCard} from "../components/premioCard.jsx";
+import { PremioCard } from "../components/premioCard.jsx";
+import { useNavigate, useParams } from "react-router-dom";
+
+const API_GATEWAY_URL = 'http://localhost:8080';
+
 const DetallesSorteo = () => {
-  const [sorteoData] = useState({
-    titulo: "Rifa Smart TV. ¡Mira!",
-    imagen:
-      "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-    boletosVendidos: 150,
-    boletosRestantes: 50,
-    pagoGenerado: 1500.0,
-    descripcion:
-      "Disfruta de la mejor experiencia visual con nuestra Smart TV de última generación. Con una pantalla de alta definición, acceso a aplicaciones de streaming y conectividad inteligente, esta TV transformará tu sala en un cine en casa. ¡No te pierdas la oportunidad de ganar este increíble premio!",
-    rangoNumeros: "001 - 500",
-    PrecioPorNumero: 100.0,
-    fechaInicio: "2024-01-01",
-    fechaFin: "2024-02-01",
-    fechaSorteo: "2024-02-05",
-    premios: [
-      {
-        id: 1,
-        titulo: "Smart TV 3999-pro max",
-        imagen:
-          "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop",
-      },
-      {
-        id: 2,
-        titulo: "Smart TV 3999-pro max",
-        imagen:
-          "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop",
-      },
-      {
-        id: 3,
-        titulo: "Smart TV 3999-pro max",
-        imagen:
-          "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop",
-      },
-    ],
-  });
+  const navitgate = useNavigate();
+  const id  = useParams();
+  const idSorteo = id.idSorteo;
+  const [sorteoData, setSorteo] = useState([]);
+  const [isLoading, setIsloading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSorteoData = async () => {
+      setIsloading(true);
+      setError(null);
+      try {
+
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteo}`);
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.message || 'Error al obtener los sorteos');
+        }
+
+        let data = await response.json();
+
+        console.log("Se obtuvo correctamente los datos del sorteo");
+        setSorteo(data);
+      } catch (error) {
+        console.error('Error al cargar el sorteo:', error);
+        setError(error.message);
+      } finally {
+        setIsloading(false);
+      }
+    };
+    if (idSorteo) {
+      fetchSorteoData();
+    }
+  }, [idSorteo]);
+
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Cargando detalles del sorteo... $si{idSorteo}</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center text-red-500">
+        Error: {error}
+        <button
+          onClick={() => navigate('/admin/misSorteos')}
+          className="block mx-auto mt-4 px-4 py-2 bg-primary text-white rounded-lg"
+        >
+          Volver a Mis Sorteos
+        </button>
+      </div>
+    );
+  }
+
+  if (!sorteoData) {
+    return <div className="p-8 text-center">No se encontró el sorteo</div>;
+  }
+
+  const handleEliminar = async () => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este sorteo? Esta acción no se puede deshacer.")) {
+      try {
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.message || 'Error al eliminar el sorteo');
+        }
+
+        alert('Sorteo eliminado exitosamente');
+        navigate('/admin/misSorteos');
+      } catch (error) {
+        console.error('Error al eliminar:', error);
+        alert(error.message);
+      }
+    }
+  };
+
+  //TODO: OBTENER VALORES REALES
+  const boletosVendidos = 0;
+  const boletosRestantes = sorteoData.rango_numeros - boletosVendidos;
+  const pagoGenerado = boletosVendidos * (parseFloat(sorteoData.precio_numero) || 0);
 
   return (
+
     <div className="min-h-screen ">
-      <div className="border">
+      <div className="">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Titulo y botones */}
 
@@ -54,7 +108,8 @@ const DetallesSorteo = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-green-400 hover:bg-green-500 text-gray-900 rounded-lg flex items-center gap-2 font-medium transition-colors">
+              <button 
+              className="px-4 py-2 bg-green-400 hover:bg-green-500 text-gray-900 rounded-lg flex items-center gap-2 font-medium transition-colors">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -92,7 +147,9 @@ const DetallesSorteo = () => {
                 </svg>
                 Ver boletos
               </button>
-              <button className="px-4 py-2 bg-red-400 hover:bg-red-500 text-gray-900 rounded-lg flex items-center gap-2 font-medium transition-colors">
+              <button
+                onClick={handleEliminar}
+                className="px-4 py-2 bg-red-400 hover:bg-red-500 text-gray-900 rounded-lg flex items-center gap-2 font-medium transition-colors">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -118,7 +175,7 @@ const DetallesSorteo = () => {
         {/* Imagen */}
         <div className="relative rounded-2xl overflow-hidden mb-8 shadow-lg">
           <img
-            src={sorteoData.imagen}
+            src={sorteoData.imagen_url}
             alt={sorteoData.titulo}
             className="w-full h-80 object-cover"
           />
@@ -134,37 +191,40 @@ const DetallesSorteo = () => {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <p className="text-sm text-gray-500 mb-2">Boletos vendidos</p>
             <p className="text-4xl font-bold text-gray-900">
-              {sorteoData.boletosVendidos}
+              {boletosVendidos}
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <p className="text-sm text-gray-500 mb-2">Boletos restantes</p>
             <p className="text-4xl font-bold text-gray-900">
-              {sorteoData.boletosRestantes}
+              {boletosRestantes}
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <p className="text-sm text-gray-500 mb-2">Pago generado</p>
             <p className="text-4xl font-bold text-gray-900">
-              ${sorteoData.pagoGenerado.toFixed(2)}
+              ${pagoGenerado}
             </p>
           </div>
         </div>
 
         {/* Premios*/}
-        <div className=" border border-amber-700">
+        <div className=" ">
           <h3 className="text-xl font-bold text-gray-900 mb-6">Premios</h3>
-          <div className="min-w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {sorteoData.premios.map((premio) => (
-              <PremioCard
-                key={premio.id}
-                titulo={premio.titulo}
-                imagen={premio.imagen}
-                
-              />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {sorteoData.premiosData && sorteoData.premiosData.length > 0 ? (
+              sorteoData.premiosData.map((premio) => (
+                <PremioCard
+                  key={premio.id}
+                  titulo={premio.titulo}
+                  imagen={premio.imagen_premio_url}
+                />
+              ))
+            ) : (
+              <p className="text-gray-500">No hay premios disponibles</p>
+            )}
           </div>
         </div>
 

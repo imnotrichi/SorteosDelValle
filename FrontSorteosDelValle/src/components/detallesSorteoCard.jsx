@@ -18,7 +18,7 @@ const DetallesSorteoCard = ({ descripcion, rangoNumeros, PrecioPorNumero, fechaI
                 <div className="flex border-b-2 border-border-light">
                     <p className="max-w-60 min-w-50  ">Precio por número</p>
                     <p className="text-sm text-gray-500">
-                        ${PrecioPorNumero.toFixed(2)}
+                        ${PrecioPorNumero}
                     </p>
                 </div>
 

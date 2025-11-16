@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SuccessModal = ({ isOpen, onClose }) => {
+const SuccessModal = ({ isOpen, onClose, title }) => {
   if (!isOpen) return null;
 
   return (
@@ -17,7 +17,7 @@ const SuccessModal = ({ isOpen, onClose }) => {
             </span>
           </div>
           <h3 className="text-2xl font-bold text-text-light dark:text-text-dark">
-            ¡El sorteo se ha creado con éxito!
+            {title}
           </h3>
           <button
             onClick={onClose}
