@@ -3,6 +3,7 @@ import FormSection from '../components/formulario.jsx';
 import Input, { TextArea } from '../components/input';
 import FileUpload from '../components/subirImagen.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
+import ErrorModal from '../components/mensajeError.jsx';
 import addIcon from '../assets/añadir.png';
 
 const CLOUDINARY_CLOUD_NAME = "drczej3mh";
@@ -25,7 +26,7 @@ const handleImageUpload = async (file) => {
       method: 'POST',
       body: formData,
     });
-    
+
     if (!response.ok) {
       throw new Error('Error al subir la imagen a Cloudinary');
     }
@@ -39,8 +40,7 @@ const handleImageUpload = async (file) => {
   }
 };
 
-
-const CrearSorteo = () => {
+const CrearSorteo = ({ currentUserEmail }) => {
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
@@ -59,13 +59,15 @@ const CrearSorteo = () => {
   ]);
 
   const [organizadores, setOrganizadores] = useState([
-    { id: 1, email: "" }
+    { id: 1, email: currentUserEmail }
   ]);
 
   const [useGlobalConfig, setUseGlobalConfig] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const [isUploading, setIsUploading] = useState(false);
+
+  const [error, setError] = useState(null);
 
   const handleAñadirPremio = () => {
     const newId = premios.length + 1;
@@ -79,7 +81,7 @@ const CrearSorteo = () => {
   };
 
   const handlePremioChange = (id, field, value) => {
-    setPremios(premios.map(p => 
+    setPremios(premios.map(p =>
       p.id === id ? { ...p, [field]: value } : p
     ));
   };
@@ -120,7 +122,9 @@ const CrearSorteo = () => {
 
   const handleConfigInputChange = (field, value) => {
     const numValue = parseInt(value, 10);
-    if (value === '' || numValue >= 0) {
+    const maxDias = 34;
+
+    if (value === '' || (numValue >= 0 && numValue <= maxDias)) {
       setFormData({ ...formData, [field]: value });
     }
   };
@@ -141,30 +145,60 @@ const CrearSorteo = () => {
 
   const getTodayDate = () => {
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const getTomorrowDate = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const year = tomorrow.getFullYear();
+    const month = (tomorrow.getMonth() + 1).toString().padStart(2, '0');
+    const day = tomorrow.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const getNextDay = (dateString) => {
+    if (!dateString) {
+      return getTomorrowDate();
+    }
+
+    const [year, month, day] = dateString.split('-').map(Number);
+    const nextDay = new Date(year, month - 1, day);
+
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const nextYear = nextDay.getFullYear();
+    const nextMonth = (nextDay.getMonth() + 1).toString().padStart(2, '0');
+    const nextDayDate = nextDay.getDate().toString().padStart(2, '0');
+
+    return `${nextYear}-${nextMonth}-${nextDayDate}`;
   };
 
   const handleFechaInicioVentaChange = (value) => {
-    const today = getTodayDate();
-    if (value >= today) {
+    const tomorrow = getTomorrowDate();
+    if (value >= tomorrow) {
       setFormData({ ...formData, fechaInicioVenta: value });
     }
   };
 
   const handleFechaFinVentaChange = (value) => {
-    const today = getTodayDate();
-    if (value >= today && value > formData.fechaInicioVenta) {
+    const tomorrow = getTomorrowDate();
+    if (value >= tomorrow && value >= formData.fechaInicioVenta) {
       setFormData({ ...formData, fechaFinVenta: value });
     }
   };
 
   const handleFechaRealizacionChange = (value) => {
-    const today = getTodayDate();
-    if (
-      value >= today &&
-      value >= formData.fechaInicioVenta &&
-      value >= formData.fechaFinVenta
-    ) {
+    const minDate = getNextDay(formData.fechaFinVenta);
+
+    if (value >= minDate) {
       setFormData({ ...formData, fechaRealizacion: value });
     }
   };
@@ -182,43 +216,68 @@ const CrearSorteo = () => {
       handlePremioChange(id, 'imagen', file);
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    setError(null);
+
     if (!validateForm()) {
       return;
     }
 
     setIsUploading(true);
-    
+
     try {
-      const imagenSorteoUrl = await handleImageUpload(formData.imagen) || "https://ejemplo.com/placeholder-sorteo.png";
+      const imagenSorteoUrl = await handleImageUpload(formData.imagen);
 
       const premiosConUrl = await Promise.all(
         premios.map(async (premio) => {
           const imagenUrl = await handleImageUpload(premio.imagen);
           return {
             titulo: premio.titulo,
-            imagen_premio_url: imagenUrl || "https://ejemplo.com/placeholder-premio.png", 
+            imagen_premio_url: imagenUrl,
           };
         })
       );
-      
+
+      const convertirDiasAFormatoHoras = (diasString) => {
+        const dias = parseInt(diasString, 10);
+        if (isNaN(dias) || dias <= 0) {
+          return "00:00:00";
+        }
+        const horas = dias * 24;
+        return `${horas}:00:00`;
+      };
+
+      const configuracionData = {
+        global: useGlobalConfig,
+        tiempo_limite_apartado: useGlobalConfig
+          ? "00:00:00"
+          : convertirDiasAFormatoHoras(formData.tiempoLimiteApartado),
+        tiempo_recordatorio_pago: useGlobalConfig
+          ? "00:00:00"
+          : convertirDiasAFormatoHoras(formData.tiempoRecordatorioPago),
+
+        correoOrganizador: organizadores[0].email
+      };
+
+      const organizadoresData = organizadores.map(o => ({ correo: o.email }));
+
       const payload = {
         titulo: formData.titulo,
         descripcion: formData.descripcion,
         imagen_url: imagenSorteoUrl,
         rango_numeros: parseInt(formData.rangoNumeros, 10),
-        precio_numero: parseFloat(formData.precioNumero),
-        inicio_periodo_venta: formData.fechaInicioVenta,
-        fin_periodo_venta: formData.fechaFinVenta,
-        fecha_realizacion: formData.fechaRealizacion,
+        precio_numero: parseFloat(formData.precioNumero, 10),
+        inicio_periodo_venta: `${formData.fechaInicioVenta}T00:00:00`,
+        fin_periodo_venta: `${formData.fechaFinVenta}T00:00:00`,
+        fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`,
+        configuracionData: configuracionData,
         premiosData: premiosConUrl,
-        organizadores: organizadores.map(o => o.email), //TENGO Q CAMBIAR ESTO TAMBIEN
-        id_configuracion: 1, //esto tambn lo tengo q checar
+        organizadoresData: organizadoresData
       };
-      
+
       const response = await fetch(`${API_GATEWAY_URL}/api/sorteos`, {
         method: 'POST',
         headers: {
@@ -232,14 +291,11 @@ const CrearSorteo = () => {
       if (!response.ok) {
         throw new Error(result.message || 'Error al crear sorteo');
       }
-      
-      console.log('Sorteo creado:', result);
       setIsModalOpen(true);
-      
+
     } catch (error) {
       console.error('Error al crear sorteo:', error);
-      // hola aquí vamos a manejar el error, tengo q hacer un modal d error bleeeeh
-      alert(`Ocurrió un error: ${error.message}`);
+      setError(error.message);
     } finally {
       setIsUploading(false);
     }
@@ -258,65 +314,108 @@ const CrearSorteo = () => {
       tiempoLimiteApartado: '',
       tiempoRecordatorioPago: '',
     });
-    
+
     setPremios([
       { id: 1, titulo: "", imagen: null }
     ]);
-    
+
     setOrganizadores([
-      { id: 1, email: "" }
+      { id: 1, email: currentUserEmail }
     ]);
-    
+
     setUseGlobalConfig(false);
     setIsModalOpen(false);
+    setError(null);
   };
 
   const validateForm = () => {
+    const today = getTodayDate();
+
     if (!formData.titulo.trim()) {
-      alert('El título es obligatorio');
+      setError('El título del sorteo es obligatorio.');
       return false;
     }
     if (!formData.descripcion.trim()) {
-      alert('La descripción es obligatoria');
+      setError('La descripción del sorteo es obligatoria.');
       return false;
     }
-    if (!formData.rangoNumeros) {
-      alert('El rango de números es obligatorio');
+    if (!formData.imagen) {
+      setError('La imagen principal del sorteo es obligatoria.');
       return false;
     }
-    if (!formData.precioNumero) {
-      alert('El precio por número es obligatorio');
+    if (!formData.rangoNumeros || parseInt(formData.rangoNumeros, 10) < 1) {
+      setError('El rango de números debe ser un número mayor a 0.');
       return false;
     }
-    if (!formData.fechaInicioVenta) {
-      alert('La fecha de inicio de venta es obligatoria');
+    if (!formData.precioNumero || parseFloat(formData.precioNumero) < 1) {
+      setError('El precio por número debe ser al menos 1.');
       return false;
     }
-    if (!formData.fechaFinVenta) {
-      alert('La fecha de fin de venta es obligatoria');
+
+    if (!formData.fechaInicioVenta || formData.fechaInicioVenta < today) {
+      setError('La fecha de inicio de venta debe ser hoy o una fecha futura.');
       return false;
     }
-    if (!formData.fechaRealizacion) {
-      alert('La fecha de realización es obligatoria');
+    if (!formData.fechaFinVenta || formData.fechaFinVenta < formData.fechaInicioVenta) {
+      setError('La fecha de fin de venta no puede ser anterior a la fecha de inicio.');
+      return false;
+    }
+    if (!formData.fechaRealizacion || formData.fechaRealizacion < formData.fechaFinVenta) {
+      setError('La fecha de realización no puede ser anterior a la fecha de fin de venta.');
+      return false;
+    }
+    if (formData.fechaRealizacion <= formData.fechaFinVenta) {
+      alert('La fecha de realización debe ser al menos un día después de la fecha de fin de venta.');
       return false;
     }
 
     if (premios.length === 0) {
-      alert('Debe haber al menos un premio');
+      setError('Debe haber al menos un premio.');
       return false;
     }
     for (let premio of premios) {
       if (!premio.titulo.trim()) {
-        alert('Todos los premios deben tener un título');
+        setError('Todos los premios deben tener un título.');
+        return false;
+      }
+      if (!premio.imagen) {
+        setError('Todos los premios deben tener una imagen.');
+        return false;
+      }
+    }
+
+    if (organizadores.length === 0) {
+      setError('Debe haber al menos un organizador.');
+      return false;
+    }
+    for (let org of organizadores) {
+      if (!org.email.trim()) {
+        setError('Todos los organizadores deben tener un email válido.');
+        return false;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(org.email)) {
+        setError(`El email "${org.email}" no es válido.`);
         return false;
       }
     }
 
     if (!useGlobalConfig) {
-      if (!formData.tiempoLimiteApartado || !formData.tiempoRecordatorioPago) {
-        alert('Debe llenar ambos tiempos de configuración o activar la configuración global');
+      if (!formData.tiempoLimiteApartado || parseInt(formData.tiempoLimiteApartado, 10) <= 0) {
+        setError('El tiempo límite de apartado debe ser un número mayor a 0 si no usas la configuración global.');
         return false;
       }
+      if (!formData.tiempoRecordatorioPago || parseInt(formData.tiempoRecordatorioPago, 10) <= 0) {
+        setError('El tiempo de recordatorio de pago debe ser un número mayor a 0 si no usas la configuración global.');
+        return false;
+      }
+    }
+
+    const maxDias = 34;
+    if (parseInt(formData.tiempoLimiteApartado, 10) > maxDias || parseInt(formData.tiempoRecordatorioPago, 10) > maxDias) {
+      alert(`El tiempo máximo permitido es de ${maxDias} días.`);
+      return false;
     }
 
     return true;
@@ -325,89 +424,90 @@ const CrearSorteo = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-body">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 pb-24">
-        
+
         <h1 className="text-[32px] font-bold tracking-tight text-text-light">
           Crear sorteo
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           <div className="lg:col-span-2 flex flex-col gap-6">
-            
+
             <FormSection title="Información del sorteo">
               <div className="grid grid-cols-1 gap-5">
-                <Input 
-                  label="Título" 
-                  placeholder='ej. "Rifa de un teclado gamer marca Ocelot"' 
+                <Input
+                  label="Título"
+                  placeholder='ej. "Rifa de un teclado gamer marca Ocelot"'
                   value={formData.titulo}
-                  onChange={(e) => setFormData({...formData, titulo: e.target.value})}
-                  required 
+                  onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                  required
                 />
-                <TextArea 
-                  label="Descripción" 
-                  placeholder="¡Expresa en que consiste tu rifa para que las personas quieran comparte números!" 
+                <TextArea
+                  label="Descripción"
+                  placeholder="¡Expresa en que consiste tu rifa para que las personas quieran comparte números!"
                   value={formData.descripcion}
-                  onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
-                  required 
+                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                  required
                 />
-                
-                <FileUpload 
-                  label="Imagen" 
+
+                <FileUpload
+                  label="Imagen"
                   id="sorteo-imagen"
                   onChange={handleSorteoImageChange}
+                  fileValue={formData.imagen}
                 />
               </div>
             </FormSection>
 
             <FormSection title="Números">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <Input 
-                  label="Rango de números" 
-                  type="number" 
-                  placeholder="ej. 62" 
+                <Input
+                  label="Rango de números"
+                  type="number"
+                  placeholder="ej. 62"
                   value={formData.rangoNumeros}
                   onChange={(e) => handleRangoNumerosChange(e.target.value)}
                   min="1"
-                  required 
+                  required
                 />
-                <Input 
-                  label="Precio por número" 
-                  type="number" 
-                  placeholder="ej. $30.00" 
-                  step="0.01" 
+                <Input
+                  label="Precio por número"
+                  type="number"
+                  placeholder="ej. $30.00"
+                  step="0.01"
                   value={formData.precioNumero}
                   onChange={(e) => handlePrecioNumeroChange(e.target.value)}
                   min="0.01"
-                  required 
+                  required
                 />
               </div>
             </FormSection>
 
             <FormSection title="Itinerario">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <Input 
-                  label="Fecha de inicio de venta" 
+                <Input
+                  label="Fecha de inicio de venta"
                   type="date"
                   value={formData.fechaInicioVenta}
                   onChange={(e) => handleFechaInicioVentaChange(e.target.value)}
-                  min={getTodayDate()}
-                  required 
+                  min={getTomorrowDate()}
+                  required
                 />
-                <Input 
-                  label="Fecha de final de venta" 
+                <Input
+                  label="Fecha de final de venta"
                   type="date"
                   value={formData.fechaFinVenta}
                   onChange={(e) => handleFechaFinVentaChange(e.target.value)}
-                  min={formData.fechaInicioVenta || getTodayDate()}
-                  required 
+                  min={getNextDay(formData.fechaInicioVenta)}
+                  required
                 />
-                <Input 
-                  label="Fecha de realización" 
+                <Input
+                  label="Fecha de realización"
                   type="date"
                   value={formData.fechaRealizacion}
                   onChange={(e) => handleFechaRealizacionChange(e.target.value)}
-                  min={formData.fechaFinVenta || getTodayDate()}
-                  required 
+                  min={getNextDay(formData.fechaFinVenta)}
+                  required
                 />
               </div>
             </FormSection>
@@ -421,8 +521,8 @@ const CrearSorteo = () => {
                         #{index + 1}
                       </p>
                       {index > 0 && (
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => handleEliminarPremio(premio.id)}
                           className="text-text-light/40 dark:text-text-dark/40 hover:text-red-500 transition-colors"
                         >
@@ -430,18 +530,19 @@ const CrearSorteo = () => {
                         </button>
                       )}
                     </div>
-                    <Input 
-                      label="Título" 
-                      placeholder='ej. "Teclado Gamer marca Ocelot"' 
+                    <Input
+                      label="Título"
+                      placeholder='ej. "Teclado Gamer marca Ocelot"'
                       value={premio.titulo}
                       onChange={(e) => handlePremioChange(premio.id, 'titulo', e.target.value)}
-                      required 
+                      required
                     />
-                    
-                    <FileUpload 
-                      label="Imagen" 
+
+                    <FileUpload
+                      label="Imagen"
                       id={`premio-imagen-${premio.id}`}
                       onChange={(e) => handlePremioImageChange(premio.id, e)}
+                      fileValue={premio.imagen}
                     />
                   </div>
                 ))}
@@ -458,7 +559,7 @@ const CrearSorteo = () => {
           </div>
 
           <div className="lg:col-span-1 flex flex-col gap-6">
-            
+
             <FormSection title="Configuración">
               <div className="flex flex-col gap-5">
                 <label className="flex items-center justify-between cursor-pointer">
@@ -480,21 +581,23 @@ const CrearSorteo = () => {
 
                 {!useGlobalConfig && (
                   <div className="grid grid-cols-1 gap-5 pt-2">
-                    <Input 
-                      label="Tiempo límite de apartado" 
-                      type="number" 
+                    <Input
+                      label="Tiempo límite de apartado"
+                      type="number"
                       placeholder="ej. 7"
                       helperText="días"
                       min="1"
+                      max="34"
                       value={formData.tiempoLimiteApartado}
                       onChange={(e) => handleConfigInputChange('tiempoLimiteApartado', e.target.value)}
                     />
-                    <Input 
-                      label="Tiempo de recordatorio de pago" 
-                      type="number" 
+                    <Input
+                      label="Tiempo de recordatorio de pago"
+                      type="number"
                       placeholder="ej. 3"
                       helperText="días"
                       min="1"
+                      max="34"
                       value={formData.tiempoRecordatorioPago}
                       onChange={(e) => handleConfigInputChange('tiempoRecordatorioPago', e.target.value)}
                     />
@@ -502,7 +605,7 @@ const CrearSorteo = () => {
                 )}
               </div>
             </FormSection>
-            
+
             <FormSection title="Organizadores">
               <div className="flex flex-col gap-5">
                 {organizadores.map((org, index) => (
@@ -510,17 +613,18 @@ const CrearSorteo = () => {
                     <div className="flex items-start gap-2">
                       <div className="flex-1">
                         <Input
-                          label={`#${index + 1}`}
+                          label={index === 0 ? "#1" : `#${index + 1}`}
                           type="email"
                           placeholder='ej. "diego.valenzuela247700@potros.itson.edu.mx"'
                           value={org.email}
                           onChange={(e) => handleOrganizadorChange(org.id, e.target.value)}
                           required
+                          disabled={index === 0}
                         />
                       </div>
                       {index > 0 && (
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => handleEliminarOrganizador(org.id)}
                           className="text-text-light/40 dark:text-text-dark/40 hover:text-red-500 transition-colors mt-8"
                         >
@@ -540,15 +644,15 @@ const CrearSorteo = () => {
                 </button>
               </div>
             </FormSection>
-            
+
           </div>
         </div>
 
         <div className="fixed bottom-0 left-0 right-0 z-10 bg-card-light/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark font-body">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-end items-center gap-3">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleCancel}
                 className="flex items-center justify-center rounded-lg h-11 px-6 bg-border-light hover:bg-border-light/90 text-text-light dark:text-text-dark text-sm font-bold transition-colors"
                 disabled={isUploading}
@@ -567,11 +671,20 @@ const CrearSorteo = () => {
         </div>
 
       </form>
-      
-      <SuccessModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
+
+      <SuccessModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          handleCancel();
+        }}
         title="¡El sorteo se ha creado con éxito!"
+      />
+
+      <ErrorModal
+        isOpen={!!error}
+        onClose={() => setError(null)}
+        message={error}
       />
     </div>
   );

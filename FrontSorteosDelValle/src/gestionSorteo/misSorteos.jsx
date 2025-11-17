@@ -1,16 +1,7 @@
 import { SorteoCard } from "../components/sorteoCard";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-//const mockSorteos = [
-//{ id: 1, titulo: "Rifa de Xbox", imagen_url: "https://m.media-amazon.com/images/I/71AtLTRlT2L._AC_UF1000,1000_QL80_.jpg", estado: "Activo" },
-//{ id: 2, titulo: "Viaje de ensueño...", imagen_url: "https://media.gq.com.mx/photos/620e915c43f71a078a35533f/master/pass/playa.jpg", estado: "Activo" },
-//{ id: 3, titulo: "Cocina nueva...", imagen_url: "https://www.viacelere.com/wp-content/uploads/old-blog/2017/10/tipos-de-cocina_opt.jpg", estado: "Finalizado" },
-//{ id: 4, titulo: "Rifa kit gamer", imagen_url: "https://www.cyberpuerta.mx/img/product/M/CP-NACEBTECHNOLOGY-NA-0934-7e92f0.jpg", estado: "Finalizado", }
-//];
 
-
-// Función para determinar el estado (¡IMPORTANTE!)
-// Tu API no devuelve "estado", debemos calcularlo
 const API_GATEWAY_URL = 'http://localhost:8080';
 
 const getEstadoSorteo = (finPeriodoVenta) => {
@@ -43,7 +34,7 @@ const MisSorteos = ({ onNavigate }) => {
 
         data = data.map(sorteo => ({
           ...sorteo,
-          estado: getEstadoSorteo(sorteo.finPeriodoVenta)
+          estado: getEstadoSorteo(sorteo.fin_periodo_venta)
         }));
         setSorteos(data);
       } catch (error) {
@@ -55,9 +46,6 @@ const MisSorteos = ({ onNavigate }) => {
 
     fetchSorteos();
   }, []);
-
-
-  //el array [] vacio hace que se ejecute solo una vez al montar el componente
 
   const handleEliminarSorteo = async (idSorteo) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este sorteo? Esta acción no se puede deshacer.")) {
@@ -71,10 +59,13 @@ const MisSorteos = ({ onNavigate }) => {
           throw new Error(errData.message || 'Error al eliminar el sorteo');
         }
 
-        //Actualizar la lista de sorteos en la UI
+        // Actualizar la lista de sorteos en la UI
         setSorteos(sorteosActuales =>
           sorteosActuales.filter(sorteo => sorteo.id !== idSorteo)
         );
+
+        // Mostrar mensaje de éxito
+        alert('Sorteo eliminado exitosamente');
 
       } catch (error) {
         alert(error.message);
@@ -83,38 +74,112 @@ const MisSorteos = ({ onNavigate }) => {
   }
 
   if (isLoading) {
-    return <div className="p-8 text-center">Cargando sorteos...</div>;
+    return (
+      <div className="min-h-screen bg-background-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando sorteos...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-background-light flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <svg
+              className="w-12 h-12 text-red-500 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h3 className="text-lg font-semibold text-red-800 mb-2">
+              Error al cargar sorteos
+            </h3>
+            <p className="text-red-600 text-sm mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-
   return (
+    <div className="min-h-screen bg-background-light">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-[32px] font-bold tracking-tight text-text-light mb-2">
+            Mis Sorteos
+          </h1>
+          <p className="text-gray-600">
+            Administra y gestiona todos tus sorteos activos y finalizados
+          </p>
+        </div>
 
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-body">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-[32px] font-bold tracking-tight text-text-light">
-          Mis Sorteos
-        </h1>
+        {/* Grid de sorteos */}
+        {sorteos.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {sorteos.map((sorteo) => (
+              <SorteoCard
+                key={sorteo.id}
+                sorteo={sorteo}
+                onNavigateInfo={() => navigate(`/sorteos/${sorteo.id}`)}
+                onEditarClick={() => navigate(`/admin/editar/${sorteo.id}`)}
+                onVerBoletoClick={() => navigate(`/sorteos/${sorteo.id}/boletos`)}
+                onEliminarClick={() => handleEliminarSorteo(sorteo.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          // Estado vacío
+          <div className="text-center py-16">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-md mx-auto p-8">
+              <svg
+                className="w-16 h-16 text-gray-400 mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                No tienes sorteos todavía
+              </h3>
+              <p className="text-gray-600 text-sm mb-6">
+                Crea tu primer sorteo para comenzar a gestionar tus rifas
+              </p>
+              <button
+                onClick={() => navigate('/crearSorteo')}
+                className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Crear primer sorteo
+              </button>
+            </div>
+          </div>
+        )}
 
+        {/* TODO: Aquí es donde iría la paginación */}
       </div>
-
-      <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {sorteos.map((sorteo) => (
-          <SorteoCard
-            key={sorteo.id}
-            sorteo={sorteo}
-          onNavigateInfo={()=> navigate(`/sorteos/${sorteo.id}`)}
-          onEditarClick={() => navigate(`/sorteos/editar/${sorteo.id}`)}
-          onVerBoletoClick={() => navigate(`/sorteos/${sorteo.id}/boletos`)}
-          onEliminarClick={() => handleEliminarSorteo(sorteo.id)}
-          />
-        ))}
-      </div>
-
-      {/*TODO: Aquí es donde iría la paginación */}
     </div>
   );
 };

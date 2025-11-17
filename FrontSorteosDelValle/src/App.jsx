@@ -5,6 +5,10 @@ import Header from "./components/header.jsx";
 import CrearSorteo from "./gestionSorteo/crearSorteo.jsx";
 import MisSorteos from "./gestionSorteo/misSorteos.jsx";
 import DetallesSorteo from "./gestionSorteo/detallesSorteo.jsx";
+import Inicio from "./gestionSorteoCliente/inicio.jsx";
+import DetalleSorteo from "./gestionSorteoCliente/detalleSorteo.jsx";
+import NumerosSorteo from "./gestionSorteoCliente/numerosSorteo.jsx";
+import EditarSorteo from "./gestionSorteo/editarSorteo.jsx"
 //Aun no existe import EditarSorteo from "./gestionSorteo/editarSorteo.jsx";
 //TODO: IMPORTAR COMPONENTE DE EDICION
 //TODO: EditarSorteo
@@ -19,18 +23,25 @@ const MainLayout = ({ children }) => {
 };
 
 function App() {
+
+  const [currentUser] = useState({
+    email: "abel@example.com" 
+  });
+
   return (
-    <MainLayout>
       <Routes>
-        <Route path="/" element={<MisSorteos />} />
-        <Route path="/crearSorteo" element={<CrearSorteo />} />
-        <Route path="/misSorteos" element={<MisSorteos />} />
-
-        <Route path="/sorteos/:id" element={<DetallesSorteo />} />
-        {/* <Route path="/editar/:id" element={<EditarSorteo />} /> */}
-
-      </Routes>
-    </MainLayout>
+      <Route path="/" element={<Inicio />} />
+      <Route path="/sorteo/:id" element={<DetalleSorteo />} />
+      <Route path="/sorteo/:id/numeros" element={<NumerosSorteo />} />
+      <Route path="/admin" element={<MainLayout><MisSorteos/></MainLayout>} />
+      <Route 
+        path="/crearSorteo" 
+        element={<MainLayout><CrearSorteo currentUserEmail={currentUser.email}/></MainLayout>} 
+      />
+      <Route path="/admin/mis-sorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
+      <Route path="/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo/></MainLayout>} />
+      <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
+    </Routes>
   )
 }
 
