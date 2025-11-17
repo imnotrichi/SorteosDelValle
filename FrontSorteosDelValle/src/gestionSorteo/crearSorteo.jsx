@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FormSection from '../components/formulario.jsx';
 import Input, { TextArea } from '../components/input';
 import FileUpload from '../components/subirImagen.jsx';
@@ -41,6 +42,7 @@ const handleImageUpload = async (file) => {
 };
 
 const CrearSorteo = ({ currentUserEmail }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
@@ -326,6 +328,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
     setUseGlobalConfig(false);
     setIsModalOpen(false);
     setError(null);
+    navigate(-1);
   };
 
   const validateForm = () => {
