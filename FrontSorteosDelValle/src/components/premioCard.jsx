@@ -14,7 +14,7 @@ export function PremioCard({ id, titulo, imagen }) {
         </div>
 
         <div className=" min-h-10 flex items-center px-3">
-            <p className=" text-sm font-medium text-gray-900">
+            <p className=" text-lg font-medium text-gray-900">
                 {titulo}
             </p>
         </div>
