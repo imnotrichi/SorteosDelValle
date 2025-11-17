@@ -46,7 +46,7 @@ export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoleto
               e.stopPropagation();
               onEditarClick();
             }}
-            className="flex-1 flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-background-status hover:bg-green-600 text-text-light text-sm font-medium transition-colors"
           >
             <svg
               className="w-4 h-4"
@@ -69,7 +69,7 @@ export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoleto
               e.stopPropagation();
               onVerBoletoClick();
             }}
-            className="flex-1 flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-blue-300 hover:bg-blue-400 text-text-light text-sm font-medium transition-colors"
           >
             <svg
               className="w-4 h-4"

@@ -745,4 +745,3 @@ const EditarSorteo = () => {
 }
 
 export default EditarSorteo;
-//espacio

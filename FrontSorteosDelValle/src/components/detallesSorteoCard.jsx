@@ -1,32 +1,31 @@
 const DetallesSorteoCard = ({ descripcion, rangoNumeros, PrecioPorNumero, fechaInicio }) => {
     return (
-        <div className="mt-8 p-4 rounded-xl bg-white shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Detalles</h3>
+        <div className="p-6 rounded-2xl bg-white shadow-lg">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Información</h3>
 
-            {/* Datos del sorteo*/}
-            <div className="inline-block ">
-                <div className="flex border-b-2 border-border-light" >
-                    <p className="max-w-60  min-w-50 ">Descripción</p>
-                    <p className="text-sm text-gray-500">{descripcion}</p>
+            {/* Datos del sorteo */}
+            <div className="space-y-4">
+                <div className="flex border-b border-gray-300 pb-4">
+                    <p className="w-48 text-gray-500 font-medium">Descripción</p>
+                    <p className="flex-1 text-gray-900 font-medium">{descripcion}</p>
                 </div>
 
-                <div className="flex border-b-2 border-border-light" >
-                    <p className="max-w-60 min-w-50  ">Rango de números</p>
-                    <p className="text-sm text-gray-500">{rangoNumeros}</p>
+                <div className="flex border-b border-gray-300 pb-4">
+                    <p className="w-48 text-gray-500 font-medium">Rango de números</p>
+                    <p className="flex-1 text-gray-900 font-medium">{rangoNumeros}</p>
                 </div>
 
-                <div className="flex border-b-2 border-border-light">
-                    <p className="max-w-60 min-w-50  ">Precio por número</p>
-                    <p className="text-sm text-gray-500">
-                        ${PrecioPorNumero}
+                <div className="flex border-b border-gray-300 pb-4">
+                    <p className="w-48 text-gray-500 font-medium">Precio por número</p>
+                    <p className="flex-1 text-gray-900 font-medium">${PrecioPorNumero}</p>
+                </div>
+
+                <div className="flex pb-4">
+                    <p className="w-48 text-gray-500 font-medium">Fechas de inicio</p>
+                    <p className="flex-1 text-gray-900 font-medium">
+                         {fechaInicio} 
                     </p>
                 </div>
-
-                <div className="flex border-b-2 border-border-light">
-                    <p className="max-w-60 min-w-50  ">Fecha de inicio</p>
-                    <p className="text-sm text-gray-500">{fechaInicio}</p>
-                </div>
-
             </div>
         </div>
     )

@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 const API_GATEWAY_URL = 'http://localhost:8080';
 
 const DetallesSorteo = () => {
-  const navitgate = useNavigate();
+  const navigate = useNavigate();
   const id  = useParams();
   const idSorteo = id.idSorteo;
   const [sorteoData, setSorteo] = useState([]);
@@ -44,7 +44,7 @@ const DetallesSorteo = () => {
 
 
   if (isLoading) {
-    return <div className="p-8 text-center">Cargando detalles del sorteo... $si{idSorteo}</div>;
+    return <div className="p-8 text-center">Cargando detalles del sorteo...</div>;
   }
 
   if (error) {
@@ -73,7 +73,7 @@ const DetallesSorteo = () => {
   const handleEliminar = async () => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este sorteo? Esta acción no se puede deshacer.")) {
       try {
-        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`, {
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteo}`, {
           method: 'DELETE',
         });
 
@@ -114,7 +114,8 @@ const DetallesSorteo = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <button 
+              <button
+              onClick={() => navigate(`/admin/editar/${idSorteo}`)}
               className="px-4 py-2 bg-green-400 hover:bg-green-500 text-gray-900 rounded-lg flex items-center gap-2 font-medium transition-colors">
                 <svg
                   className="w-4 h-4"
