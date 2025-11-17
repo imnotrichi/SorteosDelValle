@@ -293,7 +293,7 @@ class SorteosDAO {
             if (!sorteoBuscado) {
                 throw new Error('El sorteo no existe.');
             }
-            
+
             const sorteo = await Sorteo.findOne({
                 where: {
                     id: id
