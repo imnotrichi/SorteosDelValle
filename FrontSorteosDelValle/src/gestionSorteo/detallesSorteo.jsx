@@ -65,6 +65,11 @@ const DetallesSorteo = () => {
     return <div className="p-8 text-center">No se encontró el sorteo</div>;
   }
 
+  const formatDate = (fecha) => {
+    if (!fecha) return '';
+    return fecha.split('T')[0];
+};
+
   const handleEliminar = async () => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este sorteo? Esta acción no se puede deshacer.")) {
       try {
@@ -87,7 +92,8 @@ const DetallesSorteo = () => {
   };
 
   //TODO: OBTENER VALORES REALES
-  const boletosVendidos = 0;
+  const boletosVendidos = sorteoData.numeros_vendidos;
+  
   const boletosRestantes = sorteoData.rango_numeros - boletosVendidos;
   const pagoGenerado = boletosVendidos * (parseFloat(sorteoData.precio_numero) || 0);
 
@@ -192,6 +198,7 @@ const DetallesSorteo = () => {
             <p className="text-sm text-gray-500 mb-2">Boletos vendidos</p>
             <p className="text-4xl font-bold text-gray-900">
               {boletosVendidos}
+              {console.log(boletosVendidos)}
             </p>
           </div>
 
@@ -210,9 +217,16 @@ const DetallesSorteo = () => {
           </div>
         </div>
 
+        <DetallesSorteoCard
+          descripcion={sorteoData.descripcion}
+          rangoNumeros={sorteoData.rango_numeros}
+          PrecioPorNumero={sorteoData.precio_numero}
+          fechaInicio={formatDate(sorteoData.inicio_periodo_venta)}
+        />
+
         {/* Premios*/}
-        <div className=" ">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Premios</h3>
+        <div className="mt-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Premios</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {sorteoData.premiosData && sorteoData.premiosData.length > 0 ? (
               sorteoData.premiosData.map((premio) => (
@@ -227,13 +241,6 @@ const DetallesSorteo = () => {
             )}
           </div>
         </div>
-
-        <DetallesSorteoCard
-          descripcion={sorteoData.descripcion}
-          rangoNumeros={sorteoData.rangoNumeros}
-          PrecioPorNumero={sorteoData.PrecioPorNumero}
-          fechaInicio={sorteoData.fechaInicio}
-        />
 
       </div>
     </div>
