@@ -1,4 +1,5 @@
 import React from 'react';
+import boletoIcon from '../assets/boletoLight.png';
 
 export function SorteoCardCliente({ sorteo, onClick }) {
   return (
@@ -19,15 +20,16 @@ export function SorteoCardCliente({ sorteo, onClick }) {
           {sorteo.titulo}
         </h3>
 
-        <div className="flex items-center gap-2 mb-3">
-          <span className="material-symbols-outlined text-primary text-xl">
-            sell
-          </span>
-          <span className="text-2xl font-bold text-gray-900">
+        <div className="flex justify-end items-center gap-2 mb-3">
+          <img
+            src={boletoIcon}
+            alt="Boleto"
+            className="w-6 h-6"
+          />
+          <span className="text-2xl font-bold text-card-number-2">
             ${sorteo.precioNumero.toFixed(2)}
           </span>
         </div>
-
         <button
           onClick={(e) => {
             e.stopPropagation();

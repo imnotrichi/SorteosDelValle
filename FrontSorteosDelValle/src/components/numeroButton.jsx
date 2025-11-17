@@ -8,7 +8,7 @@ export function NumeroButton({ numero, estaSeleccionado, estaDisponible, onClick
       className={`
         flex items-center justify-center
         w-12 h-12 rounded-lg
-        text-base font-bold
+        text-lg font-bold
         transition-all
         ${estaSeleccionado 
           ? 'bg-primary text-text-light shadow-md scale-105' 
