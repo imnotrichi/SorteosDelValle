@@ -93,11 +93,8 @@ const EditarSorteo = () => {
                 setSorteoOriginal(data);
                 console.log('Datos del sorteo obtenidos:', data);
 
-                // Determinar si usa configuración global
                 const configData = data.configuracionData;
-                const usaGlobal = configData?.global === true ||
-                    (configData?.tiempo_limite_apartado === "00:00:00" &&
-                        configData?.tiempo_recordatorio_pago === "00:00:00");
+                const usaGlobal = configData?.id === 1;
 
                 setUseGlobalConfig(usaGlobal);
 
@@ -131,7 +128,7 @@ const EditarSorteo = () => {
             } catch (error) {
                 console.error(error);
                 setError(error.message);
-                setTimeout(() => navigate('/admin/mis-sorteos'), 2000);
+                setTimeout(() => navigate('/admin/misSorteos'), 2000);
             } finally {
                 setIsLoadingData(false);
             }
@@ -143,6 +140,13 @@ const EditarSorteo = () => {
     //TODO: Verificar esta parte ya que por el momento solo obtiene un true
     const hayBoletosVendidos = sorteoOriginal?.numeros_vendidos > 0;
     const minRangePermitido = hayBoletosVendidos ? sorteoOriginal.rango_numeros : 1;
+
+    const isSorteoTerminado = (fechaRealizacion) => {
+        const ahora = new Date();
+        const fechaFin = new Date(fechaRealizacion);
+        return ahora < fechaFin ? false : true;
+    }
+
 
     const handleAnadirPremio = () => {
         const newId = premios.length + 1;
@@ -436,12 +440,12 @@ const EditarSorteo = () => {
     };
 
     const handleCancel = () => {
-        navigate('/admin/mis-sorteos');
+        navigate('/admin/misSorteos');
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        navigate('/admin/mis-sorteos');
+        navigate('/admin/misSorteos');
     };
 
     if (isLoadingData) {
@@ -471,6 +475,7 @@ const EditarSorteo = () => {
                                 <Input
                                     label="Título"
                                     value={formData.titulo}
+                                    editing={true}
                                     onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                                     required
                                 />
@@ -534,6 +539,8 @@ const EditarSorteo = () => {
                                     label="Fecha de final de venta"
                                     type="date"
                                     value={formData.fechaFinVenta}
+                                    //TODO:
+                                    disabled={isSorteoTerminado(formData.fechaRealizacion)}
                                     onChange={(e) => handleFechaFinVentaChange(e.target.value)}
                                     min={getNextDay(formData.fechaInicioVenta)}
                                     required
@@ -542,6 +549,7 @@ const EditarSorteo = () => {
                                     label="Fecha de realización"
                                     type="date"
                                     value={formData.fechaRealizacion}
+                                    disabled={isSorteoTerminado(formData.fechaRealizacion)}
                                     onChange={(e) => handleFechaRealizacionChange(e.target.value)}
                                     min={getNextDay(formData.fechaFinVenta)}
                                     required

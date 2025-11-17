@@ -38,7 +38,7 @@ function App() {
         path="/crearSorteo" 
         element={<MainLayout><CrearSorteo currentUserEmail={currentUser.email}/></MainLayout>} 
       />
-      <Route path="/admin/mis-sorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
+      <Route path="/admin/misSorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
       <Route path="/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo/></MainLayout>} />
       <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
     </Routes>
