@@ -5,6 +5,7 @@ import Input, { TextArea } from '../components/input';
 import FileUpload from '../components/subirImagen.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
 import ErrorModal from '../components/mensajeError.jsx';
+import ConfirmationModal from '../components/mensajeConfirmacion.jsx';
 import addIcon from '../assets/añadir.png';
 
 const CLOUDINARY_CLOUD_NAME = "drczej3mh";
@@ -66,6 +67,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
   const [useGlobalConfig, setUseGlobalConfig] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -288,10 +290,8 @@ const CrearSorteo = ({ currentUserEmail }) => {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.message || 'Error al crear sorteo');
+        throw new Error('Inténtelo nuevamente.');
       }
       setIsModalOpen(true);
 
@@ -327,8 +327,39 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
     setUseGlobalConfig(false);
     setIsModalOpen(false);
+    setIsCancelModalOpen(false);
     setError(null);
     navigate(-1);
+  };
+
+  const handleCancelClick = () => {
+    const hasBasicData =
+      formData.titulo.trim() !== '' ||
+      formData.descripcion.trim() !== '' ||
+      formData.imagen !== null ||
+      formData.rangoNumeros !== '' ||
+      formData.precioNumero !== '' ||
+      formData.fechaInicioVenta !== '' ||
+      formData.fechaFinVenta !== '' ||
+      formData.fechaRealizacion !== '' ||
+      (!useGlobalConfig && (formData.tiempoLimiteApartado !== '' || formData.tiempoRecordatorioPago !== ''));
+
+    const hasPremiosData =
+      premios.length > 1 ||
+      premios[0].titulo.trim() !== '' ||
+      premios[0].imagen !== null;
+
+    const hasOrganizadoresData =
+      organizadores.length > 1 ||
+      organizadores[0].email !== currentUserEmail;
+
+    const hasConfigChanged = useGlobalConfig === true;
+
+    if (hasBasicData || hasPremiosData || hasOrganizadoresData || hasConfigChanged) {
+      setIsCancelModalOpen(true);
+    } else {
+      handleCancel();
+    }
   };
 
   const validateForm = () => {
@@ -656,7 +687,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
             <div className="flex justify-end items-center gap-3">
               <button
                 type="button"
-                onClick={handleCancel}
+                onClick={handleCancelClick}
                 className="flex items-center justify-center rounded-lg h-11 px-6 bg-border-light hover:bg-border-light/90 text-text-light dark:text-text-dark text-sm font-bold transition-colors"
                 disabled={isUploading}
               >
@@ -688,6 +719,14 @@ const CrearSorteo = ({ currentUserEmail }) => {
         isOpen={!!error}
         onClose={() => setError(null)}
         message={error}
+      />
+
+      <ConfirmationModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={handleCancel}
+        title="¿Deseas cancelar?"
+        message="Si sales ahora, perderás todos los datos que has ingresado para este sorteo."
       />
     </div>
   );
