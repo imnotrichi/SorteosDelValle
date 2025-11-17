@@ -137,9 +137,9 @@ const MisSorteos = ({ onNavigate }) => {
               <SorteoCard
                 key={sorteo.id}
                 sorteo={sorteo}
-                onNavigateInfo={() => navigate(`/sorteos/${sorteo.id}`)}
+                onNavigateInfo={() => navigate(`/admin/sorteos/${sorteo.id}`)}
                 onEditarClick={() => navigate(`/admin/editar/${sorteo.id}`)}
-                onVerBoletoClick={() => navigate(`/sorteos/${sorteo.id}/boletos`)}
+                onVerBoletoClick={() => navigate(`/admin/sorteo/boletos/${sorteo.id}`)}
                 onEliminarClick={() => handleEliminarSorteo(sorteo.id)}
               />
             ))}
