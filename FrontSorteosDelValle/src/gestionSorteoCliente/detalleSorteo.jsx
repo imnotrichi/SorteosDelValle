@@ -1,42 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import HeaderCliente from '../components/headerCliente';
 import { PremioCard } from '../components/premioCard';
 import { InfoFechaCard } from '../components/infoFechaCard';
 import volverIcon from '../assets/volver.png';
 import boletoIcon from '../assets/boletoDark.png';
+import SorteoNoDisponible from '../components/mensajeNoDisponible';
 
-const mockSorteoData = {
-  id: 5,
-  titulo: "Rifa Smart TV. ¡Mira!",
-  imagen_url: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-  descripcion: "Participa para ganarte una increíble Smart TV 3994-pro max ultra hd 4k 144hz mega 2,3 trucos. Disfruta de la mejor experiencia visual con nuestra Smart TV de última generación. Con una pantalla de alta definición, acceso a aplicaciones de streaming y conectividad inteligente, esta TV transformará tu sala en un cine en casa.",
-  precioNumero: 100.00,
-  rangoNumeros: 200,
-  finPeriodoVenta: "2024-09-30T00:00:00",
-  fechaRealizacion: "2024-10-10T00:00:00",
-  premios: [
-    {
-      id: 1,
-      titulo: "Smart TV 3999-pro max",
-      imagenPremioUrl: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop"
-    }
-  ]
-};
+const API_GATEWAY_URL = 'http://localhost:8080';
 
 const DetalleSorteo = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [sorteoData] = useState(mockSorteoData);
+
+  const [sorteoData, setSorteoData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDetalleSorteo = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`);
+
+        if (!response.ok) {
+          throw new Error('Error al obtener el sorteo');
+        }
+
+        const data = await response.json();
+
+        const sorteoFormateado = {
+          ...data,
+          precioNumero: parseFloat(data.precio_numero),
+          finPeriodoVenta: data.fin_periodo_venta,
+          fechaRealizacion: data.fecha_realizacion,
+          premios: data.premiosData?.map(premio => ({
+            id: premio.id,
+            titulo: premio.titulo,
+            imagenPremioUrl: premio.imagen_premio_url
+          })) || []
+        };
+
+        setSorteoData(sorteoFormateado);
+      } catch (error) {
+        console.error("No se pudo cargar el sorteo:", error);
+        setSorteoData(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchDetalleSorteo();
+    }
+  }, [id]);
 
   const formatFecha = (fecha) => {
+    if (!fecha) return 'Fecha no disponible';
     const date = new Date(fecha);
-    return date.toLocaleDateString('es-MX', { 
-      day: 'numeric', 
+    return date.toLocaleDateString('es-MX', {
+      day: 'numeric',
       month: 'long',
       year: 'numeric'
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sorteoData) {
+    return (
+      <div className="min-h-screen bg-background-light">
+         <HeaderCliente onNavigate={navigate} userName="Ricardo" />
+         <SorteoNoDisponible />
+      </div>
+    );
+  }
+
+  const esActivo = new Date(sorteoData.finPeriodoVenta) > new Date();
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -45,7 +93,7 @@ const DetalleSorteo = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="p-2"
             aria-label="Volver"
           >
@@ -54,9 +102,16 @@ const DetalleSorteo = () => {
           <h1 className="text-[32px] font-bold tracking-tight text-text-light">
             {sorteoData.titulo}
           </h1>
-          <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-background-status text-card-number-2">
-            Activo
-          </span>
+
+          {esActivo ? (
+            <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-background-status text-card-number-2">
+              Activo
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-gray-200 text-gray-600">
+              Finalizado
+            </span>
+          )}
         </div>
 
         <div className="relative rounded-2xl overflow-hidden mb-8 shadow-lg">
@@ -73,11 +128,11 @@ const DetalleSorteo = () => {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <InfoFechaCard 
+            <InfoFechaCard
               label="Fecha límite de compra"
               fecha={formatFecha(sorteoData.finPeriodoVenta)}
             />
-            <InfoFechaCard 
+            <InfoFechaCard
               label="Fecha de rifa"
               fecha={formatFecha(sorteoData.fechaRealizacion)}
             />

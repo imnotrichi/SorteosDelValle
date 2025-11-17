@@ -1,22 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import HeaderCliente from '../components/headerCliente';
 import { NumeroButton } from '../components/numeroButton';
 import { ResumenCompraCard } from '../components/resumenCompraCard';
+import SuccessModal from '../components/mensajeExito';
+import ErrorModal from '../components/mensajeError';
+import SorteoNoDisponible from '../components/mensajeNoDisponible';
 
-const mockSorteoData = {
-  id: 5,
-  titulo: "Rifa Smart TV. ¡Mira!",
-  rangoNumeros: 196,
-  precioNumero: 100.00
-};
+const API_GATEWAY_URL = 'http://localhost:8080';
 
 const NumerosSorteo = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [sorteoData] = useState(mockSorteoData);
+
+  const [sorteoData, setSorteoData] = useState(null);
+  const [numerosDisponibles, setNumerosDisponibles] = useState([]);
   const [numerosSeleccionados, setNumerosSeleccionados] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState(null);
+  const [shouldReloadOnError, setShouldReloadOnError] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const responseSorteo = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`);
+        if (!responseSorteo.ok) throw new Error('Error al obtener sorteo');
+        const dataSorteo = await responseSorteo.json();
+
+        const responseNumeros = await fetch(`${API_GATEWAY_URL}/api/numeros/disponibles?sorteo=${id}`);
+        if (!responseNumeros.ok) throw new Error('Error al obtener números');
+        const dataNumeros = await responseNumeros.json();
+
+        setSorteoData({
+          id: dataSorteo.id,
+          titulo: dataSorteo.titulo,
+          rangoNumeros: dataSorteo.rango_numeros,
+          precioNumero: parseFloat(dataSorteo.precio_numero)
+        });
+
+        setNumerosDisponibles(dataNumeros);
+
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) fetchData();
+  }, [id]);
 
   const handleSeleccionarNumero = (numero) => {
     if (numerosSeleccionados.includes(numero)) {
@@ -27,54 +64,113 @@ const NumerosSorteo = () => {
   };
 
   const handleCancelar = () => {
-    navigate(`/sorteo/${id}`);
+    navigate(-1);
   };
 
-  const handleApartarNumeros = () => {
+  const handleApartarNumeros = async () => {
     if (numerosSeleccionados.length === 0) {
-      alert('Debes seleccionar al menos un número');
+      setShouldReloadOnError(false);
+      setErrorModalMessage('Debes seleccionar al menos un número para continuar.');
       return;
     }
 
-    alert(`${numerosSeleccionados.length} número(s) apartado(s) exitosamente`);
-    console.log('Números seleccionados:', numerosSeleccionados);
+    setIsProcessing(true);
+    try {
+      const ID_CLIENTE_TEST = 3; // esto lo vamos a cambiar cuando este la autenticacion
+
+      const response = await fetch(`${API_GATEWAY_URL}/api/numeros/apartar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          numeros: numerosSeleccionados,
+          id_sorteo: parseInt(id),
+          id_cliente: ID_CLIENTE_TEST
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al apartar números');
+      }
+
+      setShowSuccessModal(true);
+
+    } catch (error) {
+      console.error('Error al apartar:', error);
+      setShouldReloadOnError(true);
+      setErrorModalMessage(`No se pudieron apartar los números, inténtelo nuevamente.`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCloseSuccess = () => {
+    setShowSuccessModal(false);
+    navigate('/mis-boletos');
+  };
+
+  const handleCloseError = () => {
+    setErrorModalMessage(null);
+    if (shouldReloadOnError) {
+      window.location.reload();
+    }
   };
 
   const renderNumeros = () => {
-    if (!sorteoData) return null;
+    if (!sorteoData || !numerosDisponibles) return null;
 
-    const numeros = [];
-    const rangoNumeros = sorteoData.rangoNumeros;
-    const numFilas = Math.ceil(rangoNumeros / 14);
+    const numerosFiltrados = numerosDisponibles.filter(numero =>
+      !busqueda || numero.toString().includes(busqueda)
+    );
 
-    for (let i = 0; i < numFilas; i++) {
-      const fila = [];
-      for (let j = 1; j <= 14; j++) {
-        const numero = i * 14 + j;
-        if (numero > rangoNumeros) break;
-
-        const estaSeleccionado = numerosSeleccionados.includes(numero);
-        const estaDisponible = true;
-
-        fila.push(
-          <NumeroButton
-            key={numero}
-            numero={numero}
-            estaSeleccionado={estaSeleccionado}
-            estaDisponible={estaDisponible}
-            onClick={handleSeleccionarNumero}
-          />
-        );
-      }
-      numeros.push(
-        <div key={i} className="flex gap-3 justify-start">
-          {fila}
+    if (numerosFiltrados.length === 0) {
+      return (
+        <div className="p-8 text-center text-gray-500">
+          No se encontraron números disponibles que coincidan con la búsqueda.
         </div>
       );
     }
 
-    return numeros;
+    return (
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+        {numerosFiltrados.map((numero) => {
+          const estaSeleccionado = numerosSeleccionados.includes(numero);
+
+          return (
+            <NumeroButton
+              key={numero}
+              numero={numero}
+              estaSeleccionado={estaSeleccionado}
+              estaDisponible={true}
+              onClick={handleSeleccionarNumero}
+            />
+          );
+        })}
+      </div>
+    );
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando números...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sorteoData) {
+    return (
+      <div className="min-h-screen bg-background-light">
+         <HeaderCliente onNavigate={navigate} userName="Ricardo" />
+         <SorteoNoDisponible />
+      </div>
+    );
+  }
 
   const total = numerosSeleccionados.length * sorteoData.precioNumero;
 
@@ -133,9 +229,7 @@ const NumerosSorteo = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3">
-                {renderNumeros()}
-              </div>
+              {renderNumeros()}
             </div>
           </div>
 
@@ -146,9 +240,25 @@ const NumerosSorteo = () => {
               total={total}
               onApartar={handleApartarNumeros}
             />
+            {isProcessing && (
+              <p className="text-center text-sm text-gray-500 mt-2">Procesando apartado...</p>
+            )}
           </div>
         </div>
       </div>
+
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleCloseSuccess}
+        title={`¡Los números ${numerosSeleccionados.sort((a, b) => a - b).join(', ')} se apartaron con éxito!`}
+      />
+
+      <ErrorModal
+        isOpen={!!errorModalMessage}
+        onClose={handleCloseError}
+        message={errorModalMessage}
+      />
+
     </div>
   );
 };

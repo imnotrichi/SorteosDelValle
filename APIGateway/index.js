@@ -26,6 +26,13 @@ if (sorteosServiceUrl) {
      return req.originalUrl;
     }
   }));
+
+  app.use('/api/numeros', proxy(sorteosServiceUrl, {
+    proxyReqPathResolver: function (req) {
+      return req.originalUrl;
+    }
+  }));
+
   console.log(`Proxy activado para /api/sorteos -> ${sorteosServiceUrl}`);
 }
 

@@ -1,62 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderCliente from '../components/headerCliente';
 import { SorteoCardCliente } from '../components/sorteoCardCliente';
 
-const mockSorteos = [
-  {
-    id: 1,
-    titulo: "Rifa de Xbox",
-    imagen_url: "https://m.media-amazon.com/images/I/71AtLTRlT2L._AC_UF1000,1000_QL80_.jpg",
-    precioNumero: 50.00,
-  },
-  {
-    id: 2,
-    titulo: "Viaje de ensueño: Playa paradisiaca te llama.",
-    imagen_url: "https://media.gq.com.mx/photos/620e915c43f71a078a35533f/master/pass/playa.jpg",
-    precioNumero: 200.00,
-  },
-  {
-    id: 3,
-    titulo: "Cocina nueva: cocina para tu hogar.",
-    imagen_url: "https://www.viacelere.com/wp-content/uploads/old-blog/2017/10/tipos-de-cocina_opt.jpg",
-    precioNumero: 80.00,
-  },
-  {
-    id: 4,
-    titulo: "Rifa Kit Gamer. ¡Domina!",
-    imagen_url: "https://www.cyberpuerta.mx/img/product/M/CP-NACEBTECHNOLOGY-NA-0934-7e92f0.jpg",
-    precioNumero: 30.00,
-  },
-  {
-    id: 5,
-    titulo: "Rifa Smart TV. ¡Mira!",
-    imagen_url: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-    precioNumero: 100.00,
-  },
-  {
-    id: 6,
-    titulo: "Rifa Bicicleta Pro. ¡Explora!",
-    imagen_url: "https://images.unsplash.com/photo-1571333250630-f0230c320b6d?w=800&h=400&fit=crop",
-    precioNumero: 20.00,
-  },
-  {
-    id: 7,
-    titulo: "Rifa Laptop Ultra. ¡Crea!",
-    imagen_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=400&fit=crop",
-    precioNumero: 50.00,
-  },
-  {
-    id: 8,
-    titulo: "Rifa Auriculares Premium. ¡Escucha!",
-    imagen_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=400&fit=crop",
-    precioNumero: 10.00,
-  }
-];
+const API_GATEWAY_URL = 'http://localhost:8080';
 
 const Inicio = () => {
   const navigate = useNavigate();
-  const [sorteos] = useState(mockSorteos);
+  const [sorteos, setSorteos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSorteosActivos = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/activos`);
+
+        if (!response.ok) {
+          throw new Error('Error en la petición');
+        }
+
+        const data = await response.json();
+
+        const dataFormateada = data.map(sorteo => ({
+          ...sorteo,
+          precioNumero: parseFloat(sorteo.precio_numero)
+        }));
+
+        setSorteos(dataFormateada);
+      } catch (error) {
+        console.error("No se pudieron cargar los sorteos ", error);
+        
+        setSorteos([]); 
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSorteosActivos();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando sorteos disponibles...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -67,15 +60,31 @@ const Inicio = () => {
           Inicio
         </h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {sorteos.map((sorteo) => (
-            <SorteoCardCliente
-              key={sorteo.id}
-              sorteo={sorteo}
-              onClick={() => navigate(`/sorteo/${sorteo.id}`)}
-            />
-          ))}
-        </div>
+        {sorteos.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {sorteos.map((sorteo) => (
+              <SorteoCardCliente
+                key={sorteo.id}
+                sorteo={sorteo}
+                onClick={() => navigate(`/sorteo/${sorteo.id}`)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-md mx-auto p-8">
+              <span className="material-symbols-outlined text-6xl text-gray-300 mb-4">
+                sentiment_dissatisfied
+              </span>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                No hay sorteos activos en este momento
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Vuelve más tarde para ver nuevas rifas disponibles.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

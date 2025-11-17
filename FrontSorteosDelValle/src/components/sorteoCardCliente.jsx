@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import boletoIcon from '../assets/boletoLight.png';
 
 export function SorteoCardCliente({ sorteo, onClick }) {
+  const navigate = useNavigate();
   return (
     <div
       onClick={onClick}
@@ -33,9 +35,9 @@ export function SorteoCardCliente({ sorteo, onClick }) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onClick();
+            navigate(`/sorteo/${sorteo.id}/numeros`);
           }}
-          className="w-full flex items-center justify-center rounded-lg h-11 px-4 bg-primary hover:bg-primary/90 text-text-light text-sm font-bold transition-colors"
+          className="w-full flex items-center justify-center rounded-lg h-11 px-4 bg-primary hover:bg-primary/90 text-text-light text-base font-bold transition-colors"
         >
           Ver boletos
         </button>
