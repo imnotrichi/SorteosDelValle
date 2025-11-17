@@ -87,17 +87,17 @@ const NumerosSorteo = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={handleCancelar}
-              className="flex items-center justify-center px-6 h-12 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light  hover:bg-border-light/80 transition-colors"
             >
               <span className="text-base font-bold text-text-light">
                 Cancelar
               </span>
             </button>
             <div>
-              <h1 className="text-[28px] font-bold tracking-tight text-text-light">
+              <h1 className="text-[32px] font-bold tracking-tight text-text-light">
                 Números de {sorteoData.titulo}
               </h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-lg text-gray-600">
                 Seleccione los números que desea apartar
               </p>
             </div>
@@ -110,17 +110,17 @@ const NumerosSorteo = () => {
               <div className="flex items-center gap-6 mb-6 pb-4 border-b border-gray-200">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded bg-white border-2 border-gray-300"></div>
-                  <span className="text-sm text-gray-600">Número libre</span>
+                  <span className="text-base text-gray-600">Número libre</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded bg-primary"></div>
-                  <span className="text-sm text-gray-600">Número seleccionado</span>
+                  <span className="text-base text-gray-600">Número seleccionado</span>
                 </div>
               </div>
 
               <div className="mb-6">
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-button-add-light">
                     search
                   </span>
                   <input
