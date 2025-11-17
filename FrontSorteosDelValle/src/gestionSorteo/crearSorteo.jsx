@@ -478,7 +478,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                 />
                 <TextArea
                   label="Descripción"
-                  placeholder="¡Expresa en que consiste tu rifa para que las personas quieran comparte números!"
+                  placeholder="¡Expresa en que consiste tu rifa para que las personas quieran comprarte números!"
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   required
