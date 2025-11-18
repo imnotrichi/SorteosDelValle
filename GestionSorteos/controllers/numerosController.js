@@ -163,6 +163,9 @@ class NumerosController {
             }
 
             // Validaciones de los números
+            if (!numeros) {
+                return next(new AppError('No se proporcionó ningún número.', 400));
+            }
             if (!Array.isArray(numeros)) {
                 return next(new AppError('El campo "numeros" debe ser un arreglo.', 400));
             }
@@ -170,7 +173,7 @@ class NumerosController {
             if (noNumeros.length > 0) {
                 return next(new AppError('Solo se permiten números enteros.', 400));
             }
-            if (!numeros?.length) {
+            if (numeros.length === 0) {
                 return next(new AppError('No se seleccionó ningún número.', 400));
             }
 
