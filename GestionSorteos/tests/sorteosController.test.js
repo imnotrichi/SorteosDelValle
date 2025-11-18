@@ -1,7 +1,5 @@
-import { or } from "sequelize";
 import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from "vitest";
 import sorteosDAO from "../dataAccess/sorteosDAO.js";
-import { cli } from "winston/lib/winston/config/index.js";
 const sorteosController = require('../controllers/sorteosController.js');
 const { Sorteo, Configuracion, Premio, Organizador, Usuario, OrganizadorSorteo, Cliente, Numero, Pago } = require("../models/index.js");
 
