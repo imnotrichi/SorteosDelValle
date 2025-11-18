@@ -29,6 +29,9 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
+            if (sorteoObtenido.fecha_realizacion < new Date()) {
+                return next(new AppError("El sorteo ya finalizó.", 400));
+            }
 
             // Validaciones del cliente
             if (!id_cliente) {
@@ -160,6 +163,9 @@ class NumerosController {
             const sorteoObtenido = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
+            }
+            if (sorteoObtenido.fecha_realizacion < new Date()) {
+                return next(new AppError("El sorteo ya finalizó.", 400));
             }
 
             // Validaciones de los números
