@@ -190,7 +190,6 @@ class NumerosController {
             }
 
             const resultado = await numerosDAO.liberarNumeros({ numeros, id_sorteo });
-
             if (!resultado.exito) {
                 // Hay números que NO están apartados/no existen
                 if (resultado.faltantes?.length > 0) {
