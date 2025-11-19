@@ -291,7 +291,18 @@ const CrearSorteo = ({ currentUserEmail }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Inténtelo nuevamente.');
+        let errorMessage = 'Inténtelo nuevamente.';
+        try {
+             const errorData = await response.json();
+             if (errorData.message === 'Ya existe un sorteo con ese título.') {
+                 errorMessage = 'Ya existe un sorteo registrado con ese título. Por favor, ingrese uno diferente.';
+             } else {
+                 errorMessage = errorData.message || errorMessage;
+             }
+        } catch (e) {
+             console.error("No se pudo leer el error del backend");
+        }
+        throw new Error(errorMessage);
       }
       setIsModalOpen(true);
 
@@ -718,6 +729,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
       <ErrorModal
         isOpen={!!error}
         onClose={() => setError(null)}
+        title={'Error al crear sorteo'}
         message={error}
       />
 

@@ -29,7 +29,7 @@ const Header = ({onNavigate}) => {
             </button>
             <div className="flex items-center gap-2 pl-4">
               <img src={userIcon} alt="Usuario" className="w-6 h-6" />
-              <span className="text-sm font-medium">Victoria</span>
+              <span className="text-sm font-medium">Abel</span>
             </div>
           </div>
         </div>
