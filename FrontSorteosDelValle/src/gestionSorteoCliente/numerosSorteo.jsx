@@ -256,6 +256,7 @@ const NumerosSorteo = () => {
       <ErrorModal
         isOpen={!!errorModalMessage}
         onClose={handleCloseError}
+        title="Error al apartar números"
         message={errorModalMessage}
       />
 
