@@ -3,9 +3,42 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { NumeroButton } from '../components/numeroButtonApartado.jsx';
 import { ResumenLiberacion } from '../components/resumenLiberacion.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
-import ErrorModal from '../components/mensajeError.jsx';
+import SorteoNoDisponible from '../components/mensajeNoDisponible.jsx';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
+
+const ErrorModalCustom = ({ isOpen, onClose, message }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onClose}>
+      <div
+        className="relative w-full max-w-md p-4 mx-4"
+        onClick={(e) => e.stopPropagation()}>
+        <div className="bg-card-light dark:bg-card-dark rounded-2xl shadow-2xl p-8 text-center flex flex-col items-center gap-6 border border-border-light dark:border-border-dark">
+          <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-5xl text-red-500">
+              error
+            </span>
+          </div>
+          <h3 className="text-2xl font-bold text-text-light dark:text-text-dark">
+            Error al liberar números
+          </h3>
+          <p className="text-sm text-text-light/80 dark:text-text-dark/80">
+            {message || 'Ha ocurrido un error inesperado.'}
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full flex items-center justify-center rounded-lg h-12 px-6 bg-primary hover:bg-primary/90 text-text-dark text-base font-bold transition-colors shadow-sm">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function LiberarNumerosUI() {
   const { id } = useParams();
@@ -13,7 +46,8 @@ export default function LiberarNumerosUI() {
 
   const [numerosApartados, setNumerosApartados] = useState([]);
   const [numerosSeleccionados, setNumerosSeleccionados] = useState([]);
-  const [nombreSorteo, setNombreSorteo] = useState('');
+  
+  const [nombreSorteo, setNombreSorteo] = useState(null); 
   
   const [busqueda, setBusqueda] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -25,38 +59,34 @@ export default function LiberarNumerosUI() {
   useEffect(() => {
     const cargarDatos = async () => {
       setIsLoading(true);
-      await Promise.all([fetchNumerosApartados(), fetchDetallesSorteo()]);
-      setIsLoading(false);
+      try {
+        await Promise.all([fetchNumerosApartados(), fetchDetallesSorteo()]);
+      } catch (error) {
+        console.error("Error crítico en la carga de datos:", error);
+        setNombreSorteo(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
     cargarDatos();
   }, [id]);
 
   const fetchDetallesSorteo = async () => {
-    try {
-      const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setNombreSorteo(data.titulo);
-      }
-    } catch (error) {
-      console.error("Error al cargar detalles del sorteo:", error);
+    const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`);
+    if (!response.ok) {
+      throw new Error('No se pudo obtener la información del sorteo');
     }
+    const data = await response.json();
+    setNombreSorteo(data.titulo);
   };
 
   const fetchNumerosApartados = async () => {
-    try {
-      const response = await fetch(`${API_GATEWAY_URL}/api/numeros/apartados?sorteo=${id}`);
-      
-      if (!response.ok) {
-        throw new Error('Error al obtener los números apartados');
-      }
-
-      const data = await response.json();
-      setNumerosApartados(data);
-    } catch (error) {
-      console.error("Error:", error);
-      setErrorModalMessage("No se pudieron cargar los números apartados. Inténtelo nuevamente.");
+    const response = await fetch(`${API_GATEWAY_URL}/api/numeros/apartados?sorteo=${id}`);
+    if (!response.ok) {
+      throw new Error('Error al obtener los números apartados');
     }
+    const data = await response.json();
+    setNumerosApartados(data);
   };
 
   const handleSeleccionarNumero = (numero) => {
@@ -85,19 +115,19 @@ export default function LiberarNumerosUI() {
 
       if (!response.ok) {
         try {
-             const errorData = await response.json();
-             console.error("Error del backend:", errorData);
+            const errorData = await response.json();
+            console.error("Error backend:", errorData);
         } catch (e) {
-             console.error("El backend devolvió HTML o texto plano en lugar de JSON");
+            console.error("La respuesta no es un JSON válido");
         }
-        throw new Error('Error al liberar números');
+        throw new Error('Error en la petición');
       }
 
       setShowSuccessModal(true);
 
     } catch (error) {
       console.error('Error al liberar:', error);
-      setErrorModalMessage("No se pudieron liberar los números seleccionados. Inténtelo nuevamente.");
+      setErrorModalMessage("Inténtelo nuevamente");
     } finally {
       setIsProcessing(false);
     }
@@ -106,7 +136,8 @@ export default function LiberarNumerosUI() {
   const handleCloseSuccess = () => {
     setShowSuccessModal(false);
     setNumerosSeleccionados([]); 
-    fetchNumerosApartados();
+    
+    fetchNumerosApartados().catch(e => console.error("Error recargando lista:", e));
   };
 
   const todosLosNumeros = numerosApartados
@@ -134,6 +165,14 @@ export default function LiberarNumerosUI() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando números...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!nombreSorteo) {
+    return (
+      <div className="min-h-screen bg-background-light">
+         <SorteoNoDisponible />
       </div>
     );
   }
@@ -191,7 +230,7 @@ export default function LiberarNumerosUI() {
 
               {numerosApartados.length === 0 ? (
                  <div className="p-8 text-center text-gray-500">
-                    No hay números apartados en este sorteo aún.
+                    No hay números apartados en este sorteo.
                  </div>
               ) : numerosFiltrados.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
@@ -238,10 +277,9 @@ export default function LiberarNumerosUI() {
         title={`¡Se han liberado ${numerosSeleccionados.length} número(s) exitosamente!`}
       />
 
-      <ErrorModal
+      <ErrorModalCustom
         isOpen={!!errorModalMessage}
         onClose={() => setErrorModalMessage(null)}
-        title="Error al liberar números"
         message={errorModalMessage}
       />
     </div>
