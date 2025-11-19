@@ -20,6 +20,8 @@ const NumerosSorteo = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const [esPeriodoVenta, setEsPeriodoVenta] = useState(false);
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState(null);
   const [shouldReloadOnError, setShouldReloadOnError] = useState(false);
@@ -36,11 +38,20 @@ const NumerosSorteo = () => {
         if (!responseNumeros.ok) throw new Error('Error al obtener números');
         const dataNumeros = await responseNumeros.json();
 
+        const fechaActual = new Date();
+        const fechaInicio = new Date(dataSorteo.inicio_periodo_venta);
+        const fechaFin = new Date(dataSorteo.fin_periodo_venta);
+        
+        const estaEnVenta = fechaInicio <= fechaActual && fechaActual <= fechaFin;
+        setEsPeriodoVenta(estaEnVenta);
+
         setSorteoData({
           id: dataSorteo.id,
           titulo: dataSorteo.titulo,
           rangoNumeros: dataSorteo.rango_numeros,
-          precioNumero: parseFloat(dataSorteo.precio_numero)
+          precioNumero: parseFloat(dataSorteo.precio_numero),
+          fechaInicio: fechaInicio,
+          fechaFin: fechaFin
         });
 
         setNumerosDisponibles(dataNumeros);
@@ -56,6 +67,8 @@ const NumerosSorteo = () => {
   }, [id]);
 
   const handleSeleccionarNumero = (numero) => {
+    if (!esPeriodoVenta) return;
+
     if (numerosSeleccionados.includes(numero)) {
       setNumerosSeleccionados(numerosSeleccionados.filter(n => n !== numero));
     } else {
@@ -68,6 +81,11 @@ const NumerosSorteo = () => {
   };
 
   const handleApartarNumeros = async () => {
+    if (!esPeriodoVenta) {
+      setErrorModalMessage('Este sorteo no se encuentra en periodo de venta.');
+      return;
+    }
+
     if (numerosSeleccionados.length === 0) {
       setShouldReloadOnError(false);
       setErrorModalMessage('Debes seleccionar al menos un número para continuar.');
@@ -76,7 +94,7 @@ const NumerosSorteo = () => {
 
     setIsProcessing(true);
     try {
-      const ID_CLIENTE_TEST = 3; // esto lo vamos a cambiar cuando este la autenticacion
+      const ID_CLIENTE_TEST = 3; 
 
       const response = await fetch(`${API_GATEWAY_URL}/api/numeros/apartar`, {
         method: 'POST',
@@ -108,7 +126,7 @@ const NumerosSorteo = () => {
 
   const handleCloseSuccess = () => {
     setShowSuccessModal(false);
-    navigate('/mis-boletos');
+    navigate('/');
   };
 
   const handleCloseError = () => {
@@ -143,7 +161,7 @@ const NumerosSorteo = () => {
               key={numero}
               numero={numero}
               estaSeleccionado={estaSeleccionado}
-              estaDisponible={true}
+              estaDisponible={esPeriodoVenta} 
               onClick={handleSeleccionarNumero}
             />
           );
@@ -179,6 +197,24 @@ const NumerosSorteo = () => {
       <HeaderCliente onNavigate={navigate} userName="Ricardo" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {!esPeriodoVenta && (
+          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r shadow-sm">
+            <div className="flex items-center">
+              <span className="material-symbols-outlined text-yellow-500 mr-2">
+                info
+              </span>
+              <div>
+                <p className="font-bold text-yellow-700">Sorteo no disponible para venta.</p>
+                <p className="text-sm text-yellow-600">
+                  El periodo de venta para este sorteo 
+                  {new Date() < sorteoData.fechaInicio ? ' aún no ha comenzado.' : ' ha finalizado.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <button
@@ -194,7 +230,7 @@ const NumerosSorteo = () => {
                 Números de {sorteoData.titulo}
               </h1>
               <p className="text-lg text-gray-600">
-                Seleccione los números que desea apartar
+                Seleccione los números que desea apartar.
               </p>
             </div>
           </div>
@@ -205,7 +241,7 @@ const NumerosSorteo = () => {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center gap-6 mb-6 pb-4 border-b border-gray-200">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded bg-white border-2 border-gray-300"></div>
+                  <div className={`w-6 h-6 rounded border-2 ${esPeriodoVenta ? 'bg-white border-gray-300' : 'bg-gray-100 border-gray-200'}`}></div>
                   <span className="text-base text-gray-600">Número libre</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -241,7 +277,7 @@ const NumerosSorteo = () => {
               onApartar={handleApartarNumeros}
             />
             {isProcessing && (
-              <p className="text-center text-sm text-gray-500 mt-2">Procesando apartado...</p>
+              <p className="text-center text-sm text-gray-500 mt-2">Apartando números...</p>
             )}
           </div>
         </div>
