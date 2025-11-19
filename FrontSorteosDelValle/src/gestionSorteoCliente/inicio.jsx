@@ -21,8 +21,16 @@ const Inicio = () => {
         }
 
         const data = await response.json();
+        const fechaActual = new Date();
 
-        const dataFormateada = data.map(sorteo => ({
+        const sorteosVisibles = data.filter(sorteo => {
+          const fechaInicio = new Date(sorteo.inicio_periodo_venta);
+          const fechaFin = new Date(sorteo.fin_periodo_venta);
+          
+          return fechaInicio <= fechaActual && fechaActual <= fechaFin;
+        });
+
+        const dataFormateada = sorteosVisibles.map(sorteo => ({
           ...sorteo,
           precioNumero: parseFloat(sorteo.precio_numero)
         }));
@@ -45,7 +53,7 @@ const Inicio = () => {
       <div className="min-h-screen bg-background-light flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando sorteos disponibles...</p>
+          <p className="text-gray-600">Cargando sorteos...</p>
         </div>
       </div>
     );
@@ -77,7 +85,7 @@ const Inicio = () => {
                 sentiment_dissatisfied
               </span>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                No hay sorteos activos en este momento
+                No hay sorteos disponibles en este momento
               </h3>
               <p className="text-gray-600 text-sm">
                 Vuelve más tarde para ver nuevas rifas disponibles.
