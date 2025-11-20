@@ -185,19 +185,7 @@ const EditarSorteo = () => {
     };
 
     const handleGlobalConfigChange = () => {
-        if (!useGlobalConfig) {
-            setFormData({
-                ...formData,
-                tiempoLimiteApartado: '0',
-                tiempoRecordatorioPago: '0',
-            });
-        } else {
-            setFormData({
-                ...formData,
-                tiempoLimiteApartado: '',
-                tiempoRecordatorioPago: '',
-            });
-        }
+       
         setUseGlobalConfig(!useGlobalConfig);
     };
 
@@ -587,32 +575,17 @@ const EditarSorteo = () => {
                                         {premio.imagen_premio_url && !premio.imagen && (
                                             <img src={premio.imagen_premio_url} alt="Premio" className="w-full h-auto max-h-40 object-cover rounded-lg border border-border-light" />
                                         )}
-                                        <FileUpload
-                                            label={premio.imagen_premio_url ? "Cambiar imagen de premio" : "Imagen de premio"}
-                                            id={`premio-imagen-${premio.id}`}
-                                            onChange={(e) => handlePremioImageChange(premio.id, e)}
-                                            fileValue={premio.imagen}
-                                            disabled={hayBoletosVendidos}
-                                        />
+                                       
                                     </div>
                                 ))}
-                                {!hayBoletosVendidos && (
-                                    <button
-                                        type="button"
-                                        onClick={handleAnadirPremio}
-                                        className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors font-body"
-                                    >
-                                        <img src={addIcon} alt="Añadir" className="w-5 h-5 brightness-0 invert" />
-                                        Añadir premio
-                                    </button>
-                                )}
+
                             </div>
                         </FormSection>
                     </div>
 
                     <div className="lg:col-span-1 flex flex-col gap-6">
                         <FormSection title="Configuración">
-                            <div className={hayBoletosVendidos ? 'opacity-50 pointer-events-none' : ''}>
+                            <div>
                                 <div className="flex flex-col gap-5">
                                     <label className="flex items-center justify-between cursor-pointer">
                                         <span className="text-sm font-medium text-text-light dark:text-text-dark font-body">

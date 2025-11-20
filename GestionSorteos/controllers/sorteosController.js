@@ -281,12 +281,8 @@ class SorteosController {
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
             const fechaFinVenta = new Date(fin_periodo_venta);
-            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date() || fechaInicioVenta < new Date()) {
+            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date()) {
                 return next(new AppError('Ingrese un periodo válido.', 400));
-            }
-
-            if (inicio_periodo_venta != sorteoExists.inicio_periodo_venta && sorteoExists.inicio_periodo_venta < new Date()) {
-                return next(new AppError('No se puede cambiar la fecha de inicio porque ya empezaron a venderse números.', 400));
             }
 
             const fechaRealizacion = new Date(fecha_realizacion);
@@ -301,6 +297,9 @@ class SorteosController {
             const organizadores = [];
             for (let i = 0; i < organizadoresData.length; i++) {
                 const organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(organizadoresData[i].correo);
+                if(!organizadorObtenido){
+                    return next(new AppError(`No hay un organizador registrado con el correo ${organizadoresData[i].correo}`, 400));
+                }
                 organizadores.push({ id_organizador: organizadorObtenido.id });
             }
 
