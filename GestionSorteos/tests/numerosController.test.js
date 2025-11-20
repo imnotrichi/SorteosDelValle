@@ -100,6 +100,112 @@ function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+describe('apartarNumero (Controller)', () => {
+    //APN-009: Probar que funcione correctamente la funcionalidad de apartar número.
+    it('debería apartar un número', async () => {
+        // Arrange
+        const mockReq = { body: { numeros: [10], id_sorteo, id_cliente } };
+
+        // Act
+        await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
+        const resultado = mockRes.json.mock.calls[0][0];
+
+        // Assert
+        expect(resultado).toStrictEqual([10]);
+    });
+
+    //APN-010: Probar que no se pueda apartar un número de un sorteo que no existe.
+    it('no debería apartar un número', async () => {
+        // Arrange
+        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo: 201, id_cliente } };
+
+        // Act
+        await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
+        const error = mockNext.mock.calls[0][0];
+
+        // Assert
+        expect(error.message).toBe("No se encontró el sorteo con ID: 201.");
+    });
+
+    //APN-011: Probar que no se pueda apartar un número que no tiene dueño.
+    it('no debería apartar un número', async () => {
+        // Arrange
+        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo, id_cliente: 201 } };
+
+        // Act
+        await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
+        const error = mockNext.mock.calls[0][0];
+
+        // Assert
+        expect(error.message).toBe("No se encontró un cliente con ID: 201.");
+    });
+
+    //APN-012: Probar que no se pueda apartar un número que ya está apartado.
+    it('no debería apartar un número', async () => {
+        // Arrange
+        const mockReq = { body: { numeros: [10], id_sorteo, id_cliente } };
+
+        // Act
+        await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
+        const error = mockNext.mock.calls[0][0];
+
+        // Assert
+        expect(error.message).toBe("El número 10 ya no está disponible.");
+    });
+
+    //APN-013: Probar que se pueda apartar más de un número a la vez.
+    it('debería apartar los números', async () => {
+        // Arrange
+        const mockReq = { body: { numeros: [13, 14, 15], id_sorteo, id_cliente } };
+
+        // Act
+        await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
+        const resultado = mockRes.json.mock.calls[0][0];
+
+        // Assert
+        expect(resultado).toStrictEqual([13, 14, 15]);
+    });
+
+    //APN-014: Probar que no se puedan apartar números de un sorteo finalizado.
+    it('no debería apartar los números', async () => {
+        // Arrange
+        const mockReq = { body: { numeros: [10], id_sorteo: 61, id_cliente } };
+
+        // Act
+        await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
+        const error = mockNext.mock.calls[0][0];
+
+        // Assert
+        expect(error.message).toBe("El sorteo ya finalizó.");
+    });
+
+    //APN-015: Probar que se consulten correctamente los números apartados de un sorteo.
+    it('debería consultar los números', async () => {
+        // Arrange
+        const mockReq = { query: { sorteo: id_sorteo } };
+
+        // Act
+        await numerosController.obtenerNumerosApartados(mockReq, mockRes, mockNext);
+        const resultado = mockRes.json.mock.calls[0][0];
+
+        // Assert
+        expect(resultado[0].numero).toStrictEqual(10);
+    });
+
+    //APN-016: Probar que el sistema no falle al consultar numeros de un sorteo que no existe.
+    it('no debería fallar al consultar los números', async () => {
+        // Arrange
+        const mockReq = { query: { sorteo: 1021 } };
+
+        // Act
+        await numerosController.obtenerNumerosApartados(mockReq, mockRes, mockNext);
+        const error = mockNext.mock.calls[0][0];
+
+        // Assert
+        expect(error.message).toBe("No se encontró el sorteo con ID: 1021.");
+    });
+});
+
 describe('liberarNumero (Controller)', () => {
     // LBN-005: Probar que funcione correctamente la funcionalidad de liberar un número apartado.
     it('debería liberar un número apartado', async () => {
