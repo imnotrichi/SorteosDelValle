@@ -97,6 +97,23 @@ export default function LiberarNumerosUI() {
     }
   };
 
+  const todosLosNumeros = numerosApartados
+    .map(n => n.numero)
+    .sort((a, b) => a - b);
+
+  const numerosFiltrados = todosLosNumeros.filter(numero => {
+    return !busqueda || numero.toString().includes(busqueda);
+  });
+
+  const handleSeleccionarTodos = () => {
+    const nuevos = [...new Set([...numerosSeleccionados, ...numerosFiltrados])];
+    setNumerosSeleccionados(nuevos);
+  };
+
+  const handleDeseleccionarTodos = () => {
+    setNumerosSeleccionados([]);
+  };
+
   const handleLiberarNumeros = async () => {
     if (numerosSeleccionados.length === 0) return;
 
@@ -140,23 +157,16 @@ export default function LiberarNumerosUI() {
     fetchNumerosApartados().catch(e => console.error("Error recargando lista:", e));
   };
 
-  const todosLosNumeros = numerosApartados
-    .map(n => n.numero)
-    .sort((a, b) => a - b);
-
-  const numerosFiltrados = todosLosNumeros.filter(numero => {
-    return !busqueda || numero.toString().includes(busqueda);
-  });
-
   const clientesAgrupados = numerosSeleccionados.map(numero => {
     const info = numerosApartados.find(n => n.numero === numero);
     return {
       numero,
       nombre: info?.nombre_cliente || 'Desconocido',
       email: info?.correo_cliente || 'Sin correo',
-      fecha: info ? new Date(info.fecha_apartado).toLocaleDateString() : ''
+      fecha: info ? new Date(info.fecha_apartado).toLocaleDateString() : '',
+      fechaRaw: info ? new Date(info.fecha_apartado) : new Date(0)
     };
-  }).sort((a, b) => a.numero - b.numero);
+  });
 
   if (isLoading) {
     return (
@@ -213,7 +223,7 @@ export default function LiberarNumerosUI() {
                 </div>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-6 space-y-2">
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     search
@@ -225,6 +235,23 @@ export default function LiberarNumerosUI() {
                     onChange={(e) => setBusqueda(e.target.value)}
                     className="w-full rounded-lg bg-gray-50 border border-gray-300 text-gray-800 placeholder:text-gray-400 focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-colors h-12 pl-10 pr-4"
                   />
+                </div>
+                
+                <div className="flex justify-end gap-4 text-sm">
+                   <button 
+                      onClick={handleSeleccionarTodos}
+                      disabled={numerosFiltrados.length === 0}
+                      className="text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                      Seleccionar visibles
+                   </button>
+                   <button 
+                      onClick={handleDeseleccionarTodos}
+                      disabled={numerosSeleccionados.length === 0}
+                      className="text-red-500 hover:text-red-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                      Deseleccionar todo
+                   </button>
                 </div>
               </div>
 
@@ -258,12 +285,12 @@ export default function LiberarNumerosUI() {
           </div>
 
           <div className="lg:col-span-1">
-            <div onClick={handleLiberarNumeros}>
-                <ResumenLiberacion
+            <ResumenLiberacion
                 numerosSeleccionados={numerosSeleccionados}
                 clientesAgrupados={clientesAgrupados}
-                />
-            </div>
+                onLiberar={handleLiberarNumeros}
+            />
+            
             {isProcessing && (
               <p className="text-center text-sm text-gray-500 mt-2 animate-pulse">Liberando números...</p>
             )}

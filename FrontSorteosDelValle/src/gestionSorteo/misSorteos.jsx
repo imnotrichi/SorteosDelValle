@@ -1,6 +1,9 @@
 import { SorteoCard } from "../components/sorteoCard";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import ConfirmationModal from "../components/mensajeConfirmacion";
+import SuccessModal from "../components/mensajeExito";
+import ErrorModal from "../components/mensajeError";
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
@@ -16,12 +19,17 @@ const MisSorteos = ({ onNavigate }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [idSorteoAEliminar, setIdSorteoAEliminar] = useState(null);
+
   useEffect(() => {
     const fetchSorteos = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        //TODO: Cambiar el ID del organizador por el real
         const idOrganizador = 1;
         const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/organizador/${idOrganizador}`);
 
@@ -35,7 +43,11 @@ const MisSorteos = ({ onNavigate }) => {
         data = data.map(sorteo => ({
           ...sorteo,
           estado: getEstadoSorteo(sorteo.fin_periodo_venta)
-        }));
+        })).sort((a, b) => {
+          if (a.estado === "Activo" && b.estado !== "Activo") return -1;
+          if (a.estado !== "Activo" && b.estado === "Activo") return 1;
+          return 0;
+        });
         setSorteos(data);
       } catch (error) {
         setError(error.message);
@@ -47,29 +59,36 @@ const MisSorteos = ({ onNavigate }) => {
     fetchSorteos();
   }, []);
 
-  const handleEliminarSorteo = async (idSorteo) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este sorteo? Esta acción no se puede deshacer.")) {
-      try {
-        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteo}`, {
-          method: 'DELETE',
-        });
+  const handleEliminarClick = (idSorteo) => {
+    setIdSorteoAEliminar(idSorteo);
+    setShowConfirmModal(true);
+  }
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.message || 'Error al eliminar el sorteo');
-        }
+  const handleConfirmEliminar = async () => {
+    setShowConfirmModal(false);
+    if (!idSorteoAEliminar) return;
 
-        // Actualizar la lista de sorteos en la UI
-        setSorteos(sorteosActuales =>
-          sorteosActuales.filter(sorteo => sorteo.id !== idSorteo)
-        );
+    try {
+      const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteoAEliminar}`, {
+        method: 'DELETE',
+      });
 
-        // Mostrar mensaje de éxito
-        alert('Sorteo eliminado exitosamente');
-
-      } catch (error) {
-        alert(error.message);
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || 'Error al eliminar el sorteo');
       }
+
+      setSorteos(sorteosActuales =>
+        sorteosActuales.filter(sorteo => sorteo.id !== idSorteoAEliminar)
+      );
+
+      setShowSuccessModal(true);
+
+    } catch (error) {
+      setErrorMessage(error.message);
+      setShowErrorModal(true);
+    } finally {
+      setIdSorteoAEliminar(null);
     }
   }
 
@@ -120,7 +139,6 @@ const MisSorteos = ({ onNavigate }) => {
   return (
     <div className="min-h-screen bg-background-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-[32px] font-bold tracking-tight text-text-light mb-2">
             Mis Sorteos
@@ -130,7 +148,6 @@ const MisSorteos = ({ onNavigate }) => {
           </p>
         </div>
 
-        {/* Grid de sorteos */}
         {sorteos.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {sorteos.map((sorteo) => (
@@ -140,12 +157,11 @@ const MisSorteos = ({ onNavigate }) => {
                 onNavigateInfo={() => navigate(`/admin/sorteos/${sorteo.id}`)}
                 onEditarClick={() => navigate(`/admin/editar/${sorteo.id}`)}
                 onVerBoletoClick={() => navigate(`/admin/sorteo/boletos/${sorteo.id}`)}
-                onEliminarClick={() => handleEliminarSorteo(sorteo.id)}
+                onEliminarClick={() => handleEliminarClick(sorteo.id)}
               />
             ))}
           </div>
         ) : (
-          // Estado vacío
           <div className="text-center py-16">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-md mx-auto p-8">
               <svg
@@ -176,9 +192,28 @@ const MisSorteos = ({ onNavigate }) => {
             </div>
           </div>
         )}
-
-        {/* TODO: Aquí es donde iría la paginación */}
       </div>
+
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmEliminar}
+        title="¿Eliminar sorteo?"
+        message="¿Estás seguro de que deseas eliminar este sorteo? Esta acción no se puede deshacer."
+      />
+
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Sorteo eliminado exitosamente"
+      />
+
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="Error al eliminar"
+        message={'Inténtelo nuevamente'}
+      />
     </div>
   );
 };
