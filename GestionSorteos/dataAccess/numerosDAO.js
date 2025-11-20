@@ -1,11 +1,20 @@
 const { Numero, Cliente, Usuario } = require('../models');
 const { Op } = require('sequelize');
+const sorteosDAO = require('../dataAccess/sorteosDAO.js');
 
 class NumerosDAO {
 
     constructor() { }
 
     async apartarNumeros({ numeros, id_sorteo, id_cliente }) {
+        const sorteo = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
+        if (!sorteo) {
+            throw new Error(`No se encontró el sorteo con ID ${id_sorteo}.`);
+        }
+        if (sorteo.fecha_realización < new Date()) {
+            throw new Error("El sorteo ya finalizó.");
+        }
+
         // Verificar si alguno ya existe
         const existentes = await Numero.findAll({
             where: {
@@ -39,6 +48,14 @@ class NumerosDAO {
     }
 
     async liberarNumeros({ numeros, id_sorteo }) {
+        const sorteo = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
+        if (!sorteo) {
+            throw new Error(`No se encontró el sorteo con ID ${id_sorteo}.`);
+        }
+        if (sorteo.fecha_realización < new Date()) {
+            throw new Error("El sorteo ya finalizó.");
+        }
+
         const transaction = await Numero.sequelize.transaction();
 
         try {
