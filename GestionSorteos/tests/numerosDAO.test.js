@@ -83,6 +83,118 @@ function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+describe('apartarNumero (DAO)', () => {
+    //APN-001: Probar que funcione correctamente la funcionalidad de apartar número.
+    it('debería apartar un número', async () => {
+        //Arrange
+        const numeros = [21];
+
+        //Act
+        const resultado = await numerosDAO.apartarNumeros({ numeros, id_sorteo, id_cliente });
+
+        //Assert
+        expect(resultado.exito).toBe(true);
+    });
+
+    //APN-002: Probar que no se pueda apartar un número de un sorteo que no existe.
+    it('no debería apartar un número', async () => {
+        //arrange
+        const numeros = [21];
+
+        //Act
+        let resultado;
+        try {
+            await numerosDAO.apartarNumeros({ numeros, id_sorteo: 102, id_cliente });
+        } catch (error) {
+            resultado = error;
+        }
+
+        //Assert
+        expect(resultado).toBeInstanceOf(Error);
+    });
+
+    //APN-003: Probar que no se pueda apartar un número que no tiene dueño.
+    it('no debería apartar un número', async () => {
+        //arrange
+        const numeros = [10];
+
+        //Act
+        let resultado
+        try {
+            await numerosDAO.apartarNumeros({ numeros, id_sorteo, id_cliente: 102 });
+        } catch (error) {
+            resultado = error;
+        }
+
+        //Assert
+        expect(resultado).toBeInstanceOf(Error);
+    });
+
+    //APN-004: Probar que no se pueda apartar un número que ya está apartado.
+    it('no debería apartar un número', async () => {
+        //arrange
+        const numeros = [21];
+        await numerosDAO.apartarNumeros({ numeros, id_sorteo, id_cliente });
+
+        //Act
+        const resultado = await numerosDAO.apartarNumeros({ numeros, id_sorteo, id_cliente });
+
+
+        //Assert
+        expect(resultado.exito).toBe(false);
+        expect(resultado.noDisponibles).toEqual([21]);
+    });
+
+    //APN-005: Probar que se pueda apartar más de un número a la vez.
+    it('debería apartar los números', async () => {
+        //arrange
+        const numeros = [13, 14, 15];
+
+        //Act
+        const resultado = await numerosDAO.apartarNumeros({ numeros, id_sorteo, id_cliente });
+
+        //Assert
+        expect(resultado.exito).toBe(true);
+    });
+
+    //APN-006: Probar que no se puedan apartar números de un sorteo finalizado.
+    it('no debería apartar los números', async () => {
+        //arrange
+        const numeros = [31, 32, 33];
+
+        //Act
+        const resultado = await numerosDAO.apartarNumeros({ numeros, id_sorteo: 61, id_cliente });
+
+        //Assert
+        expect(resultado.exito).toBe(false);
+    });
+
+    //APN-007: Probar que se consulten correctamente los números apartados de un sorteo.
+    it('debería consultar los números', async () => {
+        //arrange
+        let resultado;
+
+        //Act
+        resultado = await numerosDAO.obtenerNumerosApartados(id_sorteo);
+
+        //Assert
+        expect(resultado[0].numero).toEqual(21);
+    });
+
+    //APN-008: Probar que el sistema no falle al consultar numeros de un sorteo que no existe.
+    it('no debería fallar al consultar los números', async () => {
+        //arrange
+        let resultado;
+        const id_sorteo = 1021;
+
+        //Act
+        resultado = await numerosDAO.obtenerNumerosApartados(id_sorteo);
+
+        //Assert
+        expect(resultado).toEqual([]);
+    });
+});
+
 describe('liberarNumero (DAO)', () => {
     // LBN-001: Probar que funcione correctamente la funcionalidad de liberar un número apartado.
     it('debería liberar un número apartado', async () => {

@@ -116,7 +116,8 @@ class SorteosController {
             }
 
             const sorteoCreado = await sorteosDAO.crearSorteo(sorteoData);
-            res.status(200).json(sorteoCreado);
+            const respuestaJSON = this.#formatearJsonSorteo(sorteoCreado, false);
+            res.status(200).json(respuestaJSON);
         } catch (error) {
             console.log(error);
             next(new AppError('Ocurrió un error al crear el sorteo', 500));
@@ -333,7 +334,8 @@ class SorteosController {
             console.log(sorteoData);
 
             const sorteoActualizado = await sorteosDAO.actualizarSorteo(idSorteo, sorteoData);
-            res.status(200).json(sorteoActualizado);
+            const respuestaJSON = this.#formatearJsonSorteo(sorteoActualizado, existe);
+            res.status(200).json(respuestaJSON);
         } catch (error) {
             console.log(error);
             next(new AppError('Ocurrió un error al actualizar el sorteo.', 500));

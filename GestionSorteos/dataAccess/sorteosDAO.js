@@ -33,7 +33,8 @@ class SorteosDAO {
                 }
             );
 
-            return sorteoCreado;
+            const sorteo = await this.obtenerSorteoPorId(sorteoCreado.id);
+            return sorteo;
         } catch (error) {
             console.log(error);
             throw error;
@@ -260,10 +261,19 @@ class SorteosDAO {
                 if (nuevosRegistros.length > 0) {
                     await OrganizadorSorteo.bulkCreate(nuevosRegistros);
                 }
+            };
+
+            const nuevosRegistros = OrganizadorSorteos.map(organizador => ({
+                id_sorteo: idSorteo,
+                id_organizador: organizador.id_organizador
+            }));
+
+            if (nuevosRegistros.length > 0) {
+                await OrganizadorSorteo.bulkCreate(nuevosRegistros);
             }
 
-
-            const sorteo = await sorteoBuscado.update(sorteoData, { new: true });
+            await sorteoBuscado.update(sorteoData, { new: true });
+            const sorteo = await this.obtenerSorteoPorId(idSorteo);
             return sorteo;
         } catch (error) {
             console.log(error);
