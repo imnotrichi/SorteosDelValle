@@ -29,6 +29,9 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
+            if (sorteoObtenido.fecha_realizacion < new Date()) {
+                return next(new AppError("El sorteo ya finalizó.", 400));
+            }
 
             // Validaciones del cliente
             if (!id_cliente) {
@@ -161,8 +164,14 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
+            if (sorteoObtenido.fecha_realizacion < new Date()) {
+                return next(new AppError("El sorteo ya finalizó.", 400));
+            }
 
             // Validaciones de los números
+            if (!numeros) {
+                return next(new AppError('No se proporcionó ningún número.', 400));
+            }
             if (!Array.isArray(numeros)) {
                 return next(new AppError('El campo "numeros" debe ser un arreglo.', 400));
             }
@@ -170,7 +179,7 @@ class NumerosController {
             if (noNumeros.length > 0) {
                 return next(new AppError('Solo se permiten números enteros.', 400));
             }
-            if (!numeros?.length) {
+            if (numeros.length === 0) {
                 return next(new AppError('No se seleccionó ningún número.', 400));
             }
 
@@ -181,7 +190,6 @@ class NumerosController {
             }
 
             const resultado = await numerosDAO.liberarNumeros({ numeros, id_sorteo });
-
             if (!resultado.exito) {
                 // Hay números que NO están apartados/no existen
                 if (resultado.faltantes?.length > 0) {

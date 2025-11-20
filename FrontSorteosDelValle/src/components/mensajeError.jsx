@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ErrorModal = ({ isOpen, onClose, message }) => {
+const ErrorModal = ({ isOpen, onClose, message, title }) => {
   if (!isOpen) return null;
 
   return (
@@ -18,7 +18,7 @@ const ErrorModal = ({ isOpen, onClose, message }) => {
           </div>
           
           <h3 className="text-2xl font-bold text-text-light dark:text-text-dark">
-            Error al crear el sorteo
+            {title || 'Error al realizar la acción'}
           </h3>
           
           <p className="text-sm text-text-light/80 dark:text-text-dark/80">

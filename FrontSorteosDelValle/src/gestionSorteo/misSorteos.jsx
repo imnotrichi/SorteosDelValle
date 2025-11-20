@@ -105,7 +105,6 @@ const MisSorteos = ({ onNavigate }) => {
             <h3 className="text-lg font-semibold text-red-800 mb-2">
               Error al cargar sorteos
             </h3>
-            <p className="text-red-600 text-sm mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
@@ -138,9 +137,9 @@ const MisSorteos = ({ onNavigate }) => {
               <SorteoCard
                 key={sorteo.id}
                 sorteo={sorteo}
-                onNavigateInfo={() => navigate(`/sorteos/${sorteo.id}`)}
+                onNavigateInfo={() => navigate(`/admin/sorteos/${sorteo.id}`)}
                 onEditarClick={() => navigate(`/admin/editar/${sorteo.id}`)}
-                onVerBoletoClick={() => navigate(`/sorteos/${sorteo.id}/boletos`)}
+                onVerBoletoClick={() => navigate(`/admin/sorteo/boletos/${sorteo.id}`)}
                 onEliminarClick={() => handleEliminarSorteo(sorteo.id)}
               />
             ))}

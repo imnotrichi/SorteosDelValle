@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FormSection from '../components/formulario.jsx';
 import Input, { TextArea } from '../components/input';
 import FileUpload from '../components/subirImagen.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
 import ErrorModal from '../components/mensajeError.jsx';
+import ConfirmationModal from '../components/mensajeConfirmacion.jsx';
 import addIcon from '../assets/añadir.png';
 
 const CLOUDINARY_CLOUD_NAME = "drczej3mh";
@@ -41,6 +43,7 @@ const handleImageUpload = async (file) => {
 };
 
 const CrearSorteo = ({ currentUserEmail }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
@@ -64,6 +67,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
   const [useGlobalConfig, setUseGlobalConfig] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -286,10 +290,19 @@ const CrearSorteo = ({ currentUserEmail }) => {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.message || 'Error al crear sorteo');
+        let errorMessage = 'Inténtelo nuevamente.';
+        try {
+             const errorData = await response.json();
+             if (errorData.message === 'Ya existe un sorteo con ese título.') {
+                 errorMessage = 'Ya existe un sorteo registrado con ese título. Por favor, ingrese uno diferente.';
+             } else {
+                 errorMessage = errorData.message || errorMessage;
+             }
+        } catch (e) {
+             console.error("No se pudo leer el error del backend");
+        }
+        throw new Error(errorMessage);
       }
       setIsModalOpen(true);
 
@@ -325,7 +338,39 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
     setUseGlobalConfig(false);
     setIsModalOpen(false);
+    setIsCancelModalOpen(false);
     setError(null);
+    navigate(-1);
+  };
+
+  const handleCancelClick = () => {
+    const hasBasicData =
+      formData.titulo.trim() !== '' ||
+      formData.descripcion.trim() !== '' ||
+      formData.imagen !== null ||
+      formData.rangoNumeros !== '' ||
+      formData.precioNumero !== '' ||
+      formData.fechaInicioVenta !== '' ||
+      formData.fechaFinVenta !== '' ||
+      formData.fechaRealizacion !== '' ||
+      (!useGlobalConfig && (formData.tiempoLimiteApartado !== '' || formData.tiempoRecordatorioPago !== ''));
+
+    const hasPremiosData =
+      premios.length > 1 ||
+      premios[0].titulo.trim() !== '' ||
+      premios[0].imagen !== null;
+
+    const hasOrganizadoresData =
+      organizadores.length > 1 ||
+      organizadores[0].email !== currentUserEmail;
+
+    const hasConfigChanged = useGlobalConfig === true;
+
+    if (hasBasicData || hasPremiosData || hasOrganizadoresData || hasConfigChanged) {
+      setIsCancelModalOpen(true);
+    } else {
+      handleCancel();
+    }
   };
 
   const validateForm = () => {
@@ -444,7 +489,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                 />
                 <TextArea
                   label="Descripción"
-                  placeholder="¡Expresa en que consiste tu rifa para que las personas quieran comparte números!"
+                  placeholder="¡Expresa en que consiste tu rifa para que las personas quieran comprarte números!"
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   required
@@ -653,7 +698,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
             <div className="flex justify-end items-center gap-3">
               <button
                 type="button"
-                onClick={handleCancel}
+                onClick={handleCancelClick}
                 className="flex items-center justify-center rounded-lg h-11 px-6 bg-border-light hover:bg-border-light/90 text-text-light dark:text-text-dark text-sm font-bold transition-colors"
                 disabled={isUploading}
               >
@@ -684,7 +729,16 @@ const CrearSorteo = ({ currentUserEmail }) => {
       <ErrorModal
         isOpen={!!error}
         onClose={() => setError(null)}
+        title={'Error al crear sorteo'}
         message={error}
+      />
+
+      <ConfirmationModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={handleCancel}
+        title="¿Deseas cancelar?"
+        message="Si sales ahora, perderás todos los datos que has ingresado para este sorteo."
       />
     </div>
   );
