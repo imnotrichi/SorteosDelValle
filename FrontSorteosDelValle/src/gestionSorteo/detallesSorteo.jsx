@@ -132,7 +132,10 @@ const DetallesSorteo = () => {
                 </svg>
                 Editar
               </button>
-              <button className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-gray-900 rounded-lg flex items-center gap-2 font-medium transition-colors">
+              <button 
+                onClick={() => navigate(`/admin/sorteo/boletos/${idSorteo}`)}
+                className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-gray-900 rounded-lg flex items-center gap-2 font-medium transition-colors"
+              >
                 <svg
                   className="w-4 h-4"
                   fill="none"

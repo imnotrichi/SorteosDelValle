@@ -738,6 +738,7 @@ const EditarSorteo = () => {
             <ErrorModal
                 isOpen={!!error}
                 onClose={() => setError(null)}
+                title={'Error al editar sorteo'}
                 message={error}
             />
         </div>

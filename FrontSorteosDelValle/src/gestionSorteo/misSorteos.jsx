@@ -35,7 +35,12 @@ const MisSorteos = ({ onNavigate }) => {
         data = data.map(sorteo => ({
           ...sorteo,
           estado: getEstadoSorteo(sorteo.fin_periodo_venta)
-        }));
+        })).sort((a, b) => {
+          if (a.estado === "Activo" && b.estado !== "Activo") return -1;
+          if (a.estado !== "Activo" && b.estado === "Activo") return 1;
+          return 0;
+        });
+
         setSorteos(data);
       } catch (error) {
         setError(error.message);
