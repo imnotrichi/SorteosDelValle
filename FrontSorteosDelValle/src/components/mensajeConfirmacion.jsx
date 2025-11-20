@@ -38,7 +38,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
             <button
               onClick={onConfirm}
               className="flex-1 flex items-center justify-center rounded-lg h-12 px-4 bg-red-500 hover:bg-red-600 text-white text-base font-bold transition-colors shadow-sm">
-              Sí, cancelar
+              Sí, continuar
             </button>
           </div>
 
