@@ -127,7 +127,7 @@ const EditarSorteo = () => {
 
             } catch (error) {
                 console.error(error);
-                setError(error.message);
+                setError("Error al obtener los datos del sorteo");
                 setTimeout(() => navigate('/admin/misSorteos'), 2000);
             } finally {
                 setIsLoadingData(false);
@@ -421,7 +421,7 @@ const EditarSorteo = () => {
 
         } catch (error) {
             console.error('Error al actualizar el sorteo:', error);
-            setError(error.message);
+            setError("Ocurrión un error en el servidor");
         } finally {
             setIsUploading(false);
         }
