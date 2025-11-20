@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 
-export function ResumenLiberacion({ numerosSeleccionados, clientesAgrupados, onLiberar }) {
+export function ResumenLiberacion({ numerosSeleccionados, clientesAgrupados, onLiberar, isVentaFinalizada }) {
   
   const [ordenarPor, setOrdenarPor] = useState('numero');
 
@@ -62,10 +62,17 @@ export function ResumenLiberacion({ numerosSeleccionados, clientesAgrupados, onL
 
       <button
         onClick={onLiberar}
-        disabled={numerosSeleccionados.length === 0}
-        className="w-full flex items-center justify-center rounded-lg h-12 px-4 bg-red-500 hover:bg-red-600 text-white text-lg font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={numerosSeleccionados.length === 0 || isVentaFinalizada}
+        className={`w-full flex items-center justify-center rounded-lg h-12 px-4 text-lg font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+          isVentaFinalizada 
+            ? "bg-gray-400 text-white hover:bg-gray-400" 
+            : "bg-red-500 hover:bg-red-600 text-white"
+        }`}
       >
-        Liberar {numerosSeleccionados.length} número{numerosSeleccionados.length !== 1 ? 's' : ''}
+        {isVentaFinalizada 
+          ? "Sorteo finalizado" 
+          : `Liberar ${numerosSeleccionados.length} número${numerosSeleccionados.length !== 1 ? 's' : ''}`
+        }
       </button>
     </div>
   );

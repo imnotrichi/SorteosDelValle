@@ -46,15 +46,16 @@ export default function LiberarNumerosUI() {
 
   const [numerosApartados, setNumerosApartados] = useState([]);
   const [numerosSeleccionados, setNumerosSeleccionados] = useState([]);
-  
-  const [nombreSorteo, setNombreSorteo] = useState(null); 
-  
+
+  const [nombreSorteo, setNombreSorteo] = useState(null);
+
   const [busqueda, setBusqueda] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState(null);
+  const [isVentaFinalizada, setIsVentaFinalizada] = useState(false);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -78,6 +79,9 @@ export default function LiberarNumerosUI() {
     }
     const data = await response.json();
     setNombreSorteo(data.titulo);
+
+    const fechaFin = new Date(data.fin_periodo_venta);
+    setIsVentaFinalizada(new Date() > fechaFin);
   };
 
   const fetchNumerosApartados = async () => {
@@ -132,10 +136,10 @@ export default function LiberarNumerosUI() {
 
       if (!response.ok) {
         try {
-            const errorData = await response.json();
-            console.error("Error backend:", errorData);
+          const errorData = await response.json();
+          console.error("Error backend:", errorData);
         } catch (e) {
-            console.error("La respuesta no es un JSON válido");
+          console.error("La respuesta no es un JSON válido");
         }
         throw new Error('Error en la petición');
       }
@@ -152,8 +156,8 @@ export default function LiberarNumerosUI() {
 
   const handleCloseSuccess = () => {
     setShowSuccessModal(false);
-    setNumerosSeleccionados([]); 
-    
+    setNumerosSeleccionados([]);
+
     fetchNumerosApartados().catch(e => console.error("Error recargando lista:", e));
   };
 
@@ -182,7 +186,7 @@ export default function LiberarNumerosUI() {
   if (!nombreSorteo) {
     return (
       <div className="min-h-screen bg-background-light">
-         <SorteoNoDisponible />
+        <SorteoNoDisponible />
       </div>
     );
   }
@@ -191,7 +195,7 @@ export default function LiberarNumerosUI() {
     <div className="min-h-screen bg-background-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-4 mb-8">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light hover:bg-border-light/80 transition-colors"
           >
@@ -236,29 +240,29 @@ export default function LiberarNumerosUI() {
                     className="w-full rounded-lg bg-gray-50 border border-gray-300 text-gray-800 placeholder:text-gray-400 focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-colors h-12 pl-10 pr-4"
                   />
                 </div>
-                
+
                 <div className="flex justify-end gap-4 text-sm">
-                   <button 
-                      onClick={handleSeleccionarTodos}
-                      disabled={numerosFiltrados.length === 0}
-                      className="text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                   >
-                      Seleccionar visibles
-                   </button>
-                   <button 
-                      onClick={handleDeseleccionarTodos}
-                      disabled={numerosSeleccionados.length === 0}
-                      className="text-red-500 hover:text-red-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                   >
-                      Deseleccionar todo
-                   </button>
+                  <button
+                    onClick={handleSeleccionarTodos}
+                    disabled={numerosFiltrados.length === 0}
+                    className="text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Seleccionar visibles
+                  </button>
+                  <button
+                    onClick={handleDeseleccionarTodos}
+                    disabled={numerosSeleccionados.length === 0}
+                    className="text-red-500 hover:text-red-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Deseleccionar todo
+                  </button>
                 </div>
               </div>
 
               {numerosApartados.length === 0 ? (
-                 <div className="p-8 text-center text-gray-500">
-                    No hay números apartados en este sorteo.
-                 </div>
+                <div className="p-8 text-center text-gray-500">
+                  No hay números apartados en este sorteo.
+                </div>
               ) : numerosFiltrados.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   No se encontraron números que coincidan con la búsqueda.
@@ -267,7 +271,7 @@ export default function LiberarNumerosUI() {
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                   {numerosFiltrados.map((numero) => {
                     const estaSeleccionado = numerosSeleccionados.includes(numero);
-                    const estaApartado = true; 
+                    const estaApartado = true;
 
                     return (
                       <NumeroButton
@@ -286,11 +290,12 @@ export default function LiberarNumerosUI() {
 
           <div className="lg:col-span-1">
             <ResumenLiberacion
-                numerosSeleccionados={numerosSeleccionados}
-                clientesAgrupados={clientesAgrupados}
-                onLiberar={handleLiberarNumeros}
+              numerosSeleccionados={numerosSeleccionados}
+              clientesAgrupados={clientesAgrupados}
+              onLiberar={handleLiberarNumeros}
+              isVentaFinalizada={isVentaFinalizada} // <--- Agrega esto
             />
-            
+
             {isProcessing && (
               <p className="text-center text-sm text-gray-500 mt-2 animate-pulse">Liberando números...</p>
             )}
