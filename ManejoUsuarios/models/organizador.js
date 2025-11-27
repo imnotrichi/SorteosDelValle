@@ -12,13 +12,6 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Organizador.belongsTo(models.Usuario, { foreignKey: 'id_usuario' });
-      Organizador.hasMany(models.OrganizadorSorteo, {
-        foreignKey: 'id_organizador'
-      });
-      Organizador.belongsToMany(models.Sorteo, {
-        through: models.OrganizadorSorteo,
-        foreignKey: 'id_organizador'
-      });
     }
   }
   Organizador.init({

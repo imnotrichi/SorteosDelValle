@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Usuario.hasOne(models.Cliente, {foreignKey: "id_usuario"});
-      Usuario.hasOne(models.Organizador, {foreignKey: "id_usuario"});
+      Usuario.hasOne(models.Cliente, { foreignKey: "id_usuario" });
+      Usuario.hasOne(models.Organizador, { foreignKey: "id_usuario" });
     }
   }
   Usuario.init({
@@ -20,7 +20,9 @@ module.exports = (sequelize, DataTypes) => {
     apellido_paterno: DataTypes.STRING,
     apellido_materno: DataTypes.STRING,
     correo: DataTypes.STRING,
-    contrasenia: DataTypes.STRING
+    contrasenia: DataTypes.STRING,
+    telefono: DataTypes.STRING,
+    fecha_nacimiento: DataTypes.DATEONLY
   }, {
     sequelize,
     modelName: 'Usuario',
