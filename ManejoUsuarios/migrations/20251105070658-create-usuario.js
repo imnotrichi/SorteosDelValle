@@ -23,11 +23,20 @@ module.exports = {
       },
       correo: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       contrasenia: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+      },
+      telefono: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      fecha_nacimiento: {
+        type: Sequelize.DATEONLY,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,

@@ -1,4 +1,5 @@
-const { Usuario } = require('../models/');
+const { Usuario, Cliente } = require('../models/');
+const { sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 class UsuariosDAO {
@@ -8,23 +9,23 @@ class UsuariosDAO {
     async registrarCliente(clienteData) {
         const {
             nombres,
-            apellidoPaterno,
-            apellidoMaterno,
+            apellido_paterno,
+            apellido_materno,
             correo,
             contrasenia,
             telefono,
-            fechaNacimiento
+            fecha_nacimiento
         } = clienteData;
 
         // Validación básica interna del DAO (opcional)
         if (
             !nombres?.trim() ||
-            !apellidoPaterno?.trim() ||
-            !apellidoMaterno?.trim() ||
+            !apellido_paterno?.trim() ||
+            !apellido_materno?.trim() ||
             !correo?.trim() ||
             !contrasenia?.trim() ||
             !telefono?.trim() ||
-            !fechaNacimiento?.trim()
+            !fecha_nacimiento
         ) {
             throw new Error("Faltan datos obligatorios para registrar el cliente.");
         }
@@ -34,17 +35,17 @@ class UsuariosDAO {
         // Longitud de correo
         if (correo.length > 100) return next(new AppError("El correo no puede exceder los 100 caracteres.", 400));
         // Correo duplicado
-        if (await usuariosDAO.obtenerUsuarioPorCorreo(correo)) return next(new AppError('El correo proporcionado ya está en uso.', 400));
+        if (await this.obtenerUsuarioPorCorreo(correo)) return next(new AppError('El correo proporcionado ya está en uso.', 400));
 
         // Nombres y apellidos inválidos
         if (!this.#esCampoValido(nombres)) return next(new AppError('El nombre solo puede contener letras y espacios.', 400));
-        if (!this.#esCampoValido(apellidoPaterno)) return next(new AppError('El apellido paterno solo puede contener letras y espacios.', 400));
-        if (!this.#esCampoValido(apellidoMaterno)) return next(new AppError('El apellido materno solo puede contener letras y espacios.', 400));
+        if (!this.#esCampoValido(apellido_paterno)) return next(new AppError('El apellido paterno solo puede contener letras y espacios.', 400));
+        if (!this.#esCampoValido(apellido_materno)) return next(new AppError('El apellido materno solo puede contener letras y espacios.', 400));
 
         // Longitud de nombres y apellidos
         if (nombres.length < 2 || nombres.length > 255) return next(new AppError('Favor de ingresar un nombre válido.', 400));
-        if (apellidoPaterno.length < 2 || apellidoPaterno.length > 255) return next(new AppError('Favor de ingresar un apellido paterno válido.', 400));
-        if (apellidoMaterno.length < 2 || apellidoMaterno.length > 255) return next(new AppError('Favor de ingresar un apellido materno válido.', 400));
+        if (apellido_paterno.length < 2 || apellido_paterno.length > 255) return next(new AppError('Favor de ingresar un apellido paterno válido.', 400));
+        if (apellido_materno.length < 2 || apellido_materno.length > 255) return next(new AppError('Favor de ingresar un apellido materno válido.', 400));
 
         // Contraseña inválida
         if (!this.#esContraseniaValida(contrasenia)) return next(new AppError('La contraseña debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial (! @ # $ % ^ & * ( ) - _ = + . ?).', 400));
@@ -53,14 +54,14 @@ class UsuariosDAO {
         // Teléfono inválido
         if (!this.#esTelefonoValido(telefono)) return next(new AppError('El número de teléfono debe tener 10 dígitos.', 400));
         // Teléfono duplicado
-        if (await usuariosDAO.obtenerUsuarioPorTelefono(telefono)) return next(new AppError('El número de teléfono ya está registrado.', 400));
+        if (await this.obtenerUsuarioPorTelefono(telefono)) return next(new AppError('El número de teléfono ya está registrado.', 400));
 
         // Fecha de nacimiento inválida
-        if (isNaN(Date.parse(fechaNacimiento))) {
+        if (isNaN(Date.parse(fecha_nacimiento))) {
             return next(new AppError('La fecha de nacimiento no es válida.', 400));
         }
 
-        const nacimiento = new Date(fechaNacimiento);
+        const nacimiento = new Date(fecha_nacimiento);
         const hoy = new Date();
         const edad = hoy.getFullYear() - nacimiento.getFullYear();
         // Menor de edad
@@ -88,10 +89,7 @@ class UsuariosDAO {
             // Si ambos pasos anteriores tuvieron éxito, confirma los cambios.
             await t.commit();
 
-            // 6. Retornar el usuario (o el resultado deseado)
-            // Puedes retornar el objeto recién creado o buscarlo con joins si es necesario:
-            // const cliente = await this.obtenerUsuarioPorCorreo(correo); 
-            return nuevoUsuario;
+            return;
         } catch (error) {
             console.log(error);
             throw error;
