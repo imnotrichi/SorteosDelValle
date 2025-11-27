@@ -6,6 +6,7 @@ class UsuariosController {
 
     constructor() {
         this.registrarUsuario = this.registrarUsuario.bind(this);
+        this.iniciarSesion = this.iniciarSesion.bind(this);
     }
 
     async registrarUsuario(req, res, next) {
@@ -54,7 +55,7 @@ class UsuariosController {
 
             // Teléfono inválido
             if (!this.#esTelefonoValido(telefono)) return next(new AppError('El número de teléfono debe tener 10 dígitos.', 400));
-            
+
             // Fecha de nacimiento no numérica
             if (isNaN(Date.parse(fechaNacimiento))) {
                 return next(new AppError('La fecha de nacimiento no es válida.', 400));
@@ -96,6 +97,40 @@ class UsuariosController {
         }
     }
 
+    async iniciarSesion(req, res, next) {
+        try {
+            const correo = req.body.correo?.toLowerCase();
+            const contrasenia = req.body.contrasenia;
+
+            // Se valida que los campos no vengan vacíos 
+            if (
+                !correo?.trim() ||
+                !contrasenia?.trim()
+            ) {
+                return next(new AppError('Todos los campos son requeridos.', 400));
+            }
+
+            // Buscamos el usuario
+            const usuarioObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(correo);
+            if (!usuarioObtenido) {
+                return next(new AppError('No se encontró ningún usuario con ese correo.', 401));
+            }
+
+            // Comparamos la contraseña encriptada con la del usuario obtenido
+            const passwordCorrecta = await bcrypt.compare(contrasenia, usuarioObtenido.contrasenia);
+            if (!passwordCorrecta) {
+                return next(new AppError('Correo o contraseña incorrectos.', 401));
+            }
+            res.status(200).json({
+                id_usuario: usuarioObtenido.id,
+                correo: usuarioObtenido.correo
+            });
+        } catch (error) {
+            console.log(error);
+            next(new AppError('Ocurrió un error al iniciar sesión', 500));
+        }
+    }
+
     async #encriptarContrasenia(contrasenia) {
         const saltRounds = 10;   // Nivel estándar de seguridad
         const hash = await bcrypt.hash(contrasenia, saltRounds);
@@ -128,6 +163,8 @@ class UsuariosController {
         const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
         return regex.test(fechaNacimiento);
     }
+
+
 }
 
 module.exports = new UsuariosController();
