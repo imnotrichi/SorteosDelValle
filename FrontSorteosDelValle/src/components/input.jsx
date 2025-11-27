@@ -11,7 +11,7 @@ const Input = ({ label, type = "text", placeholder, helperText, editing=false, .
         <input
           type={type}
           disabled = {editing}
-          placeholder={!placeholder}
+          placeholder={placeholder}
           className="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-light dark:text-text-dark placeholder:text-text-light/40 dark:placeholder:text-text-dark/40 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-11 px-3"
           {...props}
         />
