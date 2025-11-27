@@ -12,6 +12,7 @@ import NumerosSorteo from "./gestionSorteoCliente/numerosSorteo.jsx";
 import EditarSorteo from "./gestionSorteo/editarSorteo.jsx"
 import LiberarNumeros from "./gestionSorteo/liberarNumeros.jsx";
 import RegistrarUsuario from "./registrarUsuario/registrarUsuario.jsx";
+import IniciarSesion from "./registrarUsuario/iniciarSesion.jsx";
 
 const MainLayout = ({ children }) => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ function App() {
   return (
       <Routes>
       <Route path="/" element={<Inicio />} />
+      <Route path="/iniciar-sesion" element={<IniciarSesion />} />
       <Route path="/registrar-usuario" element={<RegistrarUsuario/>} />
       <Route path="/sorteo/:id" element={<DetalleSorteo />} />
       <Route path="/sorteo/:id/numeros" element={<NumerosSorteo />} />
