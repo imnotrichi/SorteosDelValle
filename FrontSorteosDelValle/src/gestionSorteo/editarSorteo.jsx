@@ -421,7 +421,7 @@ const EditarSorteo = () => {
 
         } catch (error) {
             console.error('Error al actualizar el sorteo:', error);
-            setError("Ocurrión un error en el servidor");
+            setError("Ocurrió un error en el servidor");
         } finally {
             setIsUploading(false);
         }
