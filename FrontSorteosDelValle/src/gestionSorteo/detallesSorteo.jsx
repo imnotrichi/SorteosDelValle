@@ -230,7 +230,7 @@ const DetallesSorteo = () => {
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         title="Error al eliminar"
-        message={'Inténtelo nuevamente'}
+        message={errorMessage}
       />
     </div>
   );
