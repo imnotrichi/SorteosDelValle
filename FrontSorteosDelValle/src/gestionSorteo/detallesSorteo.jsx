@@ -157,7 +157,7 @@ const DetallesSorteo = () => {
             className="w-full h-80 object-cover"
           />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-            <h2 className="text-3xl font-bold text-white">
+            <h2 className="text-3xl font-bold text-white break-words">
               {sorteoData.titulo}
             </h2>
           </div>
