@@ -9,7 +9,7 @@ export function ResumenCompraCard({
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 sticky top-24">
       <div className="bg-card-number rounded-lg p-4 mb-6">
-        <p className="text-base font-medium text-white/80 mb-1">Precio por boleto</p>
+        <p className="text-base font-medium text-white/80 mb-1">Precio por número</p>
         <p className="text-3xl font-bold text-white">
           ${precioNumero.toFixed(2)}
         </p>

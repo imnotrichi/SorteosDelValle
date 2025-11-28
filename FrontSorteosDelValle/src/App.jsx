@@ -46,7 +46,7 @@ function App() {
       <Route path="/admin/misSorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
       <Route path="/admin/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo/></MainLayout>} />
       <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
-      <Route path="/admin/sorteo/boletos/:id" element={<MainLayout><LiberarNumeros /></MainLayout>} />
+      <Route path="/admin/sorteo/numeros/:id" element={<MainLayout><LiberarNumeros /></MainLayout>} />
 
       <Route path="*" element={<PaginaNoEncontrada />} />
     </Routes>

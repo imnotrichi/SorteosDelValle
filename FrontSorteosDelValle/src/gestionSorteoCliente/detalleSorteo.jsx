@@ -142,7 +142,7 @@ const DetalleSorteo = () => {
         <div className="bg-card-number rounded-xl p-6 shadow-sm mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-base font-medium text-white/80 mb-1">Precio por boleto</p>
+              <p className="text-base font-medium text-white/80 mb-1">Precio por número</p>
               <p className="text-4xl font-bold text-white">
                 ${sorteoData.precioNumero.toFixed(2)}
               </p>
