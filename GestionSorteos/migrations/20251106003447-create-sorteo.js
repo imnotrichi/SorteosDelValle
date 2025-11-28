@@ -39,7 +39,7 @@ module.exports = {
         allowNull: false
       },
       precio_numero: {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: false
       },
       id_configuracion: {
