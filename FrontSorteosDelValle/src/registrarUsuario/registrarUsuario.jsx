@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import RegistrarUsuarioCard from '../components/registrarUsuarioCard';
 import Input from '../components/input';
 import HeaderRegistro from '../components/headerRegistro';
 
 const RegistrarUsuario = () => {
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         nombres: '',
@@ -98,7 +100,7 @@ const RegistrarUsuario = () => {
 
     return (
         <div className="min-h-screen bg-background-light">
-            <HeaderRegistro userName="Ricardo" />
+            <HeaderRegistro />
 
             <div className="flex items-center justify-center p-4 relative">
                 <RegistrarUsuarioCard>
@@ -112,7 +114,7 @@ const RegistrarUsuario = () => {
                                 onChange={handleChange}
                                 onPaste={handlePasteGeneral} // Usa el handler complejo
                                 maxLength={MAX_LENGTHS.nombres}
-                                label="Nombre Completo"
+                                label="Nombre completo"
                                 placeholder="Ingresa tu nombre completo"
                             />
 
@@ -175,9 +177,11 @@ const RegistrarUsuario = () => {
                         </button>
 
                         <p className="text-center text-sm text-gray-600 mt-1">
-                            ¿Ya estas registrado?{' '}
-                            <button className="text-green-500 hover:text-green-600 font-semibold underline">
-                                Iniciar Sesion
+                            ¿Ya estás registrado?{' '}
+                            <button 
+                            onClick={() => navigate('/iniciar-sesion')}
+                            className="text-green-500 hover:text-green-600 font-semibold underline">
+                                Inicia sesión
                             </button>
                         </p>
                     </div>
