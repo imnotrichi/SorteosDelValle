@@ -6,6 +6,7 @@ import ConfirmationModal from "../components/mensajeConfirmacion";
 import SuccessModal from "../components/mensajeExito";
 import ErrorModal from "../components/mensajeError";
 import SorteoNoDisponible from "../components/mensajeNoDisponible";
+import volverIcon from '../assets/volver.png';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
@@ -110,13 +111,23 @@ const DetallesSorteo = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 
           <div className="flex items-center justify-between">
-            <div className="border-amber-700">
-              <h1 className="text-2xl font-bold text-text-light">
-                Detalles de sorteo
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Administra los detalles, números y estado de tu sorteo
-              </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/admin/misSorteos')}
+                className="p-2 flex-shrink-0 rounded-full transition-colors" 
+                aria-label="Volver"
+              >
+                <img src={volverIcon} alt="Volver" className="w-11 h-11" />
+              </button>
+              
+              <div>
+                <h1 className="text-2xl font-bold text-text-light">
+                  Detalles de sorteo
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Administra los detalles, números y estado de tu sorteo
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               <button
