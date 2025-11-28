@@ -23,10 +23,10 @@ const HeaderCliente = ({ onNavigate, userName = "Ricardo" }) => {
               </button>
 
               <button 
-                onClick={() => onNavigate('/mis-boletos')}
+                onClick={() => onNavigate('/mis-numeros')}
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
-                Mis boletos
+                Mis números
               </button>
             </nav>
 

@@ -451,7 +451,7 @@ const EditarSorteo = () => {
                 {hayBoletosVendidos && (
                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                         <p className="text-yellow-700">
-                            ⚠️ Este sorteo ya tiene boletos vendidos. Algunos campos están bloqueados para proteger la integridad del sorteo.
+                            ⚠️ Este sorteo ya tiene números vendidos. Algunos campos están bloqueados para proteger la integridad del sorteo.
                         </p>
                     </div>
                 )}

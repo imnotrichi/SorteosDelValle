@@ -293,7 +293,7 @@ export default function LiberarNumerosUI() {
               numerosSeleccionados={numerosSeleccionados}
               clientesAgrupados={clientesAgrupados}
               onLiberar={handleLiberarNumeros}
-              isVentaFinalizada={isVentaFinalizada} // <--- Agrega esto
+              isVentaFinalizada={isVentaFinalizada}
             />
 
             {isProcessing && (

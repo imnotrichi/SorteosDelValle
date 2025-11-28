@@ -25,7 +25,7 @@ export function SorteoCardCliente({ sorteo, onClick }) {
         <div className="flex justify-end items-center gap-2 mb-3">
           <img
             src={boletoIcon}
-            alt="Boleto"
+            alt="Número"
             className="w-6 h-6"
           />
           <span className="text-2xl font-bold text-card-number-2">
@@ -39,7 +39,7 @@ export function SorteoCardCliente({ sorteo, onClick }) {
           }}
           className="w-full flex items-center justify-center rounded-lg h-11 px-4 bg-primary hover:bg-primary/90 text-text-light text-base font-bold transition-colors"
         >
-          Ver boletos
+          Ver números
         </button>
       </div>
     </div>

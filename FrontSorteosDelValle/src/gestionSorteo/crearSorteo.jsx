@@ -14,6 +14,16 @@ const CLOUDINARY_UPLOAD_PRESET = "imagenes_sorteosdelvalle";
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const CHAR_LIMITS = {
+  TITULO: 255,
+  DESCRIPCION: 255,
+  PREMIO_TITULO: 255,
+  EMAIL: 50
+};
+
+const MAX_FILE_SIZE_MB = 5; // Límite de 5MB por imagen
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
+
 const handleImageUpload = async (file) => {
   if (!file) {
     return null;
@@ -125,24 +135,30 @@ const CrearSorteo = ({ currentUserEmail }) => {
   };
 
   const handleConfigInputChange = (field, value) => {
+    if (value !== '' && !/^(0|[1-9][0-9]*)$/.test(value)) {
+      return;
+    }
+    
     const numValue = parseInt(value, 10);
-    const maxDias = 34;
+    const maxPermitido = maxDiasDinamic; 
 
-    if (value === '' || (numValue >= 0 && numValue <= maxDias)) {
+    if (value === '' || (numValue >= 0 && numValue <= maxPermitido)) {
       setFormData({ ...formData, [field]: value });
     }
   };
 
   const handleRangoNumerosChange = (value) => {
-    const numValue = parseInt(value, 10);
-    if (value === '' || (numValue > 0 && !isNaN(numValue))) {
+    const isValidLength = /^\d{0,5}$/.test(value);
+    
+    if (value === '' || (isValidLength && parseInt(value, 10) > 0)) {
       setFormData({ ...formData, rangoNumeros: value });
     }
   };
 
   const handlePrecioNumeroChange = (value) => {
-    const numValue = parseFloat(value);
-    if (value === '' || (numValue > 0 && !isNaN(numValue))) {
+    const regex = /^\d{0,5}(\.\d{0,2})?$/;
+
+    if (value === '' || regex.test(value)) {
       setFormData({ ...formData, precioNumero: value });
     }
   };
@@ -373,6 +389,20 @@ const CrearSorteo = ({ currentUserEmail }) => {
     }
   };
 
+  const checkFileValidity = (file, contextName) => {
+    if (!file) return null;
+    
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      return `El formato de la imagen de ${contextName} no es válido. Solo JPG o PNG.`;
+    }
+    
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      return `La imagen de ${contextName} es muy pesada. Máximo ${MAX_FILE_SIZE_MB}MB.`;
+    }
+    
+    return null;
+  };
+
   const validateForm = () => {
     const today = getTodayDate();
 
@@ -380,23 +410,44 @@ const CrearSorteo = ({ currentUserEmail }) => {
       setError('El título del sorteo es obligatorio.');
       return false;
     }
+    if (formData.titulo.length > CHAR_LIMITS.TITULO) {
+      setError(`El título no puede exceder los ${CHAR_LIMITS.TITULO} caracteres.`);
+      return false;
+    }
     if (!formData.descripcion.trim()) {
       setError('La descripción del sorteo es obligatoria.');
+      return false;
+    }
+    if (formData.descripcion.length > CHAR_LIMITS.DESCRIPCION) {
+      setError(`La descripción no puede exceder los ${CHAR_LIMITS.DESCRIPCION} caracteres.`);
       return false;
     }
     if (!formData.imagen) {
       setError('La imagen principal del sorteo es obligatoria.');
       return false;
     }
+    const errorImagenPrincipal = checkFileValidity(formData.imagen, "Portada del Sorteo");
+    if (errorImagenPrincipal) {
+      setError(errorImagenPrincipal);
+      return false;
+    }
     if (!formData.rangoNumeros || parseInt(formData.rangoNumeros, 10) < 1) {
       setError('El rango de números debe ser un número mayor a 0.');
+      return false;
+    }
+    if (parseInt(formData.rangoNumeros, 10) > 99999) {
+      setError('El rango de números no puede exceder 99,999.');
       return false;
     }
     if (!formData.precioNumero || parseFloat(formData.precioNumero) < 1) {
       setError('El precio por número debe ser al menos 1.');
       return false;
     }
-
+    const precio = parseFloat(formData.precioNumero);
+    if (precio > 99999.99) {
+      setError('El precio por número no puede exceder $99,999.99.');
+      return false;
+    }
     if (!formData.fechaInicioVenta || formData.fechaInicioVenta < today) {
       setError('La fecha de inicio de venta debe ser hoy o una fecha futura.');
       return false;
@@ -413,7 +464,6 @@ const CrearSorteo = ({ currentUserEmail }) => {
       alert('La fecha de realización debe ser al menos un día después de la fecha de fin de venta.');
       return false;
     }
-
     if (premios.length === 0) {
       setError('Debe haber al menos un premio.');
       return false;
@@ -423,14 +473,30 @@ const CrearSorteo = ({ currentUserEmail }) => {
         setError('Todos los premios deben tener un título.');
         return false;
       }
+      if (premio.titulo.length > CHAR_LIMITS.PREMIO_TITULO) {
+        setError(`El título del premio #${premio.id} es muy largo (máximo ${CHAR_LIMITS.PREMIO_TITULO} caracteres).`);
+        return false;
+      }
       if (!premio.imagen) {
-        setError('Todos los premios deben tener una imagen.');
+        setError(`El premio "${premio.titulo || '#' + premio.id}" debe tener una imagen.`);
+        return false;
+      }
+      const errorImagenPremio = checkFileValidity(premio.imagen, `Premio: ${premio.titulo}`);
+      if (errorImagenPremio) {
+        setError(errorImagenPremio);
         return false;
       }
     }
-
     if (organizadores.length === 0) {
       setError('Debe haber al menos un organizador.');
+      return false;
+    }
+
+    const emailsList = organizadores.map(o => o.email.trim().toLowerCase());
+    const uniqueEmails = new Set(emailsList);
+    
+    if (emailsList.length !== uniqueEmails.size) {
+      setError('No puedes agregar el mismo organizador más de una vez.');
       return false;
     }
     for (let org of organizadores) {
@@ -438,7 +504,10 @@ const CrearSorteo = ({ currentUserEmail }) => {
         setError('Todos los organizadores deben tener un email válido.');
         return false;
       }
-
+      if (org.email.length > CHAR_LIMITS.EMAIL) {
+        setError(`El email del organizador #${org.id} es demasiado largo.`);
+        return false;
+      }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(org.email)) {
         setError(`El email "${org.email}" no es válido.`);
@@ -447,24 +516,53 @@ const CrearSorteo = ({ currentUserEmail }) => {
     }
 
     if (!useGlobalConfig) {
+      const tiempoApartado = parseInt(formData.tiempoLimiteApartado, 10);
+      const tiempoRecordatorio = parseInt(formData.tiempoRecordatorioPago, 10);
+
       if (!formData.tiempoLimiteApartado || parseInt(formData.tiempoLimiteApartado, 10) <= 0) {
         setError('El tiempo límite de apartado debe ser un número mayor a 0 si no usas la configuración global.');
         return false;
       }
-      if (!formData.tiempoRecordatorioPago || parseInt(formData.tiempoRecordatorioPago, 10) <= 0) {
-        setError('El tiempo de recordatorio de pago debe ser un número mayor a 0 si no usas la configuración global.');
+
+      if (formData.fechaInicioVenta && formData.fechaFinVenta) {
+        const inicio = new Date(formData.fechaInicioVenta);
+        const fin = new Date(formData.fechaFinVenta);
+        const diferenciaTiempo = fin.getTime() - inicio.getTime();
+        const duracionDias = Math.ceil(diferenciaTiempo / (1000 * 3600 * 24));
+
+        if (tiempoApartado > duracionDias) {
+          setError(`El tiempo de apartado (${tiempoApartado} días) no puede ser mayor a la duración de la venta (${duracionDias} días).`);
+          return false;
+        }
+      }
+      if (tiempoRecordatorio >= tiempoApartado) {
+        setError('El recordatorio de pago debe ser menor al tiempo límite de apartado (ej. Apartado: 7 días, Recordatorio: 3 días).');
         return false;
       }
     }
-
-    const maxDias = 34;
-    if (parseInt(formData.tiempoLimiteApartado, 10) > maxDias || parseInt(formData.tiempoRecordatorioPago, 10) > maxDias) {
-      alert(`El tiempo máximo permitido es de ${maxDias} días.`);
-      return false;
+    if (parseInt(formData.tiempoLimiteApartado, 10) > maxDiasDinamic) {
+       setError(`El tiempo límite excede el máximo permitido de ${maxDiasDinamic} días.`);
+       return false;
     }
 
     return true;
   };
+
+  const calcularMaxDiasPermitidos = () => {
+    if (formData.fechaInicioVenta && formData.fechaFinVenta) {
+      const inicio = new Date(formData.fechaInicioVenta);
+      const fin = new Date(formData.fechaFinVenta);
+      const diffTiempo = fin - inicio;
+      const diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
+      
+      if (diffDias > 0) {
+        return Math.min(diffDias, 34);
+      }
+    }
+    return 34;
+  };
+
+  const maxDiasDinamic = calcularMaxDiasPermitidos();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-body">
@@ -485,6 +583,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   placeholder='ej. "Rifa de un teclado gamer marca Ocelot"'
                   value={formData.titulo}
                   onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                  maxLength={CHAR_LIMITS.TITULO}
                   required
                 />
                 <TextArea
@@ -492,6 +591,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   placeholder="¡Expresa en que consiste tu rifa para que las personas quieran comprarte números!"
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                  maxLength={CHAR_LIMITS.DESCRIPCION}
                   required
                 />
 
@@ -513,6 +613,8 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   value={formData.rangoNumeros}
                   onChange={(e) => handleRangoNumerosChange(e.target.value)}
                   min="1"
+                  max="99999"
+                  onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
                   required
                 />
                 <Input
@@ -523,6 +625,8 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   value={formData.precioNumero}
                   onChange={(e) => handlePrecioNumeroChange(e.target.value)}
                   min="0.01"
+                  max="99999.99"
+                  onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
                   required
                 />
               </div>
@@ -580,6 +684,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       placeholder='ej. "Teclado Gamer marca Ocelot"'
                       value={premio.titulo}
                       onChange={(e) => handlePremioChange(premio.id, 'titulo', e.target.value)}
+                      maxLength={CHAR_LIMITS.PREMIO_TITULO}
                       required
                     />
 
@@ -632,7 +737,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       placeholder="ej. 7"
                       helperText="días"
                       min="1"
-                      max="34"
+                      max={maxDiasDinamic}
                       value={formData.tiempoLimiteApartado}
                       onChange={(e) => handleConfigInputChange('tiempoLimiteApartado', e.target.value)}
                     />
@@ -641,7 +746,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                       type="number"
                       placeholder="ej. 3"
                       helperText="días"
-                      min="1"
+                      min="0"
                       max="34"
                       value={formData.tiempoRecordatorioPago}
                       onChange={(e) => handleConfigInputChange('tiempoRecordatorioPago', e.target.value)}
@@ -663,6 +768,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                           placeholder='ej. "diego.valenzuela247700@potros.itson.edu.mx"'
                           value={org.email}
                           onChange={(e) => handleOrganizadorChange(org.id, e.target.value)}
+                          maxLength={CHAR_LIMITS.EMAIL}
                           required
                           disabled={index === 0}
                         />
