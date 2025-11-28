@@ -6,8 +6,10 @@ const DetallesSorteoCard = ({ descripcion, rangoNumeros, PrecioPorNumero, fechaI
             {/* Datos del sorteo */}
             <div className="space-y-4">
                 <div className="flex border-b border-gray-300 pb-4">
-                    <p className="w-48 text-gray-500 font-medium">Descripción</p>
-                    <p className="flex-1 text-gray-900 font-medium">{descripcion}</p>
+                    <p className="w-48 text-gray-500 font-medium flex-shrink-0">Descripción</p>
+                    <p className="flex-1 text-gray-900 font-medium break-words whitespace-pre-wrap min-w-0">
+                        {descripcion}
+                    </p>
                 </div>
 
                 <div className="flex border-b border-gray-300 pb-4">

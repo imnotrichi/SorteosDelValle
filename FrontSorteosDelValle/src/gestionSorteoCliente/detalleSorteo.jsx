@@ -91,27 +91,32 @@ const DetalleSorteo = () => {
       <HeaderCliente onNavigate={navigate} userName="Ricardo" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6 w-full">
           <button
             onClick={() => navigate('/')}
-            className="p-2"
+            className="p-2 flex-shrink-0"
             aria-label="Volver"
           >
             <img src={volverIcon} alt="Volver" className="w-11 h-11" />
           </button>
-          <h1 className="text-[32px] font-bold tracking-tight text-text-light">
-            {sorteoData.titulo}
-          </h1>
+          
+          <div className="min-w-0">
+             <h1 className="text-[32px] font-bold tracking-tight text-text-light break-words leading-tight">
+                {sorteoData.titulo}
+             </h1>
+          </div>
 
-          {esActivo ? (
-            <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-background-status text-card-number-2">
-              Activo
-            </span>
-          ) : (
-            <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-gray-200 text-gray-600">
-              Finalizado
-            </span>
-          )}
+          <div className="flex-shrink-0">
+             {esActivo ? (
+               <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-background-status text-card-number-2 whitespace-nowrap">
+                 Activo
+               </span>
+             ) : (
+               <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-gray-200 text-gray-600 whitespace-nowrap">
+                 Finalizado
+               </span>
+             )}
+          </div>
         </div>
 
         <div className="relative rounded-2xl overflow-hidden mb-8 shadow-lg">
@@ -123,7 +128,7 @@ const DetalleSorteo = () => {
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
-          <p className="text-lg text-text-light font-normal leading-relaxed mb-6">
+          <p className="text-lg text-text-light font-normal leading-relaxed mb-6 break-words whitespace-pre-wrap">
             {sorteoData.descripcion}
           </p>
 

@@ -203,8 +203,8 @@ export default function LiberarNumerosUI() {
               Volver
             </span>
           </button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-3xl font-bold text-gray-800 break-words">
               Números apartados de {nombreSorteo}
             </h1>
             <p className="text-lg text-gray-600">

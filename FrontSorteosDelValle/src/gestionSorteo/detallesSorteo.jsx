@@ -6,6 +6,7 @@ import ConfirmationModal from "../components/mensajeConfirmacion";
 import SuccessModal from "../components/mensajeExito";
 import ErrorModal from "../components/mensajeError";
 import SorteoNoDisponible from "../components/mensajeNoDisponible";
+import volverIcon from '../assets/volver.png';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
@@ -110,13 +111,23 @@ const DetallesSorteo = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 
           <div className="flex items-center justify-between">
-            <div className="border-amber-700">
-              <h1 className="text-2xl font-bold text-text-light">
-                Detalles de sorteo
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Administra los detalles, números y estado de tu sorteo
-              </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/admin/misSorteos')}
+                className="p-2 flex-shrink-0 rounded-full transition-colors" 
+                aria-label="Volver"
+              >
+                <img src={volverIcon} alt="Volver" className="w-11 h-11" />
+              </button>
+              
+              <div>
+                <h1 className="text-2xl font-bold text-text-light">
+                  Detalles de sorteo
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Administra los detalles, números y estado de tu sorteo
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               <button
@@ -157,7 +168,7 @@ const DetallesSorteo = () => {
             className="w-full h-80 object-cover"
           />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-            <h2 className="text-3xl font-bold text-white">
+            <h2 className="text-3xl font-bold text-white break-words">
               {sorteoData.titulo}
             </h2>
           </div>

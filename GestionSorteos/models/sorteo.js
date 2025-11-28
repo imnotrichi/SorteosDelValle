@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     inicio_periodo_venta: DataTypes.DATE,
     fin_periodo_venta: DataTypes.DATE,
     fecha_realizacion: DataTypes.DATE,
-    precio_numero: DataTypes.DECIMAL,
+    precio_numero: DataTypes.DECIMAL(10, 2),
     id_configuracion: DataTypes.INTEGER
   }, {
     sequelize,

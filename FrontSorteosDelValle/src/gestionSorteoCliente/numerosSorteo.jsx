@@ -216,7 +216,7 @@ const NumerosSorteo = () => {
         )}
 
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full">
             <button
               onClick={handleCancelar}
               className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light  hover:bg-border-light/80 transition-colors"
@@ -225,8 +225,8 @@ const NumerosSorteo = () => {
                 Cancelar
               </span>
             </button>
-            <div>
-              <h1 className="text-[32px] font-bold tracking-tight text-text-light">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-[32px] font-bold tracking-tight text-text-light break-words">
                 Números de {sorteoData.titulo}
               </h1>
               <p className="text-lg text-gray-600">
