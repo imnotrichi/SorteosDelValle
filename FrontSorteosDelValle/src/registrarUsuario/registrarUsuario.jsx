@@ -3,27 +3,76 @@ import { useNavigate } from 'react-router-dom';
 import RegistrarUsuarioCard from '../components/registrarUsuarioCard';
 import Input from '../components/input';
 import HeaderRegistro from '../components/headerRegistro';
+import ErrorModal from '../components/mensajeError';
+import SuccessModal from '../components/mensajeExito';
 
 const RegistrarUsuario = () => {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         nombres: '',
+        apellidoPaterno: '',
+        apellidoMaterno: '',
         correo: '',
         contrasenia: '',
         telefono: '',
         fechaNacimiento: '',
     });
 
-    const handleSubmit = () => {
-        console.log('Formulario enviado:', formData);
-    };
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const MAX_LENGTHS = {
         nombres: 100,
         correo: 255,
-        contrasenia: 100,
+        contrasenia: 128,
         telefono: 10,
+    };
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const validatePassword = (password) => {
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{10,}$/;
+        return regex.test(password);
+    };
+
+    const handleSubmit = () => {
+        if (!formData.contrasenia || !formData.correo || !formData.nombres || !formData.fechaNacimiento) {
+            setErrorMessage("Por favor completa los campos obligatorios.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        const fechaSeleccionada = new Date(formData.fechaNacimiento);
+        const fechaActual = new Date();
+
+        fechaActual.setHours(0, 0, 0, 0);
+
+        if (fechaSeleccionada > new Date()) {
+            setErrorMessage("La fecha de nacimiento no puede ser una fecha futura.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        if (!validatePassword(formData.contrasenia)) {
+            setErrorMessage(
+                "La contraseña es muy débil. Debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial."
+            );
+            setShowErrorModal(true); 
+            return; 
+        }
+
+        console.log('Formulario enviado:', formData);
+
+        // Si la API responde OK, entonces:
+        setShowSuccessModal(true); 
+    
+    };
+
+    const handleCloseSuccess = () => {
+        setShowSuccessModal(false);
+        navigate('/iniciar-sesion');
     };
 
     const handleChange = (event) => {
@@ -38,6 +87,7 @@ const RegistrarUsuario = () => {
             ...prevData,
             [name]: newValue
         }));
+
     };
 
     const handleBlockPassword = (event) => {
@@ -78,7 +128,6 @@ const RegistrarUsuario = () => {
                 [name]: newValue
             }));
 
-            // Ajuste del cursor
             const newCursorPosition = selectionStart + textToPasteTruncated.length;
             setTimeout(() => {
                 target.setSelectionRange(newCursorPosition, newCursorPosition);
@@ -88,7 +137,6 @@ const RegistrarUsuario = () => {
             }, 0);
 
         } catch (error) {
-            // Fallback simple
             const availableSpace = maxLength - value.length;
             const textToPasteTruncated = pastedText.slice(0, availableSpace);
             setFormData(prevData => ({
@@ -101,28 +149,59 @@ const RegistrarUsuario = () => {
     return (
         <div className="min-h-screen bg-background-light">
             <HeaderRegistro />
+            <ErrorModal
+                isOpen={showErrorModal}
+                onClose={() => setShowErrorModal(false)}
+                title="Error de Validación"
+                message={errorMessage}
+            />
 
+            <SuccessModal
+                isOpen={showSuccessModal}
+                onClose={handleCloseSuccess}
+                title="¡Registro Exitoso!"
+            />
             <div className="flex items-center justify-center p-4 relative">
                 <RegistrarUsuarioCard>
                     <div className="flex flex-col gap-5">
-                        
-                        {/* Primera fila: Nombre y Email */}
                         <div className="grid grid-cols-2 gap-4">
                             <Input
                                 name="nombres"
                                 value={formData.nombres}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral} // Usa el handler complejo
+                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.nombres}
-                                label="Nombre completo"
-                                placeholder="Ingresa tu nombre completo"
+                                label="Nombre(s)"
+                                placeholder="Ingresa tu nombre(s)"
+                            />
+
+                            <Input
+                                name="apellidoPaterno"
+                                value={formData.apellidoPaterno}
+                                onChange={handleChange}
+                                onPaste={handlePasteGeneral}
+                                maxLength={MAX_LENGTHS.nombres}
+                                label="Apellido Paterno"
+                                placeholder="Ingresa apellido paterno"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                name="apellidoMaterno"
+                                value={formData.apellidoMaterno}
+                                onChange={handleChange}
+                                onPaste={handlePasteGeneral}
+                                maxLength={MAX_LENGTHS.nombres}
+                                label="Apellido Materno"
+                                placeholder="Ingresa apellido materno"
                             />
 
                             <Input
                                 name="correo"
                                 value={formData.correo}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral} // Usa el handler complejo
+                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.correo}
                                 label="Correo electrónico"
                                 placeholder="Ingresa tu correo electrónico"
@@ -130,7 +209,6 @@ const RegistrarUsuario = () => {
                             />
                         </div>
 
-                        {/* Segunda fila: Contraseña y Teléfono */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="relative">
                                 <Input
@@ -140,7 +218,6 @@ const RegistrarUsuario = () => {
                                     onPaste={handleBlockPassword}
                                     onCopy={handleBlockPassword}
                                     onCut={handleBlockPassword}
-                                    
                                     maxLength={MAX_LENGTHS.contrasenia}
                                     label="Contraseña"
                                     placeholder="Crea una contraseña fuerte"
@@ -152,7 +229,7 @@ const RegistrarUsuario = () => {
                                 name="telefono"
                                 value={formData.telefono}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral} // Usa el handler complejo
+                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.telefono}
                                 label="Número de teléfono"
                                 placeholder="Ingresa tu número de teléfono"
@@ -160,12 +237,15 @@ const RegistrarUsuario = () => {
                             />
                         </div>
 
-                        {/* Tercera fila: Fecha de nacimiento */}
                         <div className="w-full">
                             <Input
+                                name="fechaNacimiento"
+                                value={formData.fechaNacimiento}
+                                onChange={handleChange}
                                 label="Fecha nacimiento"
                                 placeholder="Selecciona tu fecha de nacimiento"
                                 type="date"
+                                max={today}
                             />
                         </div>
 
@@ -178,9 +258,9 @@ const RegistrarUsuario = () => {
 
                         <p className="text-center text-sm text-gray-600 mt-1">
                             ¿Ya estás registrado?{' '}
-                            <button 
-                            onClick={() => navigate('/iniciar-sesion')}
-                            className="text-green-500 hover:text-green-600 font-semibold underline">
+                            <button
+                                onClick={() => navigate('/iniciar-sesion')}
+                                className="text-green-500 hover:text-green-600 font-semibold underline">
                                 Inicia sesión
                             </button>
                         </p>
