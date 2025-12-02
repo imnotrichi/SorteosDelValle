@@ -1,5 +1,6 @@
 const sorteosDAO = require('../dataAccess/sorteosDAO.js');
 const usuariosDAO = require('../dataAccess/usuariosDAO.js');
+const organizadoresDAO = require('../dataAccess/organizadoresDAO.js');
 const configuracionesDAO = require('../dataAccess/configuracionesDAO.js');
 const numerosDAO = require('../dataAccess/numerosDAO.js');
 const { AppError } = require('../utils/appError.js');
@@ -10,6 +11,7 @@ class SorteosController {
     constructor() {
         this.crearSorteo = this.crearSorteo.bind(this);
         this.obtenerSorteoPorId = this.obtenerSorteoPorId.bind(this);
+        this.obtenerTableroSorteo = this.obtenerTableroSorteo.bind(this);
         this.obtenerSorteoPorTitulo = this.obtenerSorteoPorTitulo.bind(this);
         this.obtenerSorteosPorOrganizador = this.obtenerSorteosPorOrganizador.bind(this);
         this.obtenerSorteosActivos = this.obtenerSorteosActivos.bind(this);
@@ -124,6 +126,63 @@ class SorteosController {
         }
     }
 
+    async obtenerTableroSorteo(req, res, next) {
+        try {
+            // Obtenemos el ID del usuario del cuerpo de la solicitud
+            const idUsuario = req.body.idUsuario;
+            if (!idUsuario) { // Si no se proporciona el ID del usuario
+                next(new AppError('Se debe proporcionar un ID de usuario para realizar la búsqueda.', 400));
+            }
+            const organizador = await organizadoresDAO.obtenerOrganizadorPorId(idUsuario);
+            if (!organizador) { // Si no se encuentra el usuario o si no es organizador
+                next(new AppError('Usted no tiene los permisos para ver este recurso.', 403));
+            }
+            
+            // Obtenemos el ID del sorteo de la URL
+            const idSorteo = req.params.id;
+            if (!idSorteo) { // Si no se proporciona el ID del sorteo
+                next(new AppError('Se debe proporcionar el ID para realizar la búsqueda.', 400));
+            }
+            const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
+            if (!sorteo) { // Si no se encuentra el sorteo
+                next(new AppError('No se encontró el sorteo solicitado.', 404));
+            }
+
+            // Calculamos los datos que se mostrarán en el tablero
+            const numerosSorteo = await numerosDAO.obtenerNumerosPorSorteo(idSorteo);
+            let numerosApartados = 0;
+            let numerosVendidos = 0;
+            numerosSorteo.map(numero => {
+                if (numero.estado.toLowerCase() === 'apartado') {
+                    numerosApartados++;
+                } else if (numero.estado.toLowerCase() === 'vendido') {
+                    numerosVendidos++;
+                }
+            })
+            const numerosDisponibles = sorteo.rango_numeros - (numerosApartados + numerosVendidos);
+
+            // Formateamos la respuesta JSON
+            const tableroData = {
+                id: sorteo.id,
+                descripcion: sorteo.descripcion,
+                imagen_url: sorteo.imagen_url,
+                boletos_vendidos: numerosVendidos,
+                boletos_apartados: numerosApartados,
+                boletos_disponibles: numerosDisponibles,
+                dinero_recaudado: (sorteo.precio_numero * numerosVendidos).toFixed(2),
+                dinero_por_recaudar: (sorteo.precio_numero * numerosApartados).toFixed(2),
+                fin_periodo_venta: sorteo.fin_periodo_venta,
+                fecha_realizacion: sorteo.fecha_realizacion,
+                precio_numero: sorteo.precio_numero,
+                premios: sorteo.Premios,
+            };
+
+            res.status(200).json(tableroData);
+        } catch (error) {
+            console.log(error);
+            next(new AppError('Ocurrió un error al obtener el sorteo.', 500));
+        }
+    }
     async obtenerSorteoPorId(req, res, next) {
         try {
             const idSorteo = req.params.id;
@@ -297,7 +356,7 @@ class SorteosController {
             const organizadores = [];
             for (let i = 0; i < organizadoresData.length; i++) {
                 const organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(organizadoresData[i].correo);
-                if(!organizadorObtenido){
+                if (!organizadorObtenido) {
                     return next(new AppError(`No hay un organizador registrado con el correo ${organizadoresData[i].correo}`, 400));
                 }
                 organizadores.push({ id_organizador: organizadorObtenido.id });
@@ -416,5 +475,4 @@ class SorteosController {
         return sorteoData;
     }
 }
-
 module.exports = new SorteosController();
