@@ -25,6 +25,7 @@ const RegistrarUsuario = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const MAX_LENGTHS = {
         nombres: 100,
@@ -40,6 +41,17 @@ const RegistrarUsuario = () => {
         return regex.test(password);
     };
 
+    const calculateAge = (birthDateString) => {
+        const birthDate = new Date(birthDateString);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
     const handleSubmit = async () => {
         if (!formData.contrasenia || !formData.correo || !formData.nombres || !formData.fechaNacimiento || !formData.telefono) {
             setErrorMessage("Por favor completa los campos obligatorios.");
@@ -50,6 +62,19 @@ const RegistrarUsuario = () => {
         const fechaSeleccionada = new Date(formData.fechaNacimiento);
         if (fechaSeleccionada > new Date()) {
             setErrorMessage("La fecha de nacimiento no puede ser una fecha futura.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        const edad = calculateAge(formData.fechaNacimiento);
+        if (edad < 18) {
+            setErrorMessage("Debes ser mayor de 18 años para registrarte.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        if (formData.telefono.length !== 10) {
+            setErrorMessage("El número de teléfono debe tener exactamente 10 dígitos.");
             setShowErrorModal(true);
             return;
         }
@@ -97,8 +122,20 @@ const RegistrarUsuario = () => {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        const maxLength = MAX_LENGTHS[name];
+        
+        if (['nombres', 'apellidoPaterno', 'apellidoMaterno'].includes(name)) {
+            if (value !== '' && !/^[a-zA-Z\u00C0-\u00FF\s]+$/.test(value)) {
+                return;
+            }
+        }
 
+        if (name === 'telefono') {
+            if (value !== '' && !/^\d+$/.test(value)) {
+                return;
+            }
+        }
+
+        const maxLength = MAX_LENGTHS[name];
         const newValue = (maxLength && value.length > maxLength)
             ? value.slice(0, maxLength)
             : value;
@@ -107,7 +144,6 @@ const RegistrarUsuario = () => {
             ...prevData,
             [name]: newValue
         }));
-
     };
 
     const handleBlockPassword = (event) => {
@@ -118,6 +154,7 @@ const RegistrarUsuario = () => {
     const handlePasteGeneral = (event) => {
         const target = event.target;
         const { name, value } = target;
+
         if (name === 'contrasenia') {
             event.preventDefault();
             return;
@@ -167,7 +204,7 @@ const RegistrarUsuario = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background-light">
+        <div className="min-h-screen bg-background-light font-body">
             <HeaderRegistro />
             
             <ErrorModal
@@ -191,7 +228,6 @@ const RegistrarUsuario = () => {
                                 name="nombres"
                                 value={formData.nombres}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.nombres}
                                 label="Nombre(s)"
                                 placeholder="Ingresa tu nombre(s)"
@@ -201,9 +237,8 @@ const RegistrarUsuario = () => {
                                 name="apellidoPaterno"
                                 value={formData.apellidoPaterno}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.nombres}
-                                label="Apellido Paterno"
+                                label="Apellido paterno"
                                 placeholder="Ingresa apellido paterno"
                             />
                         </div>
@@ -213,9 +248,8 @@ const RegistrarUsuario = () => {
                                 name="apellidoMaterno"
                                 value={formData.apellidoMaterno}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.nombres}
-                                label="Apellido Materno"
+                                label="Apellido materno"
                                 placeholder="Ingresa apellido materno"
                             />
 
@@ -223,7 +257,6 @@ const RegistrarUsuario = () => {
                                 name="correo"
                                 value={formData.correo}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.correo}
                                 label="Correo electrónico"
                                 placeholder="Ingresa tu correo electrónico"
@@ -232,26 +265,38 @@ const RegistrarUsuario = () => {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="relative">
-                                <Input
-                                    name="contrasenia"
-                                    value={formData.contrasenia}
-                                    onChange={handleChange}
-                                    onPaste={handleBlockPassword}
-                                    onCopy={handleBlockPassword}
-                                    onCut={handleBlockPassword}
-                                    maxLength={MAX_LENGTHS.contrasenia}
-                                    label="Contraseña"
-                                    placeholder="Crea una contraseña fuerte"
-                                    type="password"
-                                />
+                            
+                            <div className="flex flex-col">
+                                <span className="text-sm font-medium pb-2 text-text-light dark:text-text-dark">Contraseña</span>
+                                <div className="relative">
+                                    <input
+                                        name="contrasenia"
+                                        type={showPassword ? "text" : "password"}
+                                        value={formData.contrasenia}
+                                        onChange={handleChange}
+                                        onPaste={handleBlockPassword}
+                                        onCopy={handleBlockPassword}
+                                        maxLength={MAX_LENGTHS.contrasenia}
+                                        placeholder="Crea una contraseña fuerte"
+                                        className="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-light dark:text-text-dark placeholder:text-text-light/40 dark:placeholder:text-text-dark/40 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-11 px-3 pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center cursor-pointer"
+                                        tabIndex="-1"
+                                    >
+                                        <span className="material-symbols-outlined text-2xl select-none">
+                                            {showPassword ? 'visibility_off' : 'visibility'}
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
 
                             <Input
                                 name="telefono"
                                 value={formData.telefono}
                                 onChange={handleChange}
-                                onPaste={handlePasteGeneral}
                                 maxLength={MAX_LENGTHS.telefono}
                                 label="Número de teléfono"
                                 placeholder="Ingresa tu número de teléfono"
@@ -274,7 +319,7 @@ const RegistrarUsuario = () => {
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="bg-primary hover:bg-green-500 text-gray-800 font-bold w-full py-3.5 rounded-lg transition-all shadow-md hover:shadow-lg mt-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-primary hover:bg-green-500 text-gray-800 font-bold w-full py-3.5 rounded-lg transition-all shadow-md hover:shadow-lg mt-2 text-base disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         >
                             {isSubmitting ? 'Registrando...' : 'Registrar'}
                         </button>
@@ -283,7 +328,7 @@ const RegistrarUsuario = () => {
                             ¿Ya estás registrado?{' '}
                             <button
                                 onClick={() => navigate('/iniciar-sesion')}
-                                className="text-green-500 hover:text-green-600 font-semibold underline">
+                                className="text-green-500 hover:text-green-600 font-semibold underline cursor-pointer">
                                 Inicia sesión
                             </button>
                         </p>
