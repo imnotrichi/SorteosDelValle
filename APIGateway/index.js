@@ -36,14 +36,14 @@ if (sorteosServiceUrl) {
   console.log(`Proxy activado para /api/sorteos -> ${sorteosServiceUrl}`);
 }
 
-//if (usuariosServiceUrl) {
-//  app.use('/api/usuarios', proxy(usuariosServiceUrl),{
-//    proxyReqPathResolver: function(req){
-//      return req.originalUrl;
-//    }
-//  });
-//  console.log(`Proxy activado para /api/usuarios -> ${usuariosServiceUrl}`);
-//}
+if (usuariosServiceUrl) {
+  app.use('/api/usuarios', proxy(usuariosServiceUrl, {
+    proxyReqPathResolver: function(req){
+      return req.originalUrl; 
+    }
+  }));
+  console.log(`Proxy activado para /api/usuarios -> ${usuariosServiceUrl}`);
+}
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Ruta no encontrada en el API Gateway' });

@@ -6,6 +6,8 @@ import HeaderRegistro from '../components/headerRegistro';
 import ErrorModal from '../components/mensajeError';
 import SuccessModal from '../components/mensajeExito';
 
+const API_GATEWAY_URL = 'http://localhost:8080';
+
 const RegistrarUsuario = () => {
     const navigate = useNavigate();
 
@@ -16,16 +18,17 @@ const RegistrarUsuario = () => {
         correo: '',
         contrasenia: '',
         telefono: '',
-        fechaNacimiento: '',
+        fechaNacimiento: ''
     });
 
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const MAX_LENGTHS = {
         nombres: 100,
-        correo: 255,
+        correo: 100,
         contrasenia: 128,
         telefono: 10,
     };
@@ -37,18 +40,14 @@ const RegistrarUsuario = () => {
         return regex.test(password);
     };
 
-    const handleSubmit = () => {
-        if (!formData.contrasenia || !formData.correo || !formData.nombres || !formData.fechaNacimiento) {
+    const handleSubmit = async () => {
+        if (!formData.contrasenia || !formData.correo || !formData.nombres || !formData.fechaNacimiento || !formData.telefono) {
             setErrorMessage("Por favor completa los campos obligatorios.");
             setShowErrorModal(true);
             return;
         }
 
         const fechaSeleccionada = new Date(formData.fechaNacimiento);
-        const fechaActual = new Date();
-
-        fechaActual.setHours(0, 0, 0, 0);
-
         if (fechaSeleccionada > new Date()) {
             setErrorMessage("La fecha de nacimiento no puede ser una fecha futura.");
             setShowErrorModal(true);
@@ -59,15 +58,36 @@ const RegistrarUsuario = () => {
             setErrorMessage(
                 "La contraseña es muy débil. Debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial."
             );
-            setShowErrorModal(true); 
-            return; 
+            setShowErrorModal(true);
+            return;
         }
 
-        console.log('Formulario enviado:', formData);
+        setIsSubmitting(true);
 
-        // Si la API responde OK, entonces:
-        setShowSuccessModal(true); 
-    
+        try {
+            const response = await fetch(`${API_GATEWAY_URL}/api/usuarios/registrar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Error al registrar usuario.');
+            }
+
+            setShowSuccessModal(true);
+
+        } catch (error) {
+            console.error('Error de registro:', error);
+            setErrorMessage(error.message);
+            setShowErrorModal(true);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleCloseSuccess = () => {
@@ -149,10 +169,11 @@ const RegistrarUsuario = () => {
     return (
         <div className="min-h-screen bg-background-light">
             <HeaderRegistro />
+            
             <ErrorModal
                 isOpen={showErrorModal}
                 onClose={() => setShowErrorModal(false)}
-                title="Error de Validación"
+                title="Error de Registro"
                 message={errorMessage}
             />
 
@@ -161,10 +182,11 @@ const RegistrarUsuario = () => {
                 onClose={handleCloseSuccess}
                 title="¡Registro Exitoso!"
             />
-            <div className="flex items-center justify-center p-4 relative">
+
+            <div className="flex items-center justify-center p-4 relative pb-20">
                 <RegistrarUsuarioCard>
                     <div className="flex flex-col gap-5">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <Input
                                 name="nombres"
                                 value={formData.nombres}
@@ -186,7 +208,7 @@ const RegistrarUsuario = () => {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <Input
                                 name="apellidoMaterno"
                                 value={formData.apellidoMaterno}
@@ -209,7 +231,7 @@ const RegistrarUsuario = () => {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="relative">
                                 <Input
                                     name="contrasenia"
@@ -251,9 +273,10 @@ const RegistrarUsuario = () => {
 
                         <button
                             onClick={handleSubmit}
-                            className="bg-primary hover:bg-green-500 text-gray-800 font-bold w-full py-3.5 rounded-lg transition-all shadow-md hover:shadow-lg mt-2 text-base"
+                            disabled={isSubmitting}
+                            className="bg-primary hover:bg-green-500 text-gray-800 font-bold w-full py-3.5 rounded-lg transition-all shadow-md hover:shadow-lg mt-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Registrar
+                            {isSubmitting ? 'Registrando...' : 'Registrar'}
                         </button>
 
                         <p className="text-center text-sm text-gray-600 mt-1">
