@@ -164,6 +164,7 @@ class SorteosController {
             // Formateamos la respuesta JSON
             const tableroData = {
                 id: sorteo.id,
+                titulo: sorteo.titulo,
                 descripcion: sorteo.descripcion,
                 imagen_url: sorteo.imagen_url,
                 boletos_vendidos: numerosVendidos,
