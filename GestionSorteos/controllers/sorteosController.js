@@ -130,26 +130,31 @@ class SorteosController {
         try {
             // Obtenemos el ID del usuario del cuerpo de la solicitud
             const idUsuario = req.body.idUsuario;
+            // Obtenemos el ID del sorteo de la URL
+            const idSorteo = req.params.id;
+            
             if (!idUsuario) { // Si no se proporciona el ID del usuario
-                next(new AppError('Se debe proporcionar un ID de usuario para realizar la búsqueda.', 400));
+                next(new AppError('Se debe proporcionar un ID de usuario para ver el tablero.', 400));
+            }
+            if (!idSorteo) { // Si no se proporciona el ID del sorteo
+                next(new AppError('Se debe proporcionar el ID del sorteo para ver el tablero.', 400));
+            }
+            
+            const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
+            if (!sorteo) { // Si no se encuentra el sorteo
+                next(new AppError('No se encontró el sorteo solicitado.', 404));
             }
             const usuario = await usuariosDAO.obtenerUsuarioPorId(idUsuario);
             if (!usuario) { // Si no se encuentra el usuario
                 next(new AppError('No se encontró el usuario.', 404));
             }
-            const organizador = await organizadoresDAO.obtenerOrganizadorPorId(idUsuario);
-            if (!organizador) { // Si el usuario no es organizador
-                next(new AppError('Usted no tiene los permisos para ver este recurso.', 403));
-            }
-            
-            // Obtenemos el ID del sorteo de la URL
-            const idSorteo = req.params.id;
-            if (!idSorteo) { // Si no se proporciona el ID del sorteo
-                next(new AppError('Se debe proporcionar el ID para realizar la búsqueda.', 400));
-            }
-            const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
-            if (!sorteo) { // Si no se encuentra el sorteo
-                next(new AppError('No se encontró el sorteo solicitado.', 404));
+            const organizadoresSorteo = await organizadoresSorteoDAO.obtenerOrganizadoresSorteo(idSorteo);
+            const esOrganizador = organizadoresSorteo.some(
+                orgSor => orgSor.id_organizador === idUsuario
+            );
+    
+            if (!esOrganizador) {
+                return next(new AppError('Usted no tiene los permisos para ver este recurso.', 403));
             }
 
             // Calculamos los datos que se mostrarán en el tablero
