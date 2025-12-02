@@ -41,6 +41,11 @@ const RegistrarUsuario = () => {
         return regex.test(password);
     };
 
+    const validateEmailFormat = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    };
+
     const calculateAge = (birthDateString) => {
         const birthDate = new Date(birthDateString);
         const today = new Date();
@@ -79,6 +84,12 @@ const RegistrarUsuario = () => {
             return;
         }
 
+        if (!validateEmailFormat(formData.correo)) {
+            setErrorMessage("El formato del correo electrónico es inválido.");
+            setShowErrorModal(true);
+            return;
+        }
+
         if (!validatePassword(formData.contrasenia)) {
             setErrorMessage(
                 "La contraseña debe de contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial."
@@ -101,14 +112,28 @@ const RegistrarUsuario = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Error al registrar usuario.');
+                let msg = data.message || 'No se pudo completar el registro.';
+
+                if (msg.includes("correo") && (msg.includes("registrado") || msg.includes("uso") || msg.includes("Duplicate"))) {
+                    msg = "Este correo electrónico ya se encuentra registrado, ingrese otro correo o inicie sesión.";
+                } else if (msg.includes("teléfono") && (msg.includes("registrado") || msg.includes("uso") || msg.includes("Duplicate"))) {
+                    msg = "Este número de teléfono ya está asociado a otra cuenta, ingrese otro número o inicie sesión.";
+                }
+
+                throw new Error(msg);
             }
 
             setShowSuccessModal(true);
 
         } catch (error) {
             console.error('Error de registro:', error);
-            setErrorMessage(error.message);
+            
+            let friendlyMessage = error.message;
+            if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
+                friendlyMessage = "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
+            }
+
+            setErrorMessage(friendlyMessage);
             setShowErrorModal(true);
         } finally {
             setIsSubmitting(false);
@@ -132,6 +157,12 @@ const RegistrarUsuario = () => {
         if (name === 'telefono') {
             if (value !== '' && !/^\d+$/.test(value)) {
                 return;
+            }
+        }
+
+        if (name === 'correo') {
+            if (value !== '' && !/^[a-zA-Z0-9@._-]+$/.test(value)) {
+                return; 
             }
         }
 
@@ -217,7 +248,7 @@ const RegistrarUsuario = () => {
             <SuccessModal
                 isOpen={showSuccessModal}
                 onClose={handleCloseSuccess}
-                title="¡Registro Exitoso!"
+                title="¡Su cuenta se ha creado con éxito!"
             />
 
             <div className="flex items-center justify-center p-4 relative pb-20">
