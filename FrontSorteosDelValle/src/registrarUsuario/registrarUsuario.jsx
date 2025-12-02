@@ -26,7 +26,6 @@ const RegistrarUsuario = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [confirmPassword, setConfirmPassword] = useState('');
 
     const MAX_LENGTHS = {
         nombres: 100,
@@ -70,12 +69,6 @@ const RegistrarUsuario = () => {
 
         if (dataToSend.nombres.length < 2 || dataToSend.apellidoPaterno.length < 2 || dataToSend.apellidoMaterno.length < 2) {
             setErrorMessage("Los nombres y apellidos deben tener al menos 2 caracteres.");
-            setShowErrorModal(true);
-            return;
-        }
-
-        if (dataToSend.contrasenia !== confirmPassword) {
-            setErrorMessage("Las contraseñas no coinciden.");
             setShowErrorModal(true);
             return;
         }
