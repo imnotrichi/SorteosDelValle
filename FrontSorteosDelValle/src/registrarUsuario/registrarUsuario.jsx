@@ -56,7 +56,7 @@ const RegistrarUsuario = () => {
 
         if (!validatePassword(formData.contrasenia)) {
             setErrorMessage(
-                "La contraseña es muy débil. Debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial."
+                "La contraseña debe de contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial."
             );
             setShowErrorModal(true);
             return;
@@ -173,7 +173,7 @@ const RegistrarUsuario = () => {
             <ErrorModal
                 isOpen={showErrorModal}
                 onClose={() => setShowErrorModal(false)}
-                title="Error de Registro"
+                title="¡Atención!"
                 message={errorMessage}
             />
 
