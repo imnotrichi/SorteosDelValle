@@ -26,6 +26,7 @@ const RegistrarUsuario = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const MAX_LENGTHS = {
         nombres: 100,
@@ -37,7 +38,7 @@ const RegistrarUsuario = () => {
     const today = new Date().toISOString().split('T')[0];
 
     const validatePassword = (password) => {
-        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{10,}$/;
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-=+.?]).{10,}$/;
         return regex.test(password);
     };
 
@@ -58,7 +59,28 @@ const RegistrarUsuario = () => {
     };
 
     const handleSubmit = async () => {
-        if (!formData.contrasenia || !formData.correo || !formData.nombres || !formData.fechaNacimiento || !formData.telefono) {
+        const dataToSend = {
+            ...formData,
+            nombres: formData.nombres.trim(),
+            apellidoPaterno: formData.apellidoPaterno.trim(),
+            apellidoMaterno: formData.apellidoMaterno.trim(),
+            correo: formData.correo.trim(),
+            contrasenia: formData.contrasenia.trim()
+        };
+
+        if (dataToSend.nombres.length < 2 || dataToSend.apellidoPaterno.length < 2 || dataToSend.apellidoMaterno.length < 2) {
+            setErrorMessage("Los nombres y apellidos deben tener al menos 2 caracteres.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        if (dataToSend.contrasenia !== confirmPassword) {
+            setErrorMessage("Las contraseñas no coinciden.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        if (!dataToSend.contrasenia || !dataToSend.correo || !dataToSend.nombres || !formData.fechaNacimiento || !formData.telefono) {
             setErrorMessage("Por favor completa los campos obligatorios.");
             setShowErrorModal(true);
             return;
@@ -84,13 +106,13 @@ const RegistrarUsuario = () => {
             return;
         }
 
-        if (!validateEmailFormat(formData.correo)) {
+        if (!validateEmailFormat(dataToSend.correo)) {
             setErrorMessage("El formato del correo electrónico es inválido.");
             setShowErrorModal(true);
             return;
         }
 
-        if (!validatePassword(formData.contrasenia)) {
+        if (!validatePassword(dataToSend.contrasenia)) {
             setErrorMessage(
                 "La contraseña debe de contener al menos 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial."
             );
@@ -106,7 +128,7 @@ const RegistrarUsuario = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(dataToSend),
             });
 
             const data = await response.json();
@@ -127,7 +149,7 @@ const RegistrarUsuario = () => {
 
         } catch (error) {
             console.error('Error de registro:', error);
-            
+
             let friendlyMessage = error.message;
             if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
                 friendlyMessage = "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
@@ -147,7 +169,7 @@ const RegistrarUsuario = () => {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        
+
         if (['nombres', 'apellidoPaterno', 'apellidoMaterno'].includes(name)) {
             if (value !== '' && !/^[a-zA-Z\u00C0-\u00FF\s]+$/.test(value)) {
                 return;
@@ -162,7 +184,7 @@ const RegistrarUsuario = () => {
 
         if (name === 'correo') {
             if (value !== '' && !/^[a-zA-Z0-9@._-]+$/.test(value)) {
-                return; 
+                return;
             }
         }
 
@@ -237,7 +259,7 @@ const RegistrarUsuario = () => {
     return (
         <div className="min-h-screen bg-background-light font-body">
             <HeaderRegistro />
-            
+
             <ErrorModal
                 isOpen={showErrorModal}
                 onClose={() => setShowErrorModal(false)}
@@ -296,7 +318,7 @@ const RegistrarUsuario = () => {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            
+
                             <div className="flex flex-col">
                                 <span className="text-sm font-medium pb-2 text-text-light dark:text-text-dark">Contraseña</span>
                                 <div className="relative">
