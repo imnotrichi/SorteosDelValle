@@ -133,8 +133,12 @@ class SorteosController {
             if (!idUsuario) { // Si no se proporciona el ID del usuario
                 next(new AppError('Se debe proporcionar un ID de usuario para realizar la búsqueda.', 400));
             }
+            const usuario = await usuariosDAO.obtenerUsuarioPorId(idUsuario);
+            if (!usuario) { // Si no se encuentra el usuario
+                next(new AppError('No se encontró el usuario.', 404));
+            }
             const organizador = await organizadoresDAO.obtenerOrganizadorPorId(idUsuario);
-            if (!organizador) { // Si no se encuentra el usuario o si no es organizador
+            if (!organizador) { // Si el usuario no es organizador
                 next(new AppError('Usted no tiene los permisos para ver este recurso.', 403));
             }
             
