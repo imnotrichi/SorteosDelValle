@@ -1,14 +1,17 @@
 const express = require('express');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
-dotenv.config();
-
-const usuariosRouter = require('./routes/usuariosRouter.js');
-
+const validateJWT = require('./utils/validateJWT.js');
+const corsConfig = require('./utils/validateCORS.js');
+const usuariosRouter = require('./routes/UsuariosRouter.js');
 const { AppError, globalErrorHandler } = require('./utils/appError.js');
+
+
+dotenv.config();
 
 const app = express();
 
+app.use(corsConfig);
 app.use(express.json());
 app.use(morgan('combined'));
 

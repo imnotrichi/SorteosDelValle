@@ -1,5 +1,6 @@
 const usuariosDAO = require('../dataAccess/usuariosDAO.js');
 const { AppError } = require('../utils/appError.js');
+const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
 
 class UsuariosController {
@@ -121,7 +122,19 @@ class UsuariosController {
             if (!passwordCorrecta) {
                 return next(new AppError('Correo o contraseña incorrectos.', 401));
             }
+
+            const payload = {
+                id: usuarioObtenido.id,
+                correo: usuarioObtenido.correo,
+            };
+
+            const token = jwt.sign(payload, process.env.JWT_SECRET, {
+                expiresIn: '1h'
+            });
+
             res.status(200).json({
+                message: 'Inicio de sesión exitoso',
+                token: token,
                 id_usuario: usuarioObtenido.id,
                 correo: usuarioObtenido.correo
             });
