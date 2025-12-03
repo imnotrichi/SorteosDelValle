@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"cd APIGateway && node index.js\" \"cd ManejoUsuarios && node index.js\" \"cd GestionSorteos && node index.js\" \"cd FrontSorteosDelValle && npm run dev\""
+    "start": "concurrently \"cd APIGateway && node --watch index.js\" \"cd ManejoUsuarios && node --watch index.js\" \"cd GestionSorteos && node --watch index.js\" \"cd FrontSorteosDelValle && npm run dev\""
   },
   "repository": {
     "type": "git",
