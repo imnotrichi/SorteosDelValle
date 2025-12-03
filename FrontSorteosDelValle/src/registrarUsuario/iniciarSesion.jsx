@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo1.png';
+import ErrorModal from '../components/mensajeError';
+import SuccessModal from '../components/mensajeExito';
 
+const API_GATEWAY_URL = 'http://localhost:8080';
 const IniciarSesion = () => {
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     correo: '',
     contrasenia: ''
   });
-  
+
   const [fieldErrors, setFieldErrors] = useState({
     correo: '',
     contrasenia: ''
@@ -18,6 +21,8 @@ const IniciarSesion = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const MAX_LENGTH = 50;
 
@@ -65,7 +70,7 @@ const IniciarSesion = () => {
     if (!formData.contrasenia.trim()) {
       errors.contrasenia = 'La contraseña es obligatoria.';
       isValid = false;
-    } 
+    }
 
     setFieldErrors(errors);
     return isValid;
@@ -73,31 +78,72 @@ const IniciarSesion = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
+
     setIsLoading(true);
     setGlobalError(null);
-    
-    try {     
-      console.log('Iniciando sesión:', formData);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+    try {
+      const response = await fetch(`${API_GATEWAY_URL}/api/usuarios/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log(data)
+      setIsLoading(true);
+      if (!response.ok) {
+        let msg = data.message || 'No se pudo iniciar sesión.';
+
+        if (msg.includes("correo") && (msg.includes("incorrectos") || msg.includes("uso") || msg.includes("Duplicate"))) {
+          msg = "Correo o contraseña incorrectos";
+        }
+        //} else if (msg.includes("teléfono") && (msg.includes("registrado") || msg.includes("uso") || msg.includes("Duplicate"))) {
+        //  msg = "Este número de teléfono ya está asociado a otra cuenta, ingrese otro número o inicie sesión.";
+        //}
+
+        throw new Error(msg);
+
+      }
+
+      //setShowSuccessModal(true);
+      console.log('Iniciando sesión:', data);
       navigate('/');
-      
+
+
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      setGlobalError('Correo o contraseña incorrectos. Por favor, intenta de nuevo.');
+      console.error('Error de registro:', error.message);
+
+      console.log(error.message)
+      let friendlyMessage = error.message;
+      if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
+        friendlyMessage = "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
+      }
+
+      setErrorMessage(friendlyMessage);
+      setShowErrorModal(true);
     } finally {
       setIsLoading(false);
     }
+
   };
 
   return (
     <div className="min-h-screen bg-background-light flex items-center justify-center p-4">
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="¡Atención!"
+        message={errorMessage}
+      />
+
       <div className="absolute top-8 right-8">
         <button
           onClick={() => navigate('/registrar-usuario')}
@@ -139,8 +185,8 @@ const IniciarSesion = () => {
               onChange={handleChange}
               placeholder="example123@gmail.com"
               className={`w-full px-4 py-3 rounded-lg bg-gray-50 border text-gray-800 placeholder:text-gray-400 focus:ring-2 transition-colors
-                ${fieldErrors.correo 
-                  ? 'border-red-500 focus:ring-red-200 focus:border-red-500' 
+                ${fieldErrors.correo
+                  ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
                   : 'border-gray-300 focus:ring-primary/30 focus:border-primary'
                 }`}
             />
@@ -161,8 +207,8 @@ const IniciarSesion = () => {
                 onChange={handleChange}
                 placeholder="••••••••••••••••••••••••••"
                 className={`w-full px-4 py-3 rounded-lg bg-gray-50 border text-gray-800 placeholder:text-gray-400 focus:ring-2 transition-colors pr-12
-                  ${fieldErrors.contrasenia 
-                    ? 'border-red-500 focus:ring-red-200 focus:border-red-500' 
+                  ${fieldErrors.contrasenia
+                    ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
                     : 'border-gray-300 focus:ring-primary/30 focus:border-primary'
                   }`}
               />
