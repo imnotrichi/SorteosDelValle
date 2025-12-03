@@ -45,9 +45,9 @@ class UsuariosController {
             if (!this.#esCampoValido(apellidoMaterno)) return next(new AppError('El apellido materno solo puede contener letras y espacios.', 400));
 
             // Longitud de nombres y apellidos
-            if (nombres.length < 2 || nombres.length > 70) return next(new AppError('Favor de ingresar un nombre válido.', 400));
-            if (apellidoPaterno.length < 2 || apellidoPaterno.length > 70) return next(new AppError('Favor de ingresar un apellido paterno válido.', 400));
-            if (apellidoMaterno.length < 2 || apellidoMaterno.length > 70) return next(new AppError('Favor de ingresar un apellido materno válido.', 400));
+            if (nombres.length < 2 || nombres.length > 100) return next(new AppError('Favor de ingresar un nombre válido.', 400));
+            if (apellidoPaterno.length < 2 || apellidoPaterno.length > 100) return next(new AppError('Favor de ingresar un apellido paterno válido.', 400));
+            if (apellidoMaterno.length < 2 || apellidoMaterno.length > 100) return next(new AppError('Favor de ingresar un apellido materno válido.', 400));
 
             // Contraseña inválida
             if (!this.#esContraseniaValida(contrasenia)) return next(new AppError('La contraseña debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial (! @ # $ % ^ & * ( ) - _ = + . ?).', 400));
