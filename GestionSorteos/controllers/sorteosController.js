@@ -154,7 +154,7 @@ class SorteosController {
             );
     
             if (!esOrganizador) {
-                return next(new AppError('Usted no tiene los permisos para ver este recurso.', 403));
+                return next(new AppError('Usted no tiene los permisos para ver el tablero del sorteo.', 403));
             }
 
             // Calculamos los datos que se mostrarán en el tablero
