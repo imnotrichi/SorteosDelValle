@@ -24,6 +24,24 @@ class UsuariosDAO {
             throw error;
         }
     }
+
+    async obtenerUsuarioPorId(id) {
+        try {
+            if (!id) {
+                throw new Error('Se debe proporcionar el id para realizar la consulta.');
+            }
+
+            const usuarioObtenido = await Usuario.findOne({
+                where: {
+                    id
+                }
+            });
+
+            return usuarioObtenido;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = new UsuariosDAO();
