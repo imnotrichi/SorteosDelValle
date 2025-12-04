@@ -7,6 +7,8 @@ let configGlobalId;
 let organizadorId;
 let id_sorteo;
 let id_cliente;
+let datosSorteo;
+const id_sorteos = [];
 
 beforeAll(async () => {
     // Insertas una configuración de prueba
@@ -21,7 +23,7 @@ beforeAll(async () => {
         nombres: "Ricardo Alán",
         apellido_paterno: "Gutiérrez",
         apellido_materno: "Garcés",
-        correo: "ricardogutierrez@gmail.com"
+        correo: "skibidigonzalez@gmail.com"
     };
     const usuario1 = await Usuario.create({
         ...datosOrganizador
@@ -32,7 +34,7 @@ beforeAll(async () => {
     organizadorId = organizador.id_usuario;
 
     // Datos a usar/modificar en las pruebas
-    const datosSorteo = {
+    datosSorteo = {
         "titulo": "Sorteo - LBN",
         "descripcion": "Descripción del sorteo - LBN.",
         "imagen_url": "http:imagenes.com/sorteo-LBN",
@@ -50,13 +52,14 @@ beforeAll(async () => {
     };
     const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
     id_sorteo = sorteoCreado.id;
+    id_sorteos.push(sorteoCreado.id);
 
     // Creamos un cliente
     const datosCliente = {
         nombres: "Abel Eduardo",
         apellido_paterno: "Sánchez",
         apellido_materno: "Guerrero",
-        correo: "abelsanchez@gmail.com"
+        correo: "papugomez@gmail.com"
     };
     const usuario2 = await Usuario.create({
         ...datosCliente
@@ -68,14 +71,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await Numero.destroy({ where: {} });
+    await Numero.destroy({ where: {id_sorteo: id_sorteos} });
     await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId } });
     await Organizador.destroy({ where: { id_usuario: organizadorId } });
     await Cliente.destroy({ where: { id_usuario: id_cliente } });
     await Usuario.destroy({ where: { id: organizadorId } });
     await Usuario.destroy({ where: { id: id_cliente } });
     await Premio.destroy({ where: { id_sorteo: id_sorteo } });
-    await Sorteo.destroy({ where: { id: id_sorteo } });
+    await Sorteo.destroy({ where: { id: id_sorteos } });
     await Configuracion.destroy({ where: { id: configGlobalId } });
 });
 
@@ -159,14 +162,25 @@ describe('apartarNumero (DAO)', () => {
 
     //APN-006: Probar que no se puedan apartar números de un sorteo finalizado.
     it('no debería apartar los números', async () => {
-        //arrange
+        // Arrange
         const numeros = [31, 32, 33];
+        const datosSorteoFinalizado = deepClone(datosSorteo);
+        datosSorteoFinalizado.titulo = "Sorteo 6 - APN - DAO";
+        datosSorteoFinalizado.inicio_periodo_venta = "2023-01-01";
+        datosSorteoFinalizado.fin_periodo_venta = "2023-01-10";
+        datosSorteoFinalizado.fecha_realizacion = "2023-01-15";
 
-        //Act
-        const resultado = await numerosDAO.apartarNumeros({ numeros, id_sorteo: 61, id_cliente });
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteoFinalizado);
+        id_sorteos.push(sorteoCreado.id);
 
-        //Assert
-        expect(resultado.exito).toBe(false);
+        // Act & Assert
+        await expect(
+            numerosDAO.apartarNumeros({
+                numeros,
+                id_sorteo: sorteoCreado.id,
+                id_cliente
+            })
+        ).rejects.toThrow("El sorteo ya finalizó.");
     });
 
     //APN-007: Probar que se consulten correctamente los números apartados de un sorteo.
