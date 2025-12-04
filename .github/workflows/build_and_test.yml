@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x]
-        service: [GestionSorteos]
+        service: [GestionSorteos, ManejoUsuarios]
 
     steps:
     - uses: actions/checkout@v4
