@@ -118,6 +118,7 @@ class SorteosController {
                 OrganizadorSorteos: organizadores
             }
 
+            console.log("Llegamos aquí jeje");
             const sorteoCreado = await sorteosDAO.crearSorteo(sorteoData);
             const respuestaJSON = this.#formatearJsonSorteo(sorteoCreado, false);
             res.status(200).json(respuestaJSON);
@@ -132,7 +133,7 @@ class SorteosController {
             // Obtenemos el ID del usuario del cuerpo de la solicitud
             const idUsuario = req.body?.idUsuario;
             // Obtenemos el ID del sorteo de la URL
-            const idSorteo = req.params.id;
+            const idSorteo = req.params?.id;
 
             // Validación de idUsuario
             if (!idUsuario ||
@@ -145,7 +146,7 @@ class SorteosController {
             }
 
             if (!idSorteo) { // Si no se proporciona el ID del sorteo
-                next(new AppError('Se debe proporcionar el ID del sorteo para ver el tablero.', 400));
+                return next(new AppError('Se debe proporcionar el ID del sorteo para ver el tablero.', 400));
             }
             // Validación de idUsuario
             if (!idSorteo ||
@@ -154,17 +155,17 @@ class SorteosController {
                 return next(new AppError('Se debe proporcionar un ID de sorteo para ver el tablero.', 400));
             }
             if (isNaN(Number(idSorteo))) {
-                return next(new AppError('El ID de sorteo proporcionado no es válido.', 400));
+                return next(new AppError('El ID del sorteo proporcionado no es válido.', 400));
             }
 
             const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
             if (!sorteo) { // Si no se encuentra el sorteo
-                next(new AppError('No se encontró el sorteo solicitado.', 404));
+                return next(new AppError('No se encontró el sorteo solicitado.', 404));
             }
 
             const usuario = await usuariosDAO.obtenerUsuarioPorId(idUsuario);
             if (!usuario) { // Si no se encuentra el usuario
-                next(new AppError('No se encontró el usuario.', 404));
+                return next(new AppError('No se encontró el usuario.', 404));
             }
 
             const organizadoresSorteo = await organizadoresSorteosDAO.obtenerOrganizadoresSorteo(idSorteo);
