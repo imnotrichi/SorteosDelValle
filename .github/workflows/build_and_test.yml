@@ -13,6 +13,22 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    
+    # 1. Nuevo bloque 'services' para la base de datos
+    services:
+        mysql:
+          image: mysql:8.0 # Utiliza la imagen oficial de MySQL
+          env:
+              # Configura las variables de entorno para que coincidan con tu 'config.json' (entorno 'test')
+              MYSQL_ROOT_PASSWORD: root # Coincide con el 'password' en config.json -> test
+              MYSQL_DATABASE: std_gestionsorteos_db # Coincide con 'database' en config.json -> test
+          ports:
+              - 3306:3306
+          options: >-
+              --health-cmd="mysqladmin ping"
+              --health-interval=10s
+              --health-timeout=5s
+              --health-retries=10
 
     strategy:
       matrix:
