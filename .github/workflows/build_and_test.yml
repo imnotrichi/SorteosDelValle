@@ -48,7 +48,16 @@ jobs:
     - name: Install Dependencies
       run: npm ci
       working-directory: ./${{ matrix.service }}
-    
+
+    # Nuevo Paso: Ejecutar Migraciones de Base de Datos
+    - name: Run Sequelize Migrations
+      # Reemplaza este comando con el comando real que usas para crear tus tablas
+      # Si usas sequelize-cli: npx sequelize-cli db:migrate
+      # Si usas un script: node path/to/db-setup-script.js
+      run: npx sequelize-cli db:migrate 
+      working-directory: ./${{ matrix.service }}
+
+      # Asegúrate de que este comando utilice la configuración de la BDD para 'test'
     - name: Run Tests
       run: npm test
       working-directory: ./${{ matrix.service }}
