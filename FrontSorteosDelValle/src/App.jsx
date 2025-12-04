@@ -1,5 +1,5 @@
-import React, { use, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom"; // 1. Importa los componentes de rutas
+import React from "react";
+import { Routes, Route, useNavigate, Navigate, Outlet } from "react-router-dom"; // 1. Importa los componentes de rutas
 import "./index.css";
 import Header from "./components/header.jsx";
 import PaginaNoEncontrada from "./components/paginaNoEncontrada.jsx";
@@ -13,6 +13,8 @@ import EditarSorteo from "./gestionSorteo/editarSorteo.jsx"
 import LiberarNumeros from "./gestionSorteo/liberarNumeros.jsx";
 import RegistrarUsuario from "./registrarUsuario/registrarUsuario.jsx";
 import IniciarSesion from "./registrarUsuario/iniciarSesion.jsx";
+import { AuthProvider, useAuth } from "./registrarUsuario/AuthContext.jsx";
+import SessionExpiredModal from "./components/sesionExpiradaModal.jsx"
 
 const MainLayout = ({ children }) => {
   const navigate = useNavigate();
@@ -24,33 +26,85 @@ const MainLayout = ({ children }) => {
   );
 };
 
-function App() {
+const ProtectedRoute = ({ allowedRoles }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return null;
 
-  const [currentUser] = useState({
-    email: "abel@example.com" 
-  });
+  if (!isAuthenticated) {
+    return <Navigate to="/iniciar-sesion" replace />
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user?.tipoUsuario)) {
+    if (user.tipoUsuario === 'organizador') return <Navigate to="/admin/misSorteos" replace />;
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+const PublicRoute = () => {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) return null;
+
+  if (isAuthenticated) {
+    if (user?.tipoUsuario === 'organizador') return <Navigate to="/admin/misSorteos" replace />;
+    return <Navigate to="/" replace />
+  }
+  return <Outlet />;
+
+}
+
+function AppContent() {
+  const { user, showSessionModal, closeSessionModal } = useAuth();
 
   return (
+    <>
+      <SessionExpiredModal isOpen={showSessionModal} onClose={closeSessionModal} />
+
       <Routes>
-      <Route path="/" element={<Inicio />} />
-      <Route path="/iniciar-sesion" element={<IniciarSesion />} />
-      <Route path="/registrar-usuario" element={<RegistrarUsuario/>} />
-      <Route path="/sorteo/:id" element={<DetalleSorteo />} />
-      <Route path="/sorteo/:id/numeros" element={<NumerosSorteo />} />
+        {/* Rutas Públicas */}
+        <Route element={<PublicRoute />}>
+          <Route path="/iniciar-sesion" element={<IniciarSesion />} />
+          <Route path="/registrar-usuario" element={<RegistrarUsuario />} />
+        </Route>
 
-      <Route path="/admin" element={<MainLayout><MisSorteos/></MainLayout>} />
-      <Route 
-        path="/admin/crearSorteo" 
-        element={<MainLayout><CrearSorteo currentUserEmail={currentUser.email}/></MainLayout>} 
-      />
-      <Route path="/admin/misSorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
-      <Route path="/admin/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo/></MainLayout>} />
-      <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
-      <Route path="/admin/sorteo/numeros/:id" element={<MainLayout><LiberarNumeros /></MainLayout>} />
+        {/* Rutas Públicas de cliente*/}
+        <Route element={<ProtectedRoute allowedRoles={['cliente']} />}>
+          <Route path="/" element={<Inicio />} />
+          <Route path="/sorteo/:id" element={<DetalleSorteo />} />
+          <Route path="/sorteo/:id/numeros" element={<NumerosSorteo />} />
+        </Route>
 
-      <Route path="*" element={<PaginaNoEncontrada />} />
-    </Routes>
-  )
+        {/* Rutas Públicas de organizador */}
+        <Route element={<ProtectedRoute allowedRoles={['organizador']} />}>
+          <Route path="/admin" element={<Navigate to="/admin/misSorteos" replace />} />
+          <Route path="/admin/misSorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
+          <Route
+            path="/admin/crearSorteo"
+            element={<MainLayout><CrearSorteo currentUserEmail={user?.email} /></MainLayout>}
+          />
+          <Route path="/admin/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo /></MainLayout>} />
+          <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
+          <Route path="/admin/sorteo/numeros/:id" element={<MainLayout><LiberarNumeros /></MainLayout>} />
+        </Route>
+
+        <Route path="*" element={<PaginaNoEncontrada />} />
+      </Routes >
+
+
+    </>
+  );
+}
+
+
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App;

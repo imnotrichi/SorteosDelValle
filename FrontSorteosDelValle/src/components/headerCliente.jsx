@@ -1,8 +1,11 @@
 import React from 'react';
 import logo from '../assets/logo.png';
 import userIcon from '../assets/usuario.png';
+import { useAuth } from '../registrarUsuario/AuthContext';
 
-const HeaderCliente = ({ onNavigate, userName = "Ricardo" }) => {
+
+const HeaderCliente = ({ onNavigate }) => {
+  const { user, logout } = useAuth();
   return (
     <header className="sticky top-0 z-20 w-full bg-background-light/80 backdrop-blur-sm border-b border-border-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,14 +18,14 @@ const HeaderCliente = ({ onNavigate, userName = "Ricardo" }) => {
 
           <div className="flex flex-1 justify-end gap-2 items-center">
             <nav className="hidden md:flex items-center gap-9 mr-7">
-              <button 
-                onClick={() => onNavigate('/')} 
+              <button
+                onClick={() => onNavigate('/')}
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Inicio
               </button>
 
-              <button 
+              <button
                 onClick={() => onNavigate('/mis-numeros')}
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
@@ -30,10 +33,22 @@ const HeaderCliente = ({ onNavigate, userName = "Ricardo" }) => {
               </button>
             </nav>
 
-            <div className="flex items-center gap-2 pl-4">
+            <div className="flex items-center gap-2 pl-4 border-l border-gray-200 ml-4">
               <img src={userIcon} alt="Usuario" className="w-6 h-6" />
-              <span className="text-sm font-medium">{userName}</span>
+              <span className="text-sm font-medium">
+                {user ? user.nombres : "Invitado"}
+              </span>
+
+              {user && (
+                <button
+                  onClick={() => logout()}
+                  className="ml-4 text-xs text-red-500 hover:text-red-700 font-bold"
+                >
+                  Salir
+                </button>
+              )}
             </div>
+
           </div>
         </div>
       </div>
