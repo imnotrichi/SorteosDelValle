@@ -1,6 +1,7 @@
 const sorteosDAO = require('../dataAccess/sorteosDAO.js');
 const usuariosDAO = require('../dataAccess/usuariosDAO.js');
 const organizadoresDAO = require('../dataAccess/organizadoresDAO.js');
+const organizadoresSorteosDAO = require('../dataAccess/organizadoresSorteosDAO.js');
 const configuracionesDAO = require('../dataAccess/configuracionesDAO.js');
 const numerosDAO = require('../dataAccess/numerosDAO.js');
 const { AppError } = require('../utils/appError.js');
@@ -129,30 +130,49 @@ class SorteosController {
     async obtenerTableroSorteo(req, res, next) {
         try {
             // Obtenemos el ID del usuario del cuerpo de la solicitud
-            const idUsuario = req.body.idUsuario;
+            const idUsuario = req.body?.idUsuario;
+            console.log("ID USUARIO" + idUsuario);
             // Obtenemos el ID del sorteo de la URL
             const idSorteo = req.params.id;
-            
-            if (!idUsuario) { // Si no se proporciona el ID del usuario
-                next(new AppError('Se debe proporcionar un ID de usuario para ver el tablero.', 400));
+
+            // Validación de idUsuario
+            if (!idUsuario ||
+                (typeof idUsuario === 'string' && idUsuario.trim() === '') ||
+                (typeof idUsuario === 'object' && Object.keys(idUsuario).length === 0)) {
+                return next(new AppError('Se debe proporcionar un ID de usuario para ver el tablero.', 400));
             }
+            if (isNaN(Number(idUsuario))) {
+                return next(new AppError('El ID de usuario proporcionado no es válido.', 400));
+            }
+
             if (!idSorteo) { // Si no se proporciona el ID del sorteo
                 next(new AppError('Se debe proporcionar el ID del sorteo para ver el tablero.', 400));
             }
-            
+            // Validación de idUsuario
+            if (!idSorteo ||
+                (typeof idSorteo === 'string' && idSorteo.trim() === '') ||
+                (typeof idSorteo === 'object' && Object.keys(idSorteo).length === 0)) {
+                return next(new AppError('Se debe proporcionar un ID de sorteo para ver el tablero.', 400));
+            }
+            if (isNaN(Number(idSorteo))) {
+                return next(new AppError('El ID de sorteo proporcionado no es válido.', 400));
+            }
+
             const sorteo = await sorteosDAO.obtenerSorteoPorId(idSorteo);
             if (!sorteo) { // Si no se encuentra el sorteo
                 next(new AppError('No se encontró el sorteo solicitado.', 404));
             }
+
             const usuario = await usuariosDAO.obtenerUsuarioPorId(idUsuario);
             if (!usuario) { // Si no se encuentra el usuario
                 next(new AppError('No se encontró el usuario.', 404));
             }
-            const organizadoresSorteo = await organizadoresSorteoDAO.obtenerOrganizadoresSorteo(idSorteo);
+
+            const organizadoresSorteo = await organizadoresSorteosDAO.obtenerOrganizadoresSorteo(idSorteo);
             const esOrganizador = organizadoresSorteo.some(
                 orgSor => orgSor.id_organizador === idUsuario
             );
-    
+
             if (!esOrganizador) {
                 return next(new AppError('Usted no tiene los permisos para ver el tablero del sorteo.', 403));
             }
@@ -170,6 +190,20 @@ class SorteosController {
             })
             const numerosDisponibles = sorteo.rango_numeros - (numerosApartados + numerosVendidos);
 
+            const premiosData = sorteo.Premios.map(premio => ({
+                titulo: premio.titulo,
+                imagen_premio_url: premio.imagen_premio_url
+            }));
+
+            // Calcular el estado comparando la fecha de realización con la fecha actual
+            const fechaActual = new Date();
+            let estadoSorteo;
+            if (sorteo.fecha_realizacion > fechaActual) {
+                estadoSorteo = 'Activo';
+            } else {
+                estadoSorteo = 'Finalizado';
+            }
+
             // Formateamos la respuesta JSON
             const tableroData = {
                 id: sorteo.id,
@@ -184,7 +218,8 @@ class SorteosController {
                 fin_periodo_venta: sorteo.fin_periodo_venta,
                 fecha_realizacion: sorteo.fecha_realizacion,
                 precio_numero: sorteo.precio_numero,
-                premios: sorteo.Premios,
+                estado: estadoSorteo,
+                premios: premiosData,
             };
 
             res.status(200).json(tableroData);
