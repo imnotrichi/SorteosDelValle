@@ -26,7 +26,6 @@ class UsuariosController {
             if (
                 !nombres?.trim() ||
                 !apellidoPaterno?.trim() ||
-                !apellidoMaterno?.trim() ||
                 !correo?.trim() ||
                 !contrasenia?.trim() ||
                 !telefono?.trim() ||
@@ -41,14 +40,24 @@ class UsuariosController {
             if (correo.length > 100) return next(new AppError("El correo no puede exceder los 100 caracteres.", 400));
 
             // Nombres y apellidos inválidos
-            if (!this.#esCampoValido(nombres)) return next(new AppError('El nombre solo puede contener letras y espacios.', 400));
-            if (!this.#esCampoValido(apellidoPaterno)) return next(new AppError('El apellido paterno solo puede contener letras y espacios.', 400));
-            if (!this.#esCampoValido(apellidoMaterno)) return next(new AppError('El apellido materno solo puede contener letras y espacios.', 400));
+            if (!this.#esCampoValido(nombres)) return next(new AppError('El nombre solo puede contener letras, espacios y guiones.', 400));
+            if (!this.#esCampoValido(apellidoPaterno)) return next(new AppError('El apellido paterno solo puede contener letras, espacios y guiones.', 400));
 
             // Longitud de nombres y apellidos
             if (nombres.length < 2 || nombres.length > 100) return next(new AppError('Favor de ingresar un nombre válido.', 400));
             if (apellidoPaterno.length < 2 || apellidoPaterno.length > 100) return next(new AppError('Favor de ingresar un apellido paterno válido.', 400));
-            if (apellidoMaterno.length < 2 || apellidoMaterno.length > 100) return next(new AppError('Favor de ingresar un apellido materno válido.', 400));
+
+            // VALIDACIÓN OPCIONAL DEL APELLIDO MATERNO
+            let apellidoMaternoFinal = null;
+            if (apellidoMaterno?.trim()) {
+                // Si se envió, se valida igual que los demás
+                if (!this.#esCampoValido(apellidoMaterno)) return next(new AppError('El apellido materno solo puede contener letras, espacios y guiones.', 400));
+
+                if (apellidoMaterno.length < 2 || apellidoMaterno.length > 100) return next(new AppError('Favor de ingresar un apellido materno válido.', 400));
+
+                apellidoMaternoFinal = apellidoMaterno.trim();
+            }
+
 
             // Contraseña inválida
             if (!this.#esContraseniaValida(contrasenia)) return next(new AppError('La contraseña debe tener al menos 10 caracteres, una mayúscula, un número y un carácter especial (! @ # $ % ^ & * ( ) - _ = + . ?).', 400));
@@ -80,7 +89,7 @@ class UsuariosController {
             const clienteData = {
                 nombres: nombres,
                 apellido_paterno: apellidoPaterno,
-                apellido_materno: apellidoMaterno,
+                apellido_materno: apellidoMaternoFinal,
                 correo: correo,
                 contrasenia: contraseniaEncriptada,
                 telefono: telefono,
@@ -123,6 +132,9 @@ class UsuariosController {
                 return next(new AppError('Correo o contraseña incorrectos.', 401));
             }
 
+            // Obtenemos el tipo de usuario
+            const tipoUsuario = await usuariosDAO.obtenerTipoUsuarioPorId(usuarioObtenido.id);
+
             const payload = {
                 id: usuarioObtenido.id,
                 correo: usuarioObtenido.correo,
@@ -136,7 +148,9 @@ class UsuariosController {
                 message: 'Inicio de sesión exitoso',
                 token: token,
                 id_usuario: usuarioObtenido.id,
-                correo: usuarioObtenido.correo
+                correo: usuarioObtenido.correo,
+                nombres: usuarioObtenido.nombres,
+                tipoUsuario: tipoUsuario
             });
         } catch (error) {
             console.log(error);
@@ -151,12 +165,12 @@ class UsuariosController {
     }
 
     #esCorreoValido(correo) {
-        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        const regex = /^[a-zA-Z0-9]+(?:[._%+-][a-zA-Z0-9]+)*@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
         return regex.test(correo);
     }
 
     #esContraseniaValida(contrasenia) {
-        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-=+.?]).{10,}$/;
+        const regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_\-=+.?]).{10,}$/;
         return regex.test(contrasenia);
     }
 
@@ -167,7 +181,7 @@ class UsuariosController {
 
     // Para nombres y apellidos
     #esCampoValido(campo) {
-        const regex = /^[a-zA-ZÀ-ÿ\s]+$/;
+        const regex = /^[a-zA-ZÀ-ÿ\s-]+$/;
         return regex.test(campo);
     }
 

@@ -1,4 +1,6 @@
 const { Usuario, Cliente } = require('../models/');
+const clientesDAO = require('../dataAccess/clientesDAO.js');
+const organizadoresDAO = require('../dataAccess/organizadoresDAO.js');
 const { sequelize } = require('../models');
 const { Op } = require('sequelize');
 
@@ -69,6 +71,28 @@ class UsuariosDAO {
             throw error;
         }
     }
+
+    async obtenerTipoUsuarioPorId(idUsuario) {
+        try {
+            if (!idUsuario) {
+                throw new Error('Se debe proporcionar el ID de usuario para realizar la consulta.');
+            }
+
+            const clienteObtenido = await clientesDAO.obtenerClientePorId(idUsuario);
+            const organizadorObtenido = await organizadoresDAO.obtenerOrganizadorPorId(idUsuario);
+            if (clienteObtenido) {
+                return "cliente";
+            } else if (organizadorObtenido) {
+                return "organizador";
+            } else {
+                return "desconocido";
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
 
     async #encriptarContrasenia(contrasenia) {
         const saltRounds = 10;
