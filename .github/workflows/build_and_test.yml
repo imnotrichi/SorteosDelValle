@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # ⬅️ NUEVO
+    timeout-minutes: 30
 
     services:
       mysql:
@@ -30,6 +30,13 @@ jobs:
         node-version: [22.x]
         service: [GestionSorteos, ManejoUsuarios]
 
+    # ⬇️ AGREGAR ESTAS VARIABLES DE ENTORNO
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: password
+
     steps:
     - uses: actions/checkout@v4
 
@@ -44,12 +51,11 @@ jobs:
       run: npm ci
       working-directory: ./${{ matrix.service }}
 
-    # ⬅️ NUEVO: Espera explícita
     - name: Wait for MySQL to be ready
-      run: sleep 5
+      run: sleep 10
 
     - name: Run Sequelize Drop Database
-      run: npx sequelize-cli db:drop --env test || true  # ⬅️ Ignora error si no existe
+      run: npx sequelize-cli db:drop --env test || true
       working-directory: ./${{ matrix.service }}
 
     - name: Run Sequelize Create Database
@@ -63,4 +69,4 @@ jobs:
     - name: Run Tests
       run: npm test
       working-directory: ./${{ matrix.service }}
-      timeout-minutes: 10  # ⬅️ NUEVO
+      timeout-minutes: 10
