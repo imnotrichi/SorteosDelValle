@@ -11,7 +11,7 @@ class NumerosDAO {
         if (!sorteo) {
             throw new Error(`No se encontró el sorteo con ID ${id_sorteo}.`);
         }
-        if (sorteo.fecha_realización < new Date()) {
+        if (new Date(sorteo.fecha_realizacion) < new Date()) {
             throw new Error("El sorteo ya finalizó.");
         }
 
