@@ -49,11 +49,18 @@ jobs:
       run: npm ci
       working-directory: ./${{ matrix.service }}
 
+    # Nuevo Paso: Ejecutar Drop de Base de Datos
+    - name: Run Sequelize Drop Database
+      run: npx sequelize-cli db:drop 
+      working-directory: ./${{ matrix.service }}
+
+    # Nuevo Paso: Ejecutar Creación de Base de Datos
+    - name: Run Sequelize Create Database
+      run: npx sequelize-cli db:create 
+      working-directory: ./${{ matrix.service }}
+      
     # Nuevo Paso: Ejecutar Migraciones de Base de Datos
     - name: Run Sequelize Migrations
-      # Reemplaza este comando con el comando real que usas para crear tus tablas
-      # Si usas sequelize-cli: npx sequelize-cli db:migrate
-      # Si usas un script: node path/to/db-setup-script.js
       run: npx sequelize-cli db:migrate 
       working-directory: ./${{ matrix.service }}
 
