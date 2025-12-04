@@ -49,12 +49,12 @@ jobs:
       run: npm ci
       working-directory: ./${{ matrix.service }}
 
-    # Nuevo Paso: Ejecutar Drop de Base de Datos
+    # Nuevo Paso: Ejecutar Drop de la Base de Datos
     - name: Run Sequelize Drop Database
       run: npx sequelize-cli db:drop 
       working-directory: ./${{ matrix.service }}
 
-    # Nuevo Paso: Ejecutar Creación de Base de Datos
+    # Nuevo Paso: Ejecutar Creación de la Base de Datos
     - name: Run Sequelize Create Database
       run: npx sequelize-cli db:create 
       working-directory: ./${{ matrix.service }}
