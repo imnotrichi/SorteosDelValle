@@ -1,15 +1,15 @@
 {
   "development": {
     "username": "root",
-    "password": "root",
+    "password": "password",
     "database": "std_manejousuarios_db",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "test": {
     "username": "root",
-    "password": null,
-    "database": "std_manejousuarios_db_test",
+    "password": "password",
+    "database": "std_manejousuarios_db",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

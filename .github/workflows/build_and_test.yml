@@ -1,6 +1,3 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Node.js CI
 
 on:
@@ -11,33 +8,38 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    
-    # 1. Nuevo bloque 'services' para la base de datos
+    timeout-minutes: 30
+
     services:
-        mysql:
-          image: mysql:8.0 # Utiliza la imagen oficial de MySQL
-          env:
-              # Configura las variables de entorno para que coincidan con tu 'config.json' (entorno 'test')
-              MYSQL_ROOT_PASSWORD: root # Coincide con el 'password' en config.json -> test
-              MYSQL_DATABASE: std_gestionsorteos_db # Coincide con 'database' en config.json -> test
-          ports:
-              - 3306:3306
-          options: >-
-              --health-cmd="mysqladmin ping"
-              --health-interval=10s
-              --health-timeout=5s
-              --health-retries=10
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: default_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [22.x]
         service: [GestionSorteos, ManejoUsuarios]
+
+    # ⬇️ AGREGAR ESTAS VARIABLES DE ENTORNO
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: password
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -49,15 +51,22 @@ jobs:
       run: npm ci
       working-directory: ./${{ matrix.service }}
 
-    # Nuevo Paso: Ejecutar Migraciones de Base de Datos
-    - name: Run Sequelize Migrations
-      # Reemplaza este comando con el comando real que usas para crear tus tablas
-      # Si usas sequelize-cli: npx sequelize-cli db:migrate
-      # Si usas un script: node path/to/db-setup-script.js
-      run: npx sequelize-cli db:migrate 
+    - name: Wait for MySQL to be ready
+      run: sleep 10
+
+    - name: Run Sequelize Drop Database
+      run: npx sequelize-cli db:drop --env test || true
       working-directory: ./${{ matrix.service }}
 
-      # Asegúrate de que este comando utilice la configuración de la BDD para 'test'
+    - name: Run Sequelize Create Database
+      run: npx sequelize-cli db:create --env test
+      working-directory: ./${{ matrix.service }}
+
+    - name: Run Sequelize Migrations
+      run: npx sequelize-cli db:migrate --env test
+      working-directory: ./${{ matrix.service }}
+
     - name: Run Tests
       run: npm test
       working-directory: ./${{ matrix.service }}
+      timeout-minutes: 10

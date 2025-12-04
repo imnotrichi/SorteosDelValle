@@ -10,6 +10,7 @@ let organizadorId;
 let id_sorteo;
 let id_cliente;
 let mockRes, mockNext;
+let id_numeros = [];
 
 // Función auxiliar para no repetir mocks
 const setupMocks = () => ({
@@ -34,7 +35,7 @@ beforeAll(async () => {
         nombres: "Ricardo Alán",
         apellido_paterno: "Gutiérrez",
         apellido_materno: "Garcés",
-        correo: "ricardogutierrez@gmail.com"
+        correo: "alanparra@gmail.com"
     };
     const usuario1 = await Usuario.create({
         ...datosOrganizador
@@ -69,7 +70,7 @@ beforeAll(async () => {
         nombres: "Abel Eduardo",
         apellido_paterno: "Sánchez",
         apellido_materno: "Guerrero",
-        correo: "abelsanchez@gmail.com"
+        correo: "juanbirote@gmail.com"
     };
     const usuario2 = await Usuario.create({
         ...datosCliente
@@ -81,12 +82,11 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await Numero.destroy({ where: {} });
+    await Numero.destroy({ where: { id_sorteo } });
     await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId } });
     await Organizador.destroy({ where: { id_usuario: organizadorId } });
     await Cliente.destroy({ where: { id_usuario: id_cliente } });
-    await Usuario.destroy({ where: { id: organizadorId } });
-    await Usuario.destroy({ where: { id: id_cliente } });
+    await Usuario.destroy({ where: { id: [organizadorId,id_cliente] } });
     await Premio.destroy({ where: { id_sorteo: id_sorteo } });
     await Sorteo.destroy({ where: { id: id_sorteo } });
     await Configuracion.destroy({ where: { id: configGlobalId } });
@@ -117,27 +117,27 @@ describe('apartarNumero (Controller)', () => {
     //APN-010: Probar que no se pueda apartar un número de un sorteo que no existe.
     it('no debería apartar un número', async () => {
         // Arrange
-        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo: 201, id_cliente } };
+        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo: 999999, id_cliente } };
 
         // Act
         await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
         const error = mockNext.mock.calls[0][0];
 
         // Assert
-        expect(error.message).toBe("No se encontró el sorteo con ID: 201.");
+        expect(error.message).toBe(`No se encontró el sorteo con ID: ${999999}.`);
     });
 
     //APN-011: Probar que no se pueda apartar un número que no tiene dueño.
     it('no debería apartar un número', async () => {
         // Arrange
-        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo, id_cliente: 201 } };
+        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo, id_cliente: 99999 } };
 
         // Act
         await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
         const error = mockNext.mock.calls[0][0];
 
         // Assert
-        expect(error.message).toBe("No se encontró un cliente con ID: 201.");
+        expect(error.message).toBe(`No se encontró un cliente con ID: ${99999}.`);
     });
 
     //APN-012: Probar que no se pueda apartar un número que ya está apartado.
@@ -169,7 +169,10 @@ describe('apartarNumero (Controller)', () => {
     //APN-014: Probar que no se puedan apartar números de un sorteo finalizado.
     it('no debería apartar los números', async () => {
         // Arrange
-        const mockReq = { body: { numeros: [10], id_sorteo: 61, id_cliente } };
+        const mockReq = { body: { numeros: [10], id_sorteo, id_cliente } };
+        const sorteo = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
+        const datosActualizados = { fecha_realizacion: "2023-11-17" };
+        const sorteoModificado = await sorteosDAO.actualizarSorteo(id_sorteo, datosActualizados);
 
         // Act
         await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
@@ -210,6 +213,8 @@ describe('liberarNumero (Controller)', () => {
     // LBN-005: Probar que funcione correctamente la funcionalidad de liberar un número apartado.
     it('debería liberar un número apartado', async () => {
         // Arrange
+        const datosActualizados = { fecha_realizacion: "2025-12-30" };
+        await sorteosDAO.actualizarSorteo(id_sorteo, datosActualizados);
         await numerosDAO.apartarNumeros({ numeros: [21], id_sorteo, id_cliente });
         const mockReq = { body: { numeros: [21], id_sorteo } };
 

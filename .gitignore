@@ -6,6 +6,11 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Ignorar configs sensibles
+/GestionSorteos/config/config.json
+/ManejoUsuarios/config/config.json
+GestionSorteos/config/config.json
+ManejoUsuarios/config/config.json
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -138,3 +143,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+APIGateway/package-lock.json
+FrontSorteosDelValle/package-lock.json
+GestionSorteos/config/config.json
+GestionSorteos/package-lock.json
+ManejoUsuarios/config/config.json
+ManejoUsuarios/package-lock.json

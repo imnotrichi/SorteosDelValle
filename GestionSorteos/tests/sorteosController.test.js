@@ -11,6 +11,9 @@ let organizadorCorreo2;
 let datosSorteoBase;
 let clienteId;
 let mockRes, mockNext;
+let id_sorteos = [];
+let id_pagos = [];
+let id_configuraciones = [];
 
 // Función auxiliar para no repetir mocks
 const setupMocks = () => ({
@@ -63,7 +66,7 @@ beforeAll(async () => {
         "id_organizador": usuario1.id
     });
     configId = config.id;
-
+    id_configuraciones.push(configId)
 
     datosSorteoBase = {
         "titulo": "Sorteo - Controller",
@@ -97,20 +100,12 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
-    await Sorteo.destroy({ where: {} });
-
-    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId1 } });
-    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId2 } });
-
-    await Premio.destroy({ where: {} });
-
-    await Configuracion.destroy({ where: { id: configId } });
-
-    await Organizador.destroy({ where: { id_usuario: organizadorId1 } });
-    await Organizador.destroy({ where: { id_usuario: organizadorId2 } });
-
-    await Usuario.destroy({ where: { id: organizadorId1 } });
-    await Usuario.destroy({ where: { id: organizadorId2 } });
+    await Sorteo.destroy({ where: { id: id_sorteos } });
+    await Pago.destroy({ where: { id: id_pagos } });
+    await OrganizadorSorteo.destroy({ where: { id_organizador: [organizadorId1, organizadorId2] } });
+    await Configuracion.destroy({ where: { id: id_configuraciones } });
+    await Organizador.destroy({ where: { id_usuario: [organizadorId1, organizadorId2] } });
+    await Usuario.destroy({ where: { id: [organizadorId1, organizadorId2] } });
 });
 
 function deepClone(obj) {
@@ -122,6 +117,7 @@ describe('crearSorteo (Controller)', () => {
     it('debería crear un nuevo sorteo y responder con 200', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - CST-001";
 
         const mockReq = { body: datosSorteo };
 
@@ -133,16 +129,17 @@ describe('crearSorteo (Controller)', () => {
         expect(mockRes.status).toHaveBeenCalledWith(200);
         expect(mockRes.json).toHaveBeenCalled();
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoCreado).toHaveProperty('id');
         expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
         expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
         expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
-        expect(sorteoCreado.rango_numeros).toBe(datosSorteo.rango_numeros);
-        expect(toShort(sorteoCreado.inicio_periodo_venta)).toBe(datosSorteo.inicio_periodo_venta);
+        expect(Number(sorteoCreado.rango_numeros)).toBe(Number(datosSorteo.rango_numeros)); expect(toShort(sorteoCreado.inicio_periodo_venta)).toBe(datosSorteo.inicio_periodo_venta);
         expect(toShort(sorteoCreado.fin_periodo_venta)).toBe(datosSorteo.fin_periodo_venta);
         expect(toShort(sorteoCreado.fecha_realizacion)).toBe(datosSorteo.fecha_realizacion);
-        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
     });
 
     // Prueba 2: Intentar crear un sorteo sin título
@@ -307,6 +304,8 @@ describe('crearSorteo (Controller)', () => {
         expect(mockRes.status).toHaveBeenCalledWith(200);
         expect(mockRes.json).toHaveBeenCalled();
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoCreado).toHaveProperty('id');
         expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
@@ -316,7 +315,7 @@ describe('crearSorteo (Controller)', () => {
         expect(toShort(sorteoCreado.inicio_periodo_venta)).toBe(datosSorteo.inicio_periodo_venta);
         expect(toShort(sorteoCreado.fin_periodo_venta)).toBe(datosSorteo.fin_periodo_venta);
         expect(toShort(sorteoCreado.fecha_realizacion)).toBe(datosSorteo.fecha_realizacion);
-        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
     });
 
     // Prueba 11: Intentar crear un sorteo sin datos del premio
@@ -380,6 +379,9 @@ describe('crearSorteo (Controller)', () => {
         datosSorteo.titulo = "Sorteo - CST-014";
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -506,6 +508,8 @@ describe('crearSorteo (Controller)', () => {
         expect(mockRes.status).toHaveBeenCalledWith(200);
         expect(mockRes.json).toHaveBeenCalled();
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoCreado).toHaveProperty('id');
         expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
@@ -515,7 +519,7 @@ describe('crearSorteo (Controller)', () => {
         expect(toShort(sorteoCreado.inicio_periodo_venta)).toBe(datosSorteo.inicio_periodo_venta);
         expect(toShort(sorteoCreado.fin_periodo_venta)).toBe(datosSorteo.fin_periodo_venta);
         expect(toShort(sorteoCreado.fecha_realizacion)).toBe(datosSorteo.fecha_realizacion);
-        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
     });
 
     // Prueba 21: Intentar crear un sorteo sin datos de los organizadores
@@ -690,6 +694,8 @@ describe('actualizarSorteo (Controller)', () => {
         expect(mockRes.status).toHaveBeenCalledWith(200);
         expect(mockRes.json).toHaveBeenCalled();
         const sorteoActualizado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoActualizado.id);
+        id_configuraciones.push(sorteoActualizado.configuracionData.id);
         const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoActualizado.descripcion).toBe(datosSorteoActualizado.descripcion);
         expect(sorteoActualizado.imagen_url).toBe(datosSorteoActualizado.imagen_url);
@@ -721,6 +727,8 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = { params: { id: sorteoCreado.id }, body: {} };
 
         // Act
@@ -741,6 +749,8 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = {
             params: { id: sorteoCreado.id }, body: { rango_numeros: 0 }
         };
@@ -763,8 +773,10 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = {
-            params: { id: sorteoCreado.id }, body: { inicio_periodo_venta: "2025-10-30" }
+            params: { id: sorteoCreado.id }, body: { inicio_periodo_venta: "2009-10-10", fin_periodo_venta: "2025-10-30" }
         };
 
         // Act
@@ -785,6 +797,8 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = {
             params: { id: sorteoCreado.id }, body: { fin_periodo_venta: "2025-10-30" }
         };
@@ -807,6 +821,8 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = {
             params: { id: sorteoCreado.id }, body: {
                 inicio_periodo_venta: "2026-02-20",
@@ -832,6 +848,8 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = {
             params: { id: sorteoCreado.id }, body: {
                 fecha_realizacion: "2022-02-20",
@@ -856,6 +874,8 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = {
             params: { id: sorteoCreado.id }, body: {
                 configuracionData:
@@ -888,6 +908,8 @@ describe('actualizarSorteo (Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = {
             params: { id: sorteoCreado.id }, body: {
                 configuracionData:
@@ -938,15 +960,18 @@ describe('actualizarSorteo (Controller)', () => {
         const mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         const usuario = await Usuario.create({ nombres: "Maynard", apellido_paterno: "James", apellido_materno: "Keenan", correo: "maynardjames@gmail.com" });
         const cliente = await Cliente.create({ id_usuario: usuario.id });
         const pago = await Pago.create({ monto_total: 1000, fecha: new Date() });
+        id_pagos.push(pago.id);
 
         await Numero.create({
             numero: 67,
             estado: 'VENDIDO',
             id_sorteo: sorteoCreado.id,
-            id_cliente: cliente.id,
+            id_cliente: cliente.id_usuario,
             id_pago: pago.id
         });
 
@@ -982,6 +1007,9 @@ describe('actualizarSorteo (Controller)', () => {
         datosSorteo.OrganizadorSorteos = [{ id_organizador: organizadorId1 }];
         datosSorteo.id_configuracion = configId;
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.Configuracion.id);
+
         const mockReq = {
             params: { id: sorteoCreado.id }, body: { inicio_periodo_venta: "2025-11-25" }
         };
@@ -992,8 +1020,8 @@ describe('actualizarSorteo (Controller)', () => {
         // Assert
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
-        expect(error.statusCode).toBe(400);
-        expect(error.message).toBe("No se puede cambiar la fecha de inicio porque ya empezaron a venderse números.");
+        expect(error.statusCode).toBe(405);
+        expect(error.message).toBe("No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.");
     });
 
     // GST-02X
@@ -1011,6 +1039,8 @@ describe('actualizarSorteo (Controller)', () => {
         datosSorteo.OrganizadorSorteos = [{ id_organizador: organizadorId1 }];
         datosSorteo.id_configuracion = configId;
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.Configuracion.id);
         const mockReq = {
             params: { id: sorteoCreado.id }, body: {} // No mandamos nada porque aunque le mandemos nos debe dar para atrás
         };
@@ -1073,15 +1103,18 @@ describe('eliminarSorteo (Controller)', () => {
         const mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
         const usuario = await Usuario.create({ nombres: "Maynard", apellido_paterno: "James", apellido_materno: "Keenan", correo: "maynardjames@gmail.com" });
         const cliente = await Cliente.create({ id_usuario: usuario.id });
         const pago = await Pago.create({ monto_total: 1000, fecha: new Date() });
+        id_pagos.push(pago.id);
 
         await Numero.create({
             numero: 67,
             estado: 'VENDIDO',
             id_sorteo: sorteoCreado.id,
-            id_cliente: cliente.id,
+            id_cliente: cliente.id_usuario,
             id_pago: pago.id
         });
 
@@ -1117,7 +1150,8 @@ describe('eliminarSorteo (Controller)', () => {
         datosSorteo.OrganizadorSorteos = [{ id_organizador: organizadorId1 }];
         datosSorteo.id_configuracion = configId;
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
-
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.Configuracion.id);
 
         const mockReq = { params: { id: sorteoCreado.id } };
 
@@ -1132,3 +1166,208 @@ describe('eliminarSorteo (Controller)', () => {
 
     });
 });
+
+
+describe('obtenerTableroSorteo(Controller)', () => {
+    // ID: VTC-001
+    it('VTC-001: debería obtener el tablero de un sorteo existente y responder con 200', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-001";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: organizadorId1 } };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).not.toHaveBeenCalled();
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json).toHaveBeenCalled();
+        const tableroData = mockRes.json.mock.calls[0][0];
+        expect(tableroData.id).toBe(sorteoCreado.id);
+        expect(tableroData.titulo).toBe(sorteoCreado.titulo);
+        expect(tableroData.descripcion).toBe(sorteoCreado.descripcion);
+        expect(tableroData.imagen_url).toBe(sorteoCreado.imagen_url);
+        expect(tableroData.boletos_vendidos).toBe(0);
+        expect(tableroData.boletos_apartados).toBe(0);
+        expect(tableroData.boletos_disponibles).toBe(sorteoCreado.rango_numeros);
+        expect(tableroData.dinero_recaudado).toBe("0.00");
+        expect(tableroData.dinero_por_recaudar).toBe("0.00");
+        const toShort = d => new Date(d).toISOString().substring(0, 10);
+        expect(toShort(tableroData.fin_periodo_venta)).toBe(toShort(sorteoCreado.fin_periodo_venta));
+        expect(toShort(tableroData.fecha_realizacion)).toBe(toShort(sorteoCreado.fecha_realizacion));
+        expect(tableroData.precio_numero).toBe(Number(sorteoCreado.precio_numero).toFixed(2));
+        expect(tableroData.estado).toBe("Activo");
+    });
+
+    // ID: VTC-002
+    it('VTC-002: debería llamar a next con error 400 si no se proporciona el ID del usuario', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-002";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+
+        mockReq = { params: { id: sorteoCreado.id }, body: {} };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toBe("Se debe proporcionar un ID de usuario para ver el tablero.");
+    });
+
+    // ID: VTC-003
+    it('VTC-003: debería llamar a next con error 400 si el ID del usuario tiene letras', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-003";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+
+        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: "1abc" } };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toBe("El ID de usuario proporcionado no es válido.");
+    });
+
+    // ID: VTC-004
+    it('VTC-004: debería llamar a next con error 404 si el usuario no existe', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-004";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: 99999 } };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(404);
+        expect(error.message).toBe("No se encontró el usuario.");
+    });
+
+    // ID: VTC-005
+    it('VTC-005: debería llamar a next con error 400 si no se proporciona el ID del sorteo', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-005";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+
+        mockReq = { body: { idUsuario: organizadorId1 } };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toBe("Se debe proporcionar el ID del sorteo para ver el tablero.");
+    });
+
+    // ID: VTC-006
+    it('VTC-006: debería llamar a next con error 400 si el ID del sorteo tiene letras', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-006";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+
+        mockReq = { params: { id: `${sorteoCreado.id}abc` }, body: { idUsuario: organizadorId1 } };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(400);
+        expect(error.message).toBe("El ID del sorteo proporcionado no es válido.");
+    });
+
+    // ID: VTC-007
+    it('VTC-007: debería llamar a next con error 404 si el sorteo no existe', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-007";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+        mockReq = { params: { id: 99999 }, body: { idUsuario: organizadorId1 } };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(404);
+        expect(error.message).toBe("No se encontró el sorteo solicitado.");
+    });
+
+        // ID: VTC-008
+    it('VTC-008: debería llamar a next con error 403 si el usuario no es un organizador a cargo del sorteo', async () => {
+        // Arrange
+        const datosSorteo = deepClone(datosSorteoBase);
+        datosSorteo.titulo = "Sorteo - VTC-008";
+        let mockReq = { body: datosSorteo };
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: organizadorId2 } };
+        ({ mockRes, mockNext } = setupMocks());
+
+        // Act
+        await sorteosController.obtenerTableroSorteo(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        const error = mockNext.mock.calls[0][0];
+        expect(error.statusCode).toBe(403);
+        expect(error.message).toBe("Usted no tiene los permisos para ver el tablero del sorteo.");
+    });
+})
