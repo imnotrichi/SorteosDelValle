@@ -1,8 +1,10 @@
 import React from 'react';
 import logo from '../assets/logo.png';
 import userIcon from '../assets/usuario.png';
+import { useAuth } from '../registrarUsuario/AuthContext';
 
 const Header = ({onNavigate}) => {
+  const { user, logout } = useAuth();
   return (
     <header className="sticky top-0 z-20 w-full bg-background-light/80 backdrop-blur-sm border-b border-border-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,19 +19,24 @@ const Header = ({onNavigate}) => {
                 <button onClick={() => onNavigate('/admin')} className="text-sm font-medium hover:text-primary">
                   Mis Sorteos
                 </button>
-
-                <button 
-                onClick={()=> onNavigate("/admin/reportes")}
-                className="text-sm font-medium hover:text-primary">
-                Reportes
-                </button>
             </nav>
             <button onClick={() => onNavigate('/admin/crearSorteo')} className="hidden sm:flex items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-text-light text-sm font-bold">
               Crear sorteo
             </button>
-            <div className="flex items-center gap-2 pl-4">
+            <div className="flex items-center gap-2 pl-4 border-l border-gray-200 ml-4">
               <img src={userIcon} alt="Usuario" className="w-6 h-6" />
-              <span className="text-sm font-medium">Abel</span>
+              <span className="text-sm font-medium">
+                {user ? user.nombres : "Usuario"}
+              </span>
+
+              {user && (
+                <button
+                  onClick={() => logout()}
+                  className="ml-4 text-xs text-red-500 hover:text-red-700 font-bold"
+                >
+                  Salir
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -82,7 +82,7 @@ function AppContent() {
           <Route path="/admin/misSorteos" element={<MainLayout><MisSorteos /></MainLayout>} />
           <Route
             path="/admin/crearSorteo"
-            element={<MainLayout><CrearSorteo currentUserEmail={user?.email} /></MainLayout>}
+            element={<MainLayout><CrearSorteo currentUserEmail={user?.correo} /></MainLayout>}
           />
           <Route path="/admin/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo /></MainLayout>} />
           <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
