@@ -8,9 +8,9 @@
   },
   "test": {
     "username": "root",
-    "password": "root",
+    "password": "password",
     "database": "std_gestionsorteos_db",
-    "host": "127.0.0.1",
+    "host": "mysql",
     "dialect": "mysql"
   },
   "production": {
