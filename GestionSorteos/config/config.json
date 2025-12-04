@@ -10,7 +10,7 @@
     "username": "root",
     "password": "password",
     "database": "std_gestionsorteos_db",
-    "host": "mysql",
+    "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "production": {
