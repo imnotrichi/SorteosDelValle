@@ -117,27 +117,27 @@ describe('apartarNumero (Controller)', () => {
     //APN-010: Probar que no se pueda apartar un número de un sorteo que no existe.
     it('no debería apartar un número', async () => {
         // Arrange
-        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo: 201, id_cliente } };
+        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo: 999999, id_cliente } };
 
         // Act
         await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
         const error = mockNext.mock.calls[0][0];
 
         // Assert
-        expect(error.message).toBe("No se encontró el sorteo con ID: 201.");
+        expect(error.message).toBe(`No se encontró el sorteo con ID: ${999999}.`);
     });
 
     //APN-011: Probar que no se pueda apartar un número que no tiene dueño.
     it('no debería apartar un número', async () => {
         // Arrange
-        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo, id_cliente: 201 } };
+        const mockReq = { body: { numeros: [71, 71, 73], id_sorteo, id_cliente: 99999 } };
 
         // Act
         await numerosController.apartarNumeros(mockReq, mockRes, mockNext);
         const error = mockNext.mock.calls[0][0];
 
         // Assert
-        expect(error.message).toBe("No se encontró un cliente con ID: 201.");
+        expect(error.message).toBe(`No se encontró un cliente con ID: ${99999}.`);
     });
 
     //APN-012: Probar que no se pueda apartar un número que ya está apartado.
