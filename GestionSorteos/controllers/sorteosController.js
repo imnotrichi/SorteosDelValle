@@ -131,7 +131,7 @@ class SorteosController {
     async obtenerTableroSorteo(req, res, next) {
         try {
             // Obtenemos el ID del usuario del cuerpo de la solicitud
-            const idUsuario = req.body?.idUsuario;
+            const idUsuario = req.query.idUsuario || req.body?.idUsuario;
             // Obtenemos el ID del sorteo de la URL
             const idSorteo = req.params?.id;
 

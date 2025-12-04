@@ -15,6 +15,8 @@ const getEstadoSorteo = (finPeriodoVenta) => {
 
 const MisSorteos = ({ onNavigate }) => {
   const navigate = useNavigate();
+  const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
+
   const [sorteos, setSorteos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,7 +32,12 @@ const MisSorteos = ({ onNavigate }) => {
       setIsLoading(true);
       setError(null);
       try {
-        const idOrganizador = 1;
+        if (!usuarioLogueado || !usuarioLogueado.idusuario) {
+            throw new Error('No se encontró la sesión del usuario.');
+        }
+
+        const idOrganizador = usuarioLogueado.idusuario; 
+        
         const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/organizador/${idOrganizador}`);
 
         if (!response.ok) {
