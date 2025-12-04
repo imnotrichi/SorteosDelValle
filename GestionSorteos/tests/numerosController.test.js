@@ -169,7 +169,7 @@ describe('apartarNumero (Controller)', () => {
     //APN-014: Probar que no se puedan apartar números de un sorteo finalizado.
     it('no debería apartar los números', async () => {
         // Arrange
-        const mockReq = { body: { numeros: [10], id_sorteo: 61, id_cliente } };
+        const mockReq = { body: { numeros: [11], id_sorteo, id_cliente } };
 
         // Act
         await numerosController.apartarNumeros(mockReq, mockRes, mockNext);

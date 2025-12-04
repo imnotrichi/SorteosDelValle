@@ -76,6 +76,7 @@ class UsuariosController {
             const nacimiento = new Date(fechaNacimiento);
             const hoy = new Date();
             const edad = hoy.getFullYear() - nacimiento.getFullYear();
+            
             // Menor de edad
             if (edad < 18) return next(new AppError('Debes tener al menos 18 años para registrarte.', 400));
 
