@@ -10,6 +10,10 @@ const Inicio = () => {
   const [sorteos, setSorteos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+  const nombreUsuario = usuario.nombres;
+  
   useEffect(() => {
     const fetchSorteosActivos = async () => {
       setIsLoading(true);
@@ -26,7 +30,7 @@ const Inicio = () => {
         const sorteosVisibles = data.filter(sorteo => {
           const fechaInicio = new Date(sorteo.inicio_periodo_venta);
           const fechaFin = new Date(sorteo.fin_periodo_venta);
-          
+
           return fechaInicio <= fechaActual && fechaActual <= fechaFin;
         });
 
@@ -38,8 +42,8 @@ const Inicio = () => {
         setSorteos(dataFormateada);
       } catch (error) {
         console.error("No se pudieron cargar los sorteos ", error);
-        
-        setSorteos([]); 
+
+        setSorteos([]);
       } finally {
         setIsLoading(false);
       }
@@ -60,9 +64,10 @@ const Inicio = () => {
   }
 
   return (
+
     <div className="min-h-screen bg-background-light">
-      <HeaderCliente onNavigate={navigate} userName="Ricardo" />
-      
+      <HeaderCliente onNavigate={navigate} userName={nombreUsuario} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-[32px] font-bold tracking-tight text-text-light mb-8">
           Inicio
