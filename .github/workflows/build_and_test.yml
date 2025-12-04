@@ -15,7 +15,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: default_db   # No importa, luego creamos las que queremos
         ports:
           - 3306:3306
@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x]
-        service: [GestionSorteos, ManejoUsuarios]   # 👈 AGREGADO
+        service: [GestionSorteos, ManejoUsuarios]
 
     steps:
     - uses: actions/checkout@v4
@@ -44,19 +44,16 @@ jobs:
       run: npm ci
       working-directory: ./${{ matrix.service }}
 
-    # 🟦 DROP
     - name: Run Sequelize Drop Database
-      run: npx sequelize-cli db:drop
+      run: npx sequelize-cli db:drop --env test
       working-directory: ./${{ matrix.service }}
 
-    # 🟩 CREATE
     - name: Run Sequelize Create Database
-      run: npx sequelize-cli db:create
+      run: npx sequelize-cli db:create --env test
       working-directory: ./${{ matrix.service }}
 
-    # 🟨 MIGRATIONS
     - name: Run Sequelize Migrations
-      run: npx sequelize-cli db:migrate
+      run: npx sequelize-cli db:migrate --env test
       working-directory: ./${{ matrix.service }}
 
     # 🟥 TESTS
