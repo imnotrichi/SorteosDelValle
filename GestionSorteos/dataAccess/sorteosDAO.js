@@ -19,28 +19,37 @@ class SorteosDAO {
             throw new Error('Se requiere al menos un organizador para crear un sorteo.');
         }
         try {
-            const sorteoCreado = await Sorteo.create(
-                sorteoData,
-                {
-                    include: [{
-                        model: Premio,
-                        as: 'Premios'
-                    },
-                    {
-                        model: OrganizadorSorteo,
-                        as: 'OrganizadorSorteos'
-                    }]
-                }
-            );
+            // Iniciar transacción
+            const t = await sequelize.transaction();
 
-            const sorteo = await this.obtenerSorteoPorId(sorteoCreado.id);
-            return sorteo;
+            try {
+                const sorteoCreado = await Sorteo.create(
+                    sorteoData,
+                    {
+                        include: [
+                            { model: Premio, as: 'Premios' },
+                            { model: OrganizadorSorteo, as: 'OrganizadorSorteos' }
+                        ],
+                        transaction: t
+                    }
+                );
+
+                await t.commit();
+
+                const sorteo = await this.obtenerSorteoPorId(sorteoCreado.id);
+                return sorteo;
+            } catch (error) {
+                // Si falla la creación de premios, se revierte todo
+                await t.rollback();
+                throw error;
+            }
+
         } catch (error) {
             console.log(error);
             throw error;
         }
     }
-
+    
     async obtenerSorteoPorId(id) {
         try {
             const sorteo = await Sorteo.findOne({
@@ -262,15 +271,6 @@ class SorteosDAO {
                     await OrganizadorSorteo.bulkCreate(nuevosRegistros);
                 }
             };
-
-            const nuevosRegistros = OrganizadorSorteos.map(organizador => ({
-                id_sorteo: idSorteo,
-                id_organizador: organizador.id_organizador
-            }));
-
-            if (nuevosRegistros.length > 0) {
-                await OrganizadorSorteo.bulkCreate(nuevosRegistros);
-            }
 
             await sorteoBuscado.update(sorteoData, { new: true });
             const sorteo = await this.obtenerSorteoPorId(idSorteo);

@@ -7,6 +7,7 @@ let configNuevaId;
 let organizadorId1;
 let organizadorId2;
 let datosSorteoBase;
+const id_sorteos = [];
 
 beforeAll(async () => {
     // Insertas una configuración de prueba
@@ -28,7 +29,7 @@ beforeAll(async () => {
         nombres: "Ricardo Alán",
         apellido_paterno: "Gutiérrez",
         apellido_materno: "Garcés",
-        correo: "ricardogutierrez@gmail.com"
+        correo: "victoriagutierrez@gmail.com"
     };
     const usuario1 = await Usuario.create({
         ...datosOrganizador1
@@ -74,16 +75,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
     // Eliminar organizadores y usuarios creados
-    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId1 } });
-    await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId2 } });
-    await Organizador.destroy({ where: { id_usuario: organizadorId1 } });
-    await Organizador.destroy({ where: { id_usuario: organizadorId2 } });
-    await Usuario.destroy({ where: { id: organizadorId1 } });
-    await Usuario.destroy({ where: { id: organizadorId2 } });
-    await Premio.destroy({ where: {} });
-    await Sorteo.destroy({ where: {} });
-    await Configuracion.destroy({ where: { id: configGlobalId } });
-    await Configuracion.destroy({ where: { id: configNuevaId } });
+    await OrganizadorSorteo.destroy({ where: { id_organizador: [organizadorId1, organizadorId2] } });
+    await Organizador.destroy({ where: { id_usuario: [organizadorId1, organizadorId2] } });
+    await Usuario.destroy({ where: { id: [organizadorId1, organizadorId2] } });
+    await Sorteo.destroy({ where: { id: id_sorteos } });
+    await Configuracion.destroy({ where: { id: [configGlobalId, configNuevaId] } });
 });
 
 function deepClone(obj) {
@@ -99,6 +95,7 @@ describe('crearSorteo (DAO)', () => {
 
         // Act
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
 
         // Assert
         expect(sorteoCreado).toHaveProperty('id');
@@ -109,7 +106,7 @@ describe('crearSorteo (DAO)', () => {
         expect(new Date(sorteoCreado.inicio_periodo_venta)).toEqual(new Date(datosSorteo.inicio_periodo_venta));
         expect(new Date(sorteoCreado.fin_periodo_venta)).toEqual(new Date(datosSorteo.fin_periodo_venta));
         expect(new Date(sorteoCreado.fecha_realizacion)).toEqual(new Date(datosSorteo.fecha_realizacion));
-        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
         expect(sorteoCreado.id_configuracion).toBe(configGlobalId);
     });
 
@@ -128,6 +125,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta la descripción', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 3 - DAO";
         delete datosSorteoIncompleto.descripcion;
 
         // Act + Assert
@@ -139,6 +137,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta la imagen', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 4 - DAO";
         delete datosSorteoIncompleto.imagen_url;
 
         // Act + Assert
@@ -150,6 +149,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el rango de números', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 5 - DAO";
         delete datosSorteoIncompleto.rango_numeros;
 
         // Act + Assert
@@ -161,6 +161,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el inicio de periodo de venta', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 6 - DAO";
         delete datosSorteoIncompleto.inicio_periodo_venta;
 
         // Act + Assert
@@ -172,6 +173,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el fin de periodo de venta', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 7 - DAO";
         delete datosSorteoIncompleto.fin_periodo_venta;
 
         // Act + Assert
@@ -183,6 +185,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta la fecha de realización', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 8 - DAO";
         delete datosSorteoIncompleto.fecha_realizacion;
 
         // Act + Assert
@@ -194,6 +197,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el precio por número', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 9 - DAO";
         delete datosSorteoIncompleto.precio_numero;
 
         // Act + Assert
@@ -205,6 +209,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el ID de configuración', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 10 - DAO";
         delete datosSorteoIncompleto.id_configuracion;
 
         // Act + Assert
@@ -228,6 +233,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si faltan los datos del premio', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 12 - DAO";
         datosSorteoIncompleto.Premios = [];
 
         // Act + Assert
@@ -239,6 +245,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta el título del premio', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 13 - DAO";
         delete datosSorteoIncompleto.Premios[0].titulo;
 
         // Act + Assert
@@ -250,11 +257,12 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo si falta la imagen del premio', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 14 - DAO";
         delete datosSorteoIncompleto.Premios[0].imagen_premio_url;
 
         // Act + Assert
         await expect(sorteosDAO.crearSorteo(datosSorteoIncompleto))
-            .rejects.toThrow("Validation error");
+            .rejects.toThrow("Field 'imagen_premio_url' doesn't have a default value");
     });
 
     // Prueba 15: Intentar crear un sorteo con el título duplicado
@@ -266,7 +274,8 @@ describe('crearSorteo (DAO)', () => {
         datosSorteo2.titulo = "Sorteo 15 - DAO";
 
         // Act
-        await sorteosDAO.crearSorteo(datosSorteo1);
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo1);
+        id_sorteos.push(sorteoCreado.id);
 
         // Assert
         await expect(sorteosDAO.crearSorteo(datosSorteo2)).rejects.toThrow();
@@ -281,6 +290,7 @@ describe('crearSorteo (DAO)', () => {
 
         // Act
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
 
         // Assert
         expect(sorteoCreado).toHaveProperty('id');
@@ -291,13 +301,14 @@ describe('crearSorteo (DAO)', () => {
         expect(new Date(sorteoCreado.inicio_periodo_venta)).toEqual(new Date(datosSorteo.inicio_periodo_venta));
         expect(new Date(sorteoCreado.fin_periodo_venta)).toEqual(new Date(datosSorteo.fin_periodo_venta));
         expect(new Date(sorteoCreado.fecha_realizacion)).toEqual(new Date(datosSorteo.fecha_realizacion));
-        expect(sorteoCreado.precio_numero).toBe(datosSorteo.precio_numero);
+        expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
     });
 
     // Prueba 17: Intentar crear un sorteo sin organizadores
     it('no debería crear un sorteo sin los datos de los organizadores', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 17 - DAO";
         delete datosSorteoIncompleto.OrganizadorSorteos;
 
         // Act + Assert
@@ -310,6 +321,7 @@ describe('crearSorteo (DAO)', () => {
     it('no debería crear un sorteo sin los datos de los organizadores', async () => {
         // Arrange
         const datosSorteoIncompleto = deepClone(datosSorteoBase);
+        datosSorteoIncompleto.titulo = "Sorteo 18 - DAO";
         datosSorteoIncompleto.OrganizadorSorteos = [];
 
         // Act + Assert
@@ -327,6 +339,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo - GST-01";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosSorteoActualizado = {
             "descripcion": "Descripción del sorteo actualizado - DAO.",
             "imagen_url": "http:imagenes.com/sorteoactualizado-dao",
@@ -358,6 +371,7 @@ describe('actualizarSorteo (DAO)', () => {
         datosSorteo.titulo = "Sorteo GST-002";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
         const datosActualizados = { descripcion: "Descripción actualizada - DAO" };
+        id_sorteos.push(sorteoCreado.id);
 
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
 
@@ -369,6 +383,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo GST-003";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosActualizados = { imagen_url: "http:imagenes.com/sorteoactualizado-dao" };
 
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
@@ -381,6 +396,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo GST-004";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosActualizados = { rango_numeros: 150 };
 
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
@@ -393,6 +409,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo GST-005";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosActualizados = { inicio_periodo_venta: "2025-12-07" };
 
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
@@ -406,6 +423,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo GST-006";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosActualizados = { fin_periodo_venta: "2025-12-24" };
 
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
@@ -419,6 +437,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo GST-007";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosActualizados = { fecha_realizacion: "2025-12-25" };
 
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
@@ -432,6 +451,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo GST-008";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosActualizados = { id_configuracion: configNuevaId };
 
         const sorteoActualizado = await sorteosDAO.actualizarSorteo(sorteoCreado.id, datosActualizados);
@@ -444,6 +464,7 @@ describe('actualizarSorteo (DAO)', () => {
         const datosSorteo = deepClone(datosSorteoBase);
         datosSorteo.titulo = "Sorteo GST-009";
         const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        id_sorteos.push(sorteoCreado.id);
         const datosActualizados = {
             OrganizadorSorteos: [{ id_organizador: organizadorId2 }]
         };
