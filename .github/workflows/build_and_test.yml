@@ -32,7 +32,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [22.x]
         service: [GestionSorteos, ManejoUsuarios]
 
     steps:
@@ -58,7 +58,7 @@ jobs:
     - name: Run Sequelize Create Database
       run: npx sequelize-cli db:create 
       working-directory: ./${{ matrix.service }}
-      
+
     # Nuevo Paso: Ejecutar Migraciones de Base de Datos
     - name: Run Sequelize Migrations
       run: npx sequelize-cli db:migrate 
