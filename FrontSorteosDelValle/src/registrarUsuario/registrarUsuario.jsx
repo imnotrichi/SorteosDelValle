@@ -50,11 +50,15 @@ const RegistrarUsuario = () => {
     };
 
     const calculateAge = (birthDateString) => {
-        const birthDate = new Date(birthDateString);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        if (!birthDateString) return 0;
+        const [year, month, day] = birthDateString.split('-').map(Number);
+        const birthDate = new Date(year, month - 1, day);
+        const todayDate = new Date();
+        
+        let age = todayDate.getFullYear() - birthDate.getFullYear();
+        const m = todayDate.getMonth() - birthDate.getMonth();
+        
+        if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
             age--;
         }
         return age;
