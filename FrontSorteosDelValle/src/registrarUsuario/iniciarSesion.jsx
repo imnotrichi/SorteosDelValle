@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo1.png';
 import ErrorModal from '../components/mensajeError';
 import SuccessModal from '../components/mensajeExito';
+import { useAuth } from './AuthContext';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
+
 const IniciarSesion = () => {
   const navigate = useNavigate();
+  const { login } = useAuth()
 
   const [formData, setFormData] = useState({
     correo: '',
@@ -97,34 +100,41 @@ const IniciarSesion = () => {
       });
 
       const data = await response.json();
-      console.log(data)
       setIsLoading(true);
       if (!response.ok) {
-        let msg = data.message || 'No se pudo iniciar sesión.';
 
-        if (msg.includes("correo") && (msg.includes("incorrectos") || msg.includes("uso") || msg.includes("Duplicate"))) {
-          msg = "Correo o contraseña incorrectos";
+        if (response.status === 400 || response.status === 401 || response.status === 404) {
+          throw new Error("Correo o contraseña incorrectos.");
         }
-        //} else if (msg.includes("teléfono") && (msg.includes("registrado") || msg.includes("uso") || msg.includes("Duplicate"))) {
-        //  msg = "Este número de teléfono ya está asociado a otra cuenta, ingrese otro número o inicie sesión.";
-        //}
+        throw new Error("Ocurrió un problema con el servicio. Intenta más tarde.");
 
-        throw new Error(msg);
+      }
+      const usuario = {
+        idusuario: data.id_usuario,
+        correo: data.correo,
+        nombres: data.nombres,
+        tipoUsuario: data.tipoUsuario
+      }
+
+      //localStorage.setItem('token', data.token);
+      //localStorage.setItem('usuario', JSON.stringify(usuario));
+
+      login(usuario, data.token)
+
+    } catch (error) {
+
+      let friendlyMessage = "Ocurrió un error inesperado";
+      if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
+        friendlyMessage = "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
+      }
+
+      else if (error.message === "Correo o contraseña incorrectos." || error.message === "Ocurrió un problema con el servicio. Intenta más tarde.") {
+        friendlyMessage = error.message;
 
       }
 
-      //setShowSuccessModal(true);
-      console.log('Iniciando sesión:', data);
-      navigate('/');
-
-
-    } catch (error) {
-      console.error('Error de registro:', error.message);
-
-      console.log(error.message)
-      let friendlyMessage = error.message;
-      if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
-        friendlyMessage = "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
+      else {
+        friendlyMessage = "No se pudo iniciar sesión. Por favor intenta nuevamente.";
       }
 
       setErrorMessage(friendlyMessage);
