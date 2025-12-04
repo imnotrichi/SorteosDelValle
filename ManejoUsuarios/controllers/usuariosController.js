@@ -80,7 +80,7 @@ class UsuariosController {
             // Menor de edad
             if (edad < 18 || edad > 120) return next(new AppError('Debes tener al menos 18 años para registrarte.', 400));
             // Mayor de edad
-            if (edad > 120) return next(new AppError('Favor de introducir una edad válida.', 400));
+            if (edad > 122) return next(new AppError('Favor de introducir una edad válida.', 400));
 
             // Correo duplicado
             if (await usuariosDAO.obtenerUsuarioPorCorreo(correo)) return next(new AppError('El correo proporcionado ya está en uso.', 400));

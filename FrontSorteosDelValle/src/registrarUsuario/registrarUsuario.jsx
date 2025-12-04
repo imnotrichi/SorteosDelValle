@@ -37,21 +37,28 @@ const RegistrarUsuario = () => {
     const today = new Date().toISOString().split('T')[0];
 
     const validatePassword = (password) => {
-        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-=+.?]).{10,}$/;
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-=+.?]).{10,}$/;
         return regex.test(password);
     };
 
     const validateEmailFormat = (email) => {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
+        const basicRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        const consecutiveSpecialChars = /[._-]{2,}/;
+
+        return basicRegex.test(email) && !consecutiveSpecialChars.test(email);
     };
 
     const calculateAge = (birthDateString) => {
-        const birthDate = new Date(birthDateString);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        if (!birthDateString) return 0;
+        const [year, month, day] = birthDateString.split('-').map(Number);
+        const birthDate = new Date(year, month - 1, day);
+        const todayDate = new Date();
+        
+        let age = todayDate.getFullYear() - birthDate.getFullYear();
+        const m = todayDate.getMonth() - birthDate.getMonth();
+        
+        if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
             age--;
         }
         return age;
@@ -67,13 +74,13 @@ const RegistrarUsuario = () => {
             contrasenia: formData.contrasenia.trim()
         };
 
-        if (dataToSend.nombres.length < 2 || dataToSend.apellidoPaterno.length < 2 || dataToSend.apellidoMaterno.length < 2) {
+        if (dataToSend.nombres.length < 2 || dataToSend.apellidoPaterno.length < 2) {
             setErrorMessage("Los nombres y apellidos deben tener al menos 2 caracteres.");
             setShowErrorModal(true);
             return;
         }
 
-        if (!dataToSend.contrasenia || !dataToSend.correo || !dataToSend.nombres || !formData.fechaNacimiento || !formData.telefono) {
+        if (!dataToSend.contrasenia || !dataToSend.correo || !dataToSend.nombres || !dataToSend.apellidoPaterno || !formData.fechaNacimiento || !formData.telefono) {
             setErrorMessage("Por favor completa los campos obligatorios.");
             setShowErrorModal(true);
             return;
@@ -89,6 +96,12 @@ const RegistrarUsuario = () => {
         const edad = calculateAge(formData.fechaNacimiento);
         if (edad < 18) {
             setErrorMessage("Debes ser mayor de 18 años para registrarte.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        if (edad > 122) {
+            setErrorMessage("Ingresa una fecha de nacimiento válida.");
             setShowErrorModal(true);
             return;
         }
@@ -124,28 +137,41 @@ const RegistrarUsuario = () => {
                 body: JSON.stringify(dataToSend),
             });
 
-            const data = await response.json();
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (e) {
+            }
 
             if (!response.ok) {
-                let msg = data.message || 'No se pudo completar el registro.';
+                const msgBackend = (data.message || '').toLowerCase();
 
-                if (msg.includes("correo") && (msg.includes("registrado") || msg.includes("uso") || msg.includes("Duplicate"))) {
-                    msg = "Este correo electrónico ya se encuentra registrado, ingrese otro correo o inicie sesión.";
-                } else if (msg.includes("teléfono") && (msg.includes("registrado") || msg.includes("uso") || msg.includes("Duplicate"))) {
-                    msg = "Este número de teléfono ya está asociado a otra cuenta, ingrese otro número o inicie sesión.";
+                if (msgBackend.includes("correo") || msgBackend.includes("email")) {
+                    throw new Error("DUPLICATE_EMAIL");
+                }
+                if (msgBackend.includes("teléfono") || msgBackend.includes("telefono")) {
+                    throw new Error("DUPLICATE_PHONE");
+                }
+                if (response.status === 400) {
+                    throw new Error("INVALID_DATA");
                 }
 
-                throw new Error(msg);
+                throw new Error("SERVER_ERROR");
             }
 
             setShowSuccessModal(true);
 
         } catch (error) {
-            console.error('Error de registro:', error);
+            let friendlyMessage = "No se pudo completar el registro. Por favor, inténtalo de nuevo más tarde.";
 
-            let friendlyMessage = error.message;
             if (error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
-                friendlyMessage = "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
+                friendlyMessage = "Parece que ha habido un problema, inténtalo de nuevo más tarde.";
+            } else if (error.message === "DUPLICATE_EMAIL") {
+                friendlyMessage = "El correo electrónico ingresado se encuentra en uso, inicia sesión o ingresa un correo diferente.";
+            } else if (error.message === "DUPLICATE_PHONE") {
+                friendlyMessage = "El número de teléfono ingresado se encuentra en uso, inicia sesión o ingresa un teléfono diferente.";
+            } else if (error.message === "INVALID_DATA") {
+                friendlyMessage = "Llena todos los campos de la manera solicitada.";
             }
 
             setErrorMessage(friendlyMessage);
@@ -164,7 +190,7 @@ const RegistrarUsuario = () => {
         const { name, value } = event.target;
 
         if (['nombres', 'apellidoPaterno', 'apellidoMaterno'].includes(name)) {
-            if (value !== '' && !/^[a-zA-Z\u00C0-\u00FF\s]+$/.test(value)) {
+            if (value !== '' && !/^[a-zA-Z\u00C0-\u00FF\s-]+$/.test(value)) {
                 return;
             }
         }

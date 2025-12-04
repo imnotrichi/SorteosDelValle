@@ -23,13 +23,6 @@ const HeaderRegistro = () => {
               >
                 Iniciar sesión
               </button>
-
-              <button 
-                onClick={() => navigate('/registrar-usuario')}
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Registrarse
-              </button>
             </nav>
 
           </div>
