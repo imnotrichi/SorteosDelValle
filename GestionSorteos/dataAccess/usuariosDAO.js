@@ -50,13 +50,12 @@ class UsuariosDAO {
                 defaults: {
                     nombres: datosUsuario.nombres,
                     apellido_paterno: datosUsuario.apellido_paterno,
-                    apellido_materno: datosUsuario.apellido_materno,
-                    contrasenia: 'REPLICADO_EXTERNO', 
-                    telefono: datosUsuario.telefono || '0000000000' 
+                    apellido_materno: datosUsuario.apellido_materno || '', 
                 }
             });
             return usuario;
         } catch (error) {
+            console.error("Error al replicar usuario en BD local:", error);
             throw error;
         }
     }
