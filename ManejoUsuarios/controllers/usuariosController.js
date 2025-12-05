@@ -96,7 +96,7 @@ class UsuariosController {
                 correo: correo,
                 contrasenia: contraseniaEncriptada,
                 telefono: telefono,
-                fecha_nacimiento: new Date(fechaNacimiento)
+                fecha_nacimiento: fechaNacimiento
             }
 
             await usuariosDAO.registrarCliente(clienteData);
