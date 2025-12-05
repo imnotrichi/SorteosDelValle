@@ -32,13 +32,13 @@ const MisSorteos = ({ onNavigate }) => {
       setIsLoading(true);
       setError(null);
       try {
-        if (!usuarioLogueado || !usuarioLogueado.idusuario) {
+        if (!usuarioLogueado || !usuarioLogueado.correo) {
             throw new Error('No se encontró la sesión del usuario.');
         }
 
         const idOrganizador = usuarioLogueado.idusuario; 
         
-        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/organizador/${idOrganizador}`);
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/propios?correo=${usuarioLogueado.correo}`);
 
         if (!response.ok) {
           const errData = await response.json();

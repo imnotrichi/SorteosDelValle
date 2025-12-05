@@ -19,6 +19,7 @@ class SorteosController {
         this.obtenerSorteosFinalizados = this.obtenerSorteosFinalizados.bind(this);
         this.actualizarSorteo = this.actualizarSorteo.bind(this);
         this.eliminarSorteo = this.eliminarSorteo.bind(this);
+        this.obtenerSorteosPropios = this.obtenerSorteosPropios.bind(this);
     }
 
     async crearSorteo(req, res, next) {
@@ -506,6 +507,36 @@ class SorteosController {
             res.status(200).json('Se eliminió el sorteo correctamente.');
         } catch (error) {
             next(new AppError('Ocurrió un error al eliminar el sorteo.', 500));
+        }
+    }
+
+    async obtenerSorteosPropios(req, res, next) {
+        try {
+            const { correo } = req.query;
+
+            if (!correo) {
+                return next(new AppError('Se requiere el correo para buscar los sorteos.', 400));
+            }
+
+            const usuarioLocal = await usuariosDAO.obtenerUsuarioPorCorreo(correo);
+
+            if (!usuarioLocal) {
+                return res.status(200).json([]);
+            }
+
+            const sorteos = await sorteosDAO.obtenerSorteosPorOrganizador(usuarioLocal.id);
+
+            let respuestaJSON = [];
+            for (const sorteo of sorteos) {
+                const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteo.id);
+                respuestaJSON.push(this.#formatearJsonSorteo(sorteo, numerosExist.length));
+            }
+
+            res.status(200).json(respuestaJSON);
+
+        } catch (error) {
+            console.error(error);
+            next(new AppError('Error al obtener los sorteos propios.', 500));
         }
     }
 
