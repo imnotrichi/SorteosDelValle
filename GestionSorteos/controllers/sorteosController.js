@@ -114,7 +114,7 @@ class SorteosController {
             } else if (!global && (configuracionData.tiempo_limite_apartado && configuracionData.tiempo_recordatorio_pago)) {
                 configuracion = await configuracionesDAO.crearConfiguracion(configuracionData);
             } else {
-                return next(new AppError('Todos los campos de configuración son requeridos.', 400));
+                return next(new AppError('Todos los campos son requeridos.', 400));
             }
 
             for (const premio of premiosData) {
