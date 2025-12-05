@@ -42,6 +42,24 @@ class UsuariosDAO {
             throw error;
         }
     }
+
+    async crearUsuarioReplicado(datosUsuario) {
+        try {
+            const [usuario, created] = await Usuario.findOrCreate({
+                where: { correo: datosUsuario.correo },
+                defaults: {
+                    nombres: datosUsuario.nombres,
+                    apellido_paterno: datosUsuario.apellido_paterno,
+                    apellido_materno: datosUsuario.apellido_materno,
+                    contrasenia: 'REPLICADO_EXTERNO', 
+                    telefono: datosUsuario.telefono || '0000000000' 
+                }
+            });
+            return usuario;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = new UsuariosDAO();

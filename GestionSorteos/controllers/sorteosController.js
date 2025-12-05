@@ -96,11 +96,39 @@ class SorteosController {
             }
 
             const organizadores = [];
+            const USUARIOS_SERVICE_URL = process.env.USUARIOS_SERVICE_URL || 'http://localhost:3001';
+            
             for (let i = 0; i < organizadoresData.length; i++) {
-                const organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(organizadoresData[i].correo);
+                const correoOrg = organizadoresData[i].correo;
+                
+                let organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrg);
+
                 if (!organizadorObtenido) {
-                    return next(new AppError(`El correo del organizador '${organizadoresData[i].correo}' no se encuentra registrado.`, 400));
+                    console.log(`Usuario ${correoOrg} no encontrado localmente. Iniciando sincronización...`);
+                    
+                    try {
+                        const response = await fetch(`${USUARIOS_SERVICE_URL}/api/usuarios/sincronizar?correo=${correoOrg}`);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.ok && data.usuario) {
+                                organizadorObtenido = await usuariosDAO.crearUsuarioReplicado(data.usuario);
+                                console.log(`Usuario ${correoOrg} replicado exitosamente con ID: ${organizadorObtenido.id}`);
+                            }
+                        } else {
+                            console.warn(`El servicio de usuarios respondió ${response.status} para ${correoOrg}`);
+                        }
+                    } catch (err) {
+                        console.error("Error de comunicación con ManejoUsuarios:", err.message);
+                    }
                 }
+
+                if (!organizadorObtenido) {
+                    return next(new AppError(`El correo del organizador '${correoOrg}' no se encuentra registrado en el sistema.`, 400));
+                }
+
+                await organizadoresDAO.registrarOrganizador(organizadorObtenido.id);
+
                 organizadores.push({ id_organizador: organizadorObtenido.id });
             }
 
