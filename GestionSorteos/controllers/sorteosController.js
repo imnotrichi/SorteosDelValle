@@ -119,7 +119,7 @@ class SorteosController {
 
             for (const premio of premiosData) {
                 if (!premio.titulo || !premio.imagen_premio_url) {
-                    return next(new AppError('Todos los campos de premios son requeridos.', 400));
+                    return next(new AppError('Todos los campos son requeridos.', 400));
                 }
             }
 
