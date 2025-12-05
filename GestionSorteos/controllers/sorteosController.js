@@ -71,24 +71,7 @@ class SorteosController {
             if (!Array.isArray(organizadoresData) || organizadoresData.length === 0) {
                 return next(new AppError('Debe haber al menos un organizador para el sorteo.', 400));
             }
-
-            const { global, correoOrganizador } = configuracionData;
-            let configuracion;
-            if (global) {
-                const organizador = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrganizador);
-                if (!organizador) {
-                    return next(new AppError('No hay un organizador registrado con ese correo.', 400));
-                }
-                configuracion = await configuracionesDAO.obtenerConfiguracionGlobalOrganizador(organizador.id);
-                if (!configuracion) {
-                    configuracion = await configuracionesDAO.obtenerConfiguracionGlobal();
-                }
-            } else if (!global && (configuracionData.tiempo_limite_apartado && configuracionData.tiempo_recordatorio_pago)) {
-                configuracion = await configuracionesDAO.crearConfiguracion(configuracionData);
-            } else {
-                return next(new AppError('Todos los campos son requeridos.', 400));
-            }
-
+            
             for (const premio of premiosData) {
                 if (!premio.titulo || !premio.imagen_premio_url) {
                     return next(new AppError('Todos los campos son requeridos.', 400));
@@ -96,7 +79,7 @@ class SorteosController {
             }
 
             const organizadores = [];
-            const USUARIOS_SERVICE_URL = process.env.USUARIOS_SERVICE_URL || 'http://localhost:3001';
+            const USUARIOS_SERVICE_URL = process.env.USUARIOS_SERVICE_URL || 'http://127.0.0.1:3001';
             
             for (let i = 0; i < organizadoresData.length; i++) {
                 const correoOrg = organizadoresData[i].correo;
@@ -132,6 +115,25 @@ class SorteosController {
                 organizadores.push({ id_organizador: organizadorObtenido.id });
             }
 
+            const { global, correoOrganizador } = configuracionData;
+            let configuracion;
+            if (global) {
+                const organizador = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrganizador);
+                
+                if (!organizador) {
+                    return next(new AppError('No hay un organizador registrado con ese correo.', 400));
+                }
+                
+                configuracion = await configuracionesDAO.obtenerConfiguracionGlobalOrganizador(organizador.id);
+                if (!configuracion) {
+                    configuracion = await configuracionesDAO.obtenerConfiguracionGlobal();
+                }
+            } else if (!global && (configuracionData.tiempo_limite_apartado && configuracionData.tiempo_recordatorio_pago)) {
+                configuracion = await configuracionesDAO.crearConfiguracion(configuracionData);
+            } else {
+                return next(new AppError('Todos los campos de configuración son requeridos.', 400));
+            }
+
             const sorteoData = {
                 titulo,
                 descripcion,
@@ -146,7 +148,7 @@ class SorteosController {
                 OrganizadorSorteos: organizadores
             }
 
-            console.log("Llegamos aquí jeje");
+            console.log("Creando sorteo...");
             const sorteoCreado = await sorteosDAO.crearSorteo(sorteoData);
             const respuestaJSON = this.#formatearJsonSorteo(sorteoCreado, false);
             res.status(200).json(respuestaJSON);
