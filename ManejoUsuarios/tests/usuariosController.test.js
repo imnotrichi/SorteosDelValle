@@ -708,28 +708,28 @@ describe('Registrar Usuario', async () => {
         expect(mockNext.mock.calls[0][0].message).toBe('La fecha de nacimiento no es válida.');
     });
 
-    // //RGU-031. Verificar que el sistema indique que el usuario no puede tener más de 100 años.
-    // it('Debería alertar que el usuario no puede tener más de 100 años y responder con 400.', async () => {
-    //      //Arrange
-    //     const datosUsuario = {
-    //         nombres: "Ricardo",
-    //         apellidoPaterno: "Gutiérrez",
-    //         apellidoMaterno: "Garcés",
-    //         correo: "ricardogtz@gmail.com",
-    //         contrasenia: "123456789_Rg",
-    //         telefono: "6442456789",
-    //         fechaNacimiento: "1900-03-21"
-    //     }
-    //     const mockReq = { body: datosUsuario }
+    //RGU-031. Verificar que el sistema indique que el usuario no puede tener más de 120 años.
+    it('Debería alertar que el usuario no puede tener más de 120 años y responder con 400.', async () => {
+         //Arrange
+        const datosUsuario = {
+            nombres: "Ricardo",
+            apellidoPaterno: "Gutiérrez",
+            apellidoMaterno: "Garcés",
+            correo: "ricardogtz@gmail.com",
+            contrasenia: "123456789_Rg",
+            telefono: "6442456789",
+            fechaNacimiento: "1904-03-21"
+        }
+        const mockReq = { body: datosUsuario }
 
-    //     //Act
-    //     await usuariosController.registrarUsuario(mockReq, mockRes, mockNext);
+        //Act
+        await usuariosController.registrarUsuario(mockReq, mockRes, mockNext);
 
-    //     //Assert
-    //     expect(mockNext).toHaveBeenCalled();
-    //     expect(mockNext.mock.calls[0][0].statusCode).toBe(400);
-    //     expect(mockNext.mock.calls[0][0].message).toBe('Debes tener al menos 18 años para registrarte.');
-    // });
+        //Assert
+        expect(mockNext).toHaveBeenCalled();
+        expect(mockNext.mock.calls[0][0].statusCode).toBe(400);
+        expect(mockNext.mock.calls[0][0].message).toBe('Debes tener al menos 18 años para registrarte.');
+    });
 
     //RGU-032. Verificar que el sistema no permita ingresar nombres de más de 100 caracteres
     it("Debería alertar que el nombre no puede tener más de 100 caracteres' y responder con 400.", async () => {
