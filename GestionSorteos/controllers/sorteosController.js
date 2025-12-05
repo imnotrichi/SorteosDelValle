@@ -89,7 +89,7 @@ class SorteosController {
                 }
 
                 if (!organizadorObtenido) {
-                    return next(new AppError(`El correo del organizador '${correoOrg}' no se encuentra registrado en el sistema.`, 400));
+                    return next(new AppError(`El correo del organizador '${correoOrg}' no se encuentra registrado.`, 400));
                 }
 
                 await organizadoresDAO.registrarOrganizador(organizadorObtenido.id);
