@@ -8,7 +8,7 @@ router.get('/buscar', sorteosController.obtenerSorteoPorTitulo);
 router.get('/activos', sorteosController.obtenerSorteosActivos);
 router.get('/finalizados', sorteosController.obtenerSorteosFinalizados);
 router.get('/organizador/:id', sorteosController.obtenerSorteosPorOrganizador);
-router.get('/tablero/:id', sorteosController.obtenerTableroSorteo);
+router.get('/tablero/:id/usuario/:idUsuario', sorteosController.obtenerTableroSorteo);
 router.get('/:id', sorteosController.obtenerSorteoPorId);
 router.put('/:id', sorteosController.actualizarSorteo);
 router.delete('/:id', sorteosController.eliminarSorteo);

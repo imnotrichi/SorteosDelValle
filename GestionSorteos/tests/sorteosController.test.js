@@ -1179,7 +1179,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
-        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: organizadorId1 } };
+        mockReq = { params: { id: sorteoCreado.id, idUsuario: organizadorId1 } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -1217,7 +1217,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
 
-        mockReq = { params: { id: sorteoCreado.id }, body: {} };
+        mockReq = { params: { id: sorteoCreado.id } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -1241,7 +1241,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
 
-        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: "1abc" } };
+        mockReq = { params: { id: sorteoCreado.id, idUsuario: "1abc" } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -1264,7 +1264,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
-        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: 99999 } };
+        mockReq = { params: { id: sorteoCreado.id, idUsuario: 99999 } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -1288,7 +1288,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
 
-        mockReq = { body: { idUsuario: organizadorId1 } };
+        mockReq = { params: { idUsuario: organizadorId1 } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -1312,7 +1312,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
 
-        mockReq = { params: { id: `${sorteoCreado.id}abc` }, body: { idUsuario: organizadorId1 } };
+        mockReq = { params: { id: `${sorteoCreado.id}abc`, idUsuario: organizadorId1 } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -1335,7 +1335,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
-        mockReq = { params: { id: 99999 }, body: { idUsuario: organizadorId1 } };
+        mockReq = { params: { id: 99999, idUsuario: organizadorId1 } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
@@ -1358,7 +1358,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
-        mockReq = { params: { id: sorteoCreado.id }, body: { idUsuario: organizadorId2 } };
+        mockReq = { params: { id: sorteoCreado.id, idUsuario: organizadorId2 } };
         ({ mockRes, mockNext } = setupMocks());
 
         // Act
