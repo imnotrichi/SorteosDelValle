@@ -8,6 +8,7 @@ class UsuariosController {
     constructor() {
         this.registrarUsuario = this.registrarUsuario.bind(this);
         this.iniciarSesion = this.iniciarSesion.bind(this);
+        this.obtenerUsuarioParaSincronizacion = this.obtenerUsuarioParaSincronizacion.bind(this);
     }
 
     async registrarUsuario(req, res, next) {
@@ -165,6 +166,36 @@ class UsuariosController {
         const saltRounds = 10;   // Nivel estándar de seguridad
         const hash = await bcrypt.hash(contrasenia, saltRounds);
         return hash;
+    }
+
+    async obtenerUsuarioParaSincronizacion(req, res, next) {
+        try {
+            const { correo } = req.query;
+            
+            if (!correo) {
+                return next(new AppError('El parámetro correo es requerido.', 400));
+            }
+
+            const usuario = await usuariosDAO.obtenerUsuarioPorCorreo(correo);
+
+            if (!usuario) {
+                return next(new AppError('Usuario no encontrado.', 404));
+            }
+
+            res.status(200).json({
+                ok: true,
+                usuario: {
+                    nombres: usuario.nombres,
+                    apellido_paterno: usuario.apellido_paterno,
+                    apellido_materno: usuario.apellido_materno,
+                    correo: usuario.correo,
+                    telefono: usuario.telefono,
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            next(new AppError('Error interno al buscar usuario para sincronización', 500));
+        }
     }
 
     #esCorreoValido(correo) {

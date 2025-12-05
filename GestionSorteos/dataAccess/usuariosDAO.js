@@ -42,6 +42,23 @@ class UsuariosDAO {
             throw error;
         }
     }
+
+    async crearUsuarioReplicado(datosUsuario) {
+        try {
+            const [usuario, created] = await Usuario.findOrCreate({
+                where: { correo: datosUsuario.correo },
+                defaults: {
+                    nombres: datosUsuario.nombres,
+                    apellido_paterno: datosUsuario.apellido_paterno,
+                    apellido_materno: datosUsuario.apellido_materno || '', 
+                }
+            });
+            return usuario;
+        } catch (error) {
+            console.error("Error al replicar usuario en BD local:", error);
+            throw error;
+        }
+    }
 }
 
 module.exports = new UsuariosDAO();

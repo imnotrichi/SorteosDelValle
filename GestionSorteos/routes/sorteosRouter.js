@@ -7,6 +7,7 @@ router.post('/', sorteosController.crearSorteo);
 router.get('/buscar', sorteosController.obtenerSorteoPorTitulo);
 router.get('/activos', sorteosController.obtenerSorteosActivos);
 router.get('/finalizados', sorteosController.obtenerSorteosFinalizados);
+router.get('/propios', sorteosController.obtenerSorteosPropios);
 router.get('/organizador/:id', sorteosController.obtenerSorteosPorOrganizador);
 router.get('/tablero/:id/usuario/:idUsuario', sorteosController.obtenerTableroSorteo);
 router.get('/:id', sorteosController.obtenerSorteoPorId);

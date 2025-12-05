@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.post('/registrar', usuariosController.registrarUsuario);
 router.post('/login', usuariosController.iniciarSesion);
+router.get('/sincronizar', usuariosController.obtenerUsuarioParaSincronizacion);
 
 module.exports = router;
