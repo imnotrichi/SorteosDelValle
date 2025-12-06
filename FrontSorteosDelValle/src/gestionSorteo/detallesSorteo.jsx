@@ -30,11 +30,20 @@ const DetallesSorteo = () => {
       setIsloading(true);
       setError(null);
       try {
-        if (!usuarioLogueado || !usuarioLogueado.idusuario) {
-          throw new Error("No se identificó al usuario organizador.");
+        if (!usuarioLogueado || !usuarioLogueado.correo) {
+          throw new Error("No se identificó la sesión del usuario.");
         }
 
-        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}?idUsuario=${usuarioLogueado.idusuario}`, {
+        const respId = await fetch(`${API_GATEWAY_URL}/api/sorteos/usuarios/id?correo=${encodeURIComponent(usuarioLogueado.correo)}`);
+
+        if (!respId.ok) {
+          throw new Error('No se pudo verificar tu cuenta de organizador para este sorteo (ID local no encontrado).');
+        }
+
+        const dataId = await respId.json();
+        const idLocalUsuario = dataId.id;
+
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -48,6 +57,7 @@ const DetallesSorteo = () => {
 
         let data = await response.json();
         setSorteo(data);
+
       } catch (error) {
         console.error('Error al cargar el sorteo:', error);
         setError(error.message);
@@ -116,6 +126,7 @@ const DetallesSorteo = () => {
   const boletosVendidos = sorteoData.numeros_vendidos || 0;
   const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosVendidos;
   const pagoGenerado = boletosVendidos * (parseFloat(sorteoData.precio_numero) || 0);
+  const isActivo = sorteoData.estado === 'Activo';
 
   return (
     <div className="min-h-screen bg-background-light font-display">
@@ -126,18 +137,18 @@ const DetallesSorteo = () => {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/admin/misSorteos')}
-                className="p-2 flex-shrink-0 rounded-full transition-colors hover:bg-black/5"
+                className="p-2 flex-shrink-0 rounded-full transition-colors"
                 aria-label="Volver"
               >
-                <img src={volverIcon} alt="Volver" className="w-8 h-8" />
+                <img src={volverIcon} alt="Volver" className="w-11 h-11" />
               </button>
 
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-text-light">
+                  <h1 className="text-[32px] font-bold text-text-light">
                     {sorteoData.titulo}
                   </h1>
-                  <span className={`px-3 py-1 text-sm font-bold rounded-full ${isActivo ? 'bg-green-300 text-green-900' : 'bg-gray-300 text-gray-800'
+                  <span className={`px-4 py-2 text-xl font-bold rounded-full ${isActivo ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
                     }`}>
                     {sorteoData.estado}
                   </span>
@@ -148,14 +159,38 @@ const DetallesSorteo = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => navigate(`/admin/editar/${idSorteo}`)}
-                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg flex items-center gap-2 font-bold transition-colors shadow-sm text-sm">
-                <span className="material-symbols-outlined text-lg">edit</span>
+                className="px-6 py-2 bg-background-status hover:bg-green-400 text-text-light rounded-lg flex items-center gap-2 font-bold transition-colors shadow-sm text-base">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
                 Editar
               </button>
               <button
                 onClick={handleClickEliminar}
-                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-red-600 rounded-lg flex items-center gap-2 font-bold transition-colors shadow-sm text-sm">
-                <span className="material-symbols-outlined text-lg">delete</span>
+                className="px-6 py-2 bg-red-50 hover:bg-red-300 text-red-600 rounded-lg flex items-center gap-2 font-bold transition-colors border border-red-200 shadow-sm text-base">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
                 Eliminar
               </button>
             </div>
@@ -173,26 +208,26 @@ const DetallesSorteo = () => {
           />
         </div>
 
-        <h2 className="text-xl font-bold text-text-light mb-4 px-1">Estadísticas del Sorteo</h2>
+        <h2 className="text-2xl font-bold text-text-light mb-4 px-1">Tablero de control</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <p className="text-sm font-bold text-gray-400 mb-1">Boletos vendidos</p>
-            <p className="text-3xl font-extrabold text-gray-900">
+            <p className="font-medium text-gray-500 mb-1">Boletos vendidos</p>
+            <p className="text-3xl font-bold text-text-light">
               {sorteoData.boletos_vendidos}
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <p className="text-sm font-bold text-gray-400 mb-1">Boletos apartados</p>
-            <p className="text-3xl font-extrabold text-gray-900">
+            <p className="font-medium text-gray-500 mb-1">Boletos apartados</p>
+            <p className="text-3xl font-bold text-text-light">
               {sorteoData.boletos_apartados}
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <p className="text-sm font-bold text-gray-400 mb-1">Boletos disponibles</p>
-            <p className="text-3xl font-extrabold text-gray-900">
+            <p className="font-medium text-gray-500 mb-1">Boletos disponibles</p>
+            <p className="text-3xl font-bold text-text-light">
               {sorteoData.boletos_disponibles}
             </p>
           </div>
@@ -200,35 +235,51 @@ const DetallesSorteo = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <p className="text-sm font-bold text-gray-400 mb-1">Dinero recaudado</p>
-            <p className="text-3xl font-extrabold text-gray-900">
+            <p className="font-medium text-gray-500 mb-1">Dinero recaudado</p>
+            <p className="text-3xl font-bold text-text-light">
               ${sorteoData.dinero_recaudado}
             </p>
           </div>
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <p className="text-sm font-bold text-gray-400 mb-1">Dinero por recaudar (apartados)</p>
-            <p className="text-3xl font-extrabold text-gray-900">
+            <p className="font-medium text-gray-500 mb-1">Dinero por recaudar (apartados)</p>
+            <p className="text-3xl font-bold text-text-light">
               ${sorteoData.dinero_por_recaudar}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <button className="flex items-center justify-between px-6 py-4 bg-green-400 hover:bg-green-500 text-black rounded-xl transition-all shadow-sm group cursor-pointer">
-            <span className="text-lg font-bold">Ver comprobantes de pago</span>
-            <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">
+          <button className="flex items-center justify-center gap-3 px-6 py-4 bg-primary hover:bg-lime-500 text-text-light rounded-xl transition-all shadow-sm group cursor-pointer">
+            <span className="material-symbols-outlined text-3xl transition-transform">
               receipt_long
             </span>
+            <span className="text-lg font-bold">Ver comprobantes de pago</span>
           </button>
 
           <button
             onClick={() => navigate(`/admin/sorteo/numeros/${idSorteo}`)}
-            className="flex items-center justify-between px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all shadow-sm group cursor-pointer"
+            className="flex items-center justify-center gap-3 px-6 py-4 bg-blue-300 hover:bg-blue-400 text-text-light rounded-xl transition-all shadow-sm group cursor-pointer"
           >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
             <span className="text-lg font-bold">Ver números apartados</span>
-            <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">
-              confirmation_number
-            </span>
           </button>
         </div>
 
@@ -242,7 +293,7 @@ const DetallesSorteo = () => {
         </div>
 
         <div className="mt-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Premios</h3>
+          <h3 className="text-xl font-bold text-text-light mb-4">Premios</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {sorteoData.premios && sorteoData.premios.length > 0 ? (
               sorteoData.premios.map((premio, index) => (

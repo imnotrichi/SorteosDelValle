@@ -35,7 +35,7 @@ export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoleto
       {/* Contenido */}
       <div className="p-4">
         {/* Título */}
-        <h3 className="text-lg font-semibold text-gray-800 mb-3 min-h-[3.5rem] line-clamp-2">
+        <h3 className="text-lg font-semibold text-text-light mb-3 min-h-[3.5rem] line-clamp-2">
           {sorteo.titulo}
         </h3>
 
@@ -46,7 +46,7 @@ export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoleto
               e.stopPropagation();
               onEditarClick();
             }}
-            className="flex-1 flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-background-status hover:bg-green-600 text-text-light text-sm font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-background-status hover:bg-green-400 text-text-light text-sm font-medium transition-colors"
           >
             <svg
               className="w-4 h-4"
@@ -100,7 +100,7 @@ export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoleto
             e.stopPropagation();
             onEliminarClick();
           }}
-          className="w-full flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium transition-colors border border-red-200"
+          className="w-full flex items-center justify-center gap-2 rounded-lg h-9 px-3 bg-red-50 hover:bg-red-300 text-red-600 text-sm font-medium transition-colors border border-red-200"
         >
           <svg
             className="w-4 h-4"

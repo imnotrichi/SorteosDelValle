@@ -188,8 +188,10 @@ class SorteosController {
             }
 
             const organizadoresSorteo = await organizadoresSorteosDAO.obtenerOrganizadoresSorteo(idSorteo);
+            const idUsuarioNum = Number(idUsuario); 
+
             const esOrganizador = organizadoresSorteo.some(
-                orgSor => orgSor.id_organizador === idUsuario
+                orgSor => orgSor.id_organizador === idUsuarioNum 
             );
 
             if (!esOrganizador) {
