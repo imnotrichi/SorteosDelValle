@@ -1,6 +1,7 @@
 const numerosDAO = require('../dataAccess/numerosDAO.js');
 const sorteosDAO = require('../dataAccess/sorteosDAO.js');
 const clientesDAO = require('../dataAccess/clientesDAO.js');
+const usuariosDAO = require('../dataAccess/usuariosDAO.js');
 const { AppError } = require('../utils/appError.js');
 const { json } = require('express');
 
