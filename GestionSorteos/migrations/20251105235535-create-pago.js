@@ -10,10 +10,13 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       monto_total: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL,
+        allowNull: false
       },
       fecha: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
