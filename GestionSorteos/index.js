@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(morgan('combined'));
 
 app.use('/api/sorteos', sorteosRouter);
-app.use('/api/usuarios', usuariosRouter);
+app.use('/api/sorteos/usuarios', usuariosRouter);
 app.use('/api/numeros', numerosRouter);
 
 app.use((req, res, next) => {

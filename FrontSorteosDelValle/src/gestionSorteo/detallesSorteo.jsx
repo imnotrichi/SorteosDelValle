@@ -30,11 +30,20 @@ const DetallesSorteo = () => {
       setIsloading(true);
       setError(null);
       try {
-        if (!usuarioLogueado || !usuarioLogueado.idusuario) {
-          throw new Error("No se identificó al usuario organizador.");
+        if (!usuarioLogueado || !usuarioLogueado.correo) {
+          throw new Error("No se identificó la sesión del usuario.");
         }
 
-        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}?idUsuario=${usuarioLogueado.idusuario}`, {
+        const respId = await fetch(`${API_GATEWAY_URL}/api/sorteos/usuarios/id?correo=${encodeURIComponent(usuarioLogueado.correo)}`);
+        
+        if (!respId.ok) {
+             throw new Error('No se pudo verificar tu cuenta de organizador para este sorteo (ID local no encontrado).');
+        }
+        
+        const dataId = await respId.json();
+        const idLocalUsuario = dataId.id;
+
+        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -48,6 +57,7 @@ const DetallesSorteo = () => {
 
         let data = await response.json();
         setSorteo(data);
+
       } catch (error) {
         console.error('Error al cargar el sorteo:', error);
         setError(error.message);
