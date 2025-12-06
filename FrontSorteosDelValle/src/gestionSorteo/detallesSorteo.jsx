@@ -126,6 +126,7 @@ const DetallesSorteo = () => {
   const boletosVendidos = sorteoData.numeros_vendidos || 0;
   const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosVendidos;
   const pagoGenerado = boletosVendidos * (parseFloat(sorteoData.precio_numero) || 0);
+  const isActivo = sorteoData.estado === 'Activo';
 
   return (
     <div className="min-h-screen bg-background-light font-display">

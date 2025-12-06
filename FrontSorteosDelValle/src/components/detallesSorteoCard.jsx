@@ -23,7 +23,7 @@ const DetallesSorteoCard = ({ descripcion, rangoNumeros, PrecioPorNumero, fechaI
                 </div>
 
                 <div className="flex pb-4">
-                    <p className="w-48 text-gray-500 font-medium">Fechas de inicio</p>
+                    <p className="w-48 text-gray-500 font-medium">Fecha de inicio</p>
                     <p className="flex-1 text-gray-900 font-medium">
                          {fechaInicio} 
                     </p>
