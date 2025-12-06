@@ -92,9 +92,16 @@ const NumerosSorteo = () => {
       return;
     }
 
+    const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
+
+    if (!usuarioLogueado) {
+        setErrorModalMessage('Debes iniciar sesión para apartar números.');
+        return;
+    }
+
     setIsProcessing(true);
     try {
-      const ID_CLIENTE_TEST = 3; 
+      // ELIMINAR O COMENTAR ESTA LÍNEA: const ID_CLIENTE_TEST = 3; 
 
       const response = await fetch(`${API_GATEWAY_URL}/api/numeros/apartar`, {
         method: 'POST',
@@ -104,7 +111,8 @@ const NumerosSorteo = () => {
         body: JSON.stringify({
           numeros: numerosSeleccionados,
           id_sorteo: parseInt(id),
-          id_cliente: ID_CLIENTE_TEST
+          id_cliente: usuarioLogueado.idusuario, 
+          correo_usuario: usuarioLogueado.correo 
         }),
       });
 

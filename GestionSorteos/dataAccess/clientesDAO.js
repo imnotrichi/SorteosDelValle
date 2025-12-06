@@ -22,6 +22,17 @@ class ClientesDAO {
             throw error;
         }
     }
+
+    async registrarCliente(idUsuario) {
+        try {
+            const [cliente, created] = await Cliente.findOrCreate({
+                where: { id_usuario: idUsuario }
+            });
+            return cliente;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = new ClientesDAO();
