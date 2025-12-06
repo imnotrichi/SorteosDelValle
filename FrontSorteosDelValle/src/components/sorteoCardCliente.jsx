@@ -18,7 +18,7 @@ export function SorteoCardCliente({ sorteo, onClick }) {
       </div>
 
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3 min-h-[3.5rem] line-clamp-2">
+        <h3 className="text-lg font-semibold text-text-light mb-3 min-h-[3.5rem] line-clamp-2">
           {sorteo.titulo}
         </h3>
 
