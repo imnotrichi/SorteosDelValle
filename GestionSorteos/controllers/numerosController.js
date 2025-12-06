@@ -20,8 +20,8 @@ class NumerosController {
     */
     async apartarNumeros(req, res, next) {
         try {
-            const { numeros, id_sorteo, id_cliente } = req.body;
-            // Validaciones del sorteo
+            let { numeros, id_sorteo, id_cliente, correo_usuario } = req.body;
+            
             if (!id_sorteo) {
                 return next(new AppError('No se proporcionó el ID del sorteo.', 400));
             }
@@ -33,11 +33,34 @@ class NumerosController {
                 return next(new AppError("El sorteo ya finalizó.", 400));
             }
 
-            // Validaciones del cliente
             if (!id_cliente) {
                 return next(new AppError('No se proporcionó el ID del cliente.', 400));
             }
-            const clienteObtenido = await clientesDAO.obtenerClientePorId(id_cliente);
+            
+            let clienteObtenido = await clientesDAO.obtenerClientePorId(id_cliente);
+
+            if (!clienteObtenido && correo_usuario) {
+                const USUARIOS_SERVICE_URL = process.env.USUARIOS_SERVICE_URL || 'http://127.0.0.1:3001';
+                
+                try {
+                    const response = await fetch(`${USUARIOS_SERVICE_URL}/api/usuarios/sincronizar?correo=${encodeURIComponent(correo_usuario)}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.ok && data.usuario) {
+                            const usuarioReplicado = await usuariosDAO.crearUsuarioReplicado(data.usuario);
+                            
+                            await clientesDAO.registrarCliente(usuarioReplicado.id);
+                            
+                            id_cliente = usuarioReplicado.id;
+                            clienteObtenido = true;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error en sincronización ISC:", error.message);
+                }
+            }
+
             if (!clienteObtenido) {
                 return next(new AppError(`No se encontró un cliente con ID: ${id_cliente}.`, 404));
             }
