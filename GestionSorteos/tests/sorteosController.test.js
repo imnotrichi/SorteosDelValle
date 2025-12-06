@@ -73,7 +73,7 @@ beforeAll(async () => {
         "descripcion": "Descripción del sorteo - Controller.",
         "imagen_url": "http:imagenes.com/sorteo-controller",
         "rango_numeros": 100,
-        "inicio_periodo_venta": "2025-12-06",
+        "inicio_periodo_venta": "2025-12-15",
         "fin_periodo_venta": "2025-12-23",
         "fecha_realizacion": "2025-12-24",
         "precio_numero": 1000,

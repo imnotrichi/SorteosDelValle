@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, useNavigate, Navigate, Outlet } from "react-router-dom"; // 1. Importa los componentes de rutas
+import { Routes, Route, useNavigate, Navigate, Outlet } from "react-router-dom"; 
 import "./index.css";
 import Header from "./components/header.jsx";
 import PaginaNoEncontrada from "./components/paginaNoEncontrada.jsx";
@@ -13,8 +13,11 @@ import EditarSorteo from "./gestionSorteo/editarSorteo.jsx"
 import LiberarNumeros from "./gestionSorteo/liberarNumeros.jsx";
 import RegistrarUsuario from "./registrarUsuario/registrarUsuario.jsx";
 import IniciarSesion from "./registrarUsuario/iniciarSesion.jsx";
+import MisNumeros from "./registrarPago/misNumeros.jsx";
 import { AuthProvider, useAuth } from "./registrarUsuario/AuthContext.jsx";
 import SessionExpiredModal from "./components/sesionExpiradaModal.jsx"
+import RegistrarComprobante from "./registrarPago/registrarComprobante.jsx";
+
 
 const MainLayout = ({ children }) => {
   const navigate = useNavigate();
@@ -74,6 +77,8 @@ function AppContent() {
           <Route path="/" element={<Inicio />} />
           <Route path="/sorteo/:id" element={<DetalleSorteo />} />
           <Route path="/sorteo/:id/numeros" element={<NumerosSorteo />} />
+          <Route path="/mis-numeros" element={<MisNumeros/>}/>
+          <Route path="/registrar-comprobante/:id" element={<RegistrarComprobante/>}></Route>
         </Route>
 
         {/* Rutas Públicas de organizador */}
