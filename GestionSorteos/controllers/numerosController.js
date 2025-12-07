@@ -22,7 +22,7 @@ class NumerosController {
     async apartarNumeros(req, res, next) {
         try {
             let { numeros, id_sorteo, id_cliente, correo_usuario } = req.body;
-            
+
             if (!id_sorteo) {
                 return next(new AppError('No se proporcionó el ID del sorteo.', 400));
             }
@@ -37,22 +37,22 @@ class NumerosController {
             if (!id_cliente) {
                 return next(new AppError('No se proporcionó el ID del cliente.', 400));
             }
-            
+
             let clienteObtenido = await clientesDAO.obtenerClientePorId(id_cliente);
 
             if (!clienteObtenido && correo_usuario) {
                 const USUARIOS_SERVICE_URL = process.env.USUARIOS_SERVICE_URL || 'http://127.0.0.1:3001';
-                
+
                 try {
                     const response = await fetch(`${USUARIOS_SERVICE_URL}/api/usuarios/sincronizar?correo=${encodeURIComponent(correo_usuario)}`);
-                    
+
                     if (response.ok) {
                         const data = await response.json();
                         if (data.ok && data.usuario) {
                             const usuarioReplicado = await usuariosDAO.crearUsuarioReplicado(data.usuario);
-                            
+
                             await clientesDAO.registrarCliente(usuarioReplicado.id);
-                            
+
                             id_cliente = usuarioReplicado.id;
                             clienteObtenido = true;
                         }
@@ -318,6 +318,59 @@ class NumerosController {
             next(new AppError('Ocurrió un error al obtener los números apartados.', 500));
         }
     }
+
+    async registrarComprobantePago(req, res, next) {
+        try {
+            const { id_sorteo, numeros, url_comprobante } = req.body;
+
+            if (!id_sorteo) {
+                return next(new AppError('Se debe proporcionar el id del sorteo.', 400));
+            }
+
+            if (!numeros || numeros.lenght) {
+                return next(new AppError('Se debe proporcionar al menos un número.', 400));
+            }
+
+            if (!url_comprobante) {
+                return next(new AppError('Se debe proporcionar la imagen del comprobante de pago.', 400));
+            }
+
+            const sorteo = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
+
+            if (!sorteo) {
+                return next(new AppError('El sorteo no existe.', 400));
+            }
+
+            const numerosApartados = await numerosDAO.obtenerNumerosApartados(id_sorteo);
+
+            if (!numerosApartados || numerosApartados.length === 0) {
+                return next(new AppError('El sorteo no cuenta con números apartados.', 400));
+            }
+            console.log('---> NUMEROS APARTADOS:', numerosApartados);
+
+            const estanTodos = numeros.every(numSolicitado =>
+                numerosApartados.some(apartado => apartado.numero === numSolicitado)
+            );
+            console.log('---> ESTÁN APARTADOS:', estanTodos);
+
+            if (!estanTodos) {
+                return next(new AppError('Todos los números deben estar apartados.', 400));
+            }
+
+            const monto = sorteo.precio_numero * numeros.length;
+            console.log('---> MONTO:', monto);
+
+            const pagoData = { id_sorteo, numeros, monto, url_comprobante }
+
+            await numerosDAO.registrarComprobantePago({ id_sorteo, numeros, monto, url_comprobante });
+
+            res.status(200).json('Se registró correctamente el comprobante de pago.');
+        } catch (error) {
+            console.log(error);
+            next(new AppError('Ocurrió un error al registrar el comprobante de pago.', 500));
+        }
+    }
+
 }
 
 module.exports = new NumerosController();

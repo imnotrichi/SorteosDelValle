@@ -17,7 +17,11 @@ module.exports = (sequelize, DataTypes) => {
   }
   Pago.init({
     monto_total: DataTypes.DECIMAL,
-    fecha: DataTypes.DATE
+    fecha:  {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: false
+      },
   }, {
     sequelize,
     modelName: 'Pago',
