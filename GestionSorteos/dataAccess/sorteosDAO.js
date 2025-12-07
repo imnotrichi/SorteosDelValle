@@ -49,7 +49,7 @@ class SorteosDAO {
             throw error;
         }
     }
-    
+
     async obtenerSorteoPorId(id) {
         try {
             const sorteo = await Sorteo.findOne({
@@ -164,6 +164,7 @@ class SorteosDAO {
     async obtenerSorteosActivos() {
         try {
             const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0);
             const sorteos = await Sorteo.findAll({
                 where: {
                     fecha_realizacion: {
@@ -201,6 +202,7 @@ class SorteosDAO {
     async obtenerSorteosFinalizados() {
         try {
             const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0);
             const sorteos = await Sorteo.findAll({
                 where: {
                     fecha_realizacion: {
