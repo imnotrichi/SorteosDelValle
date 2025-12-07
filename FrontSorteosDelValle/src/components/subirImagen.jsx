@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import uploadIcon from '../assets/subir.png';
 
 const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue }) => {
-  
+
   const [fileName, setFileName] = useState(null);
   const inputRef = useRef(null);
 
@@ -19,15 +19,13 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    
+
     if (file) {
       setFileName(file.name);
-    } else {
-      setFileName(null);
-    }
-    
-    if (onChange) {
-      onChange(e);
+
+      if (onChange) {
+        onChange(e);
+      }
     }
   };
 
@@ -37,10 +35,10 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue }) => {
       <label
         htmlFor={id}
         className="flex flex-col items-center justify-center w-full h-44 border-2 border-border-light dark:border-border-dark border-dashed rounded-lg cursor-pointer bg-background-light dark:bg-background-dark hover:bg-primary/5 transition-colors">
-        
+
         <div className="flex flex-col items-center justify-center py-6 text-center px-4">
           <img src={uploadIcon} alt="Upload" className="w-8 h-6 mb-2" />
-          
+
           {fileName ? (
             <p className="text-sm font-semibold text-button-add-light break-all">{fileName}</p>
           ) : (
@@ -54,10 +52,10 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue }) => {
             </>
           )}
         </div>
-        <input 
-          id={id} 
-          type="file" 
-          className="hidden" 
+        <input
+          id={id}
+          type="file"
+          className="hidden"
           accept="image/png,image/jpeg,image/jpg"
           onChange={handleFileChange}
           ref={inputRef}

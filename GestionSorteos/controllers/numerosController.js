@@ -319,58 +319,41 @@ class NumerosController {
         }
     }
 
-    async registrarComprobantePago(req, res, next) {
+    async marcarNumerosComoPagados(req, res, next) {
         try {
-            const { id_sorteo, numeros, url_comprobante } = req.body;
+            const { id_sorteo, numeros } = req.body;
 
             if (!id_sorteo) {
                 return next(new AppError('Se debe proporcionar el id del sorteo.', 400));
             }
 
-            if (!numeros || numeros.lenght) {
+            if (!numeros || numeros.length === 0) {
                 return next(new AppError('Se debe proporcionar al menos un número.', 400));
             }
 
-            if (!url_comprobante) {
-                return next(new AppError('Se debe proporcionar la imagen del comprobante de pago.', 400));
+            const numerosPendientes = await numerosDAO.obtenerNumerosPendientes(id_sorteo);
+
+            if (!numerosPendientes || numerosPendientes.length === 0) {
+                return next(new AppError('El sorteo no cuenta con números pendientes.', 400));
             }
-
-            const sorteo = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
-
-            if (!sorteo) {
-                return next(new AppError('El sorteo no existe.', 400));
-            }
-
-            const numerosApartados = await numerosDAO.obtenerNumerosApartados(id_sorteo);
-
-            if (!numerosApartados || numerosApartados.length === 0) {
-                return next(new AppError('El sorteo no cuenta con números apartados.', 400));
-            }
-            console.log('---> NUMEROS APARTADOS:', numerosApartados);
 
             const estanTodos = numeros.every(numSolicitado =>
-                numerosApartados.some(apartado => apartado.numero === numSolicitado)
+                numerosPendientes.some(apartado => apartado.numero === numSolicitado)
             );
-            console.log('---> ESTÁN APARTADOS:', estanTodos);
 
             if (!estanTodos) {
-                return next(new AppError('Todos los números deben estar apartados.', 400));
+                return next(new AppError('Todos los números deben estar marcados como pendientes.', 400));
             }
 
-            const monto = sorteo.precio_numero * numeros.length;
-            console.log('---> MONTO:', monto);
-
-            const pagoData = { id_sorteo, numeros, monto, url_comprobante }
-
-            await numerosDAO.registrarComprobantePago({ id_sorteo, numeros, monto, url_comprobante });
+            await numerosDAO.marcarNumerosComoPagados({ id_sorteo, numeros });
 
             res.status(200).json({
                 ok: true,
-                message: 'Se registró correctamente el comprobante de pago'
+                message: 'Se marcaron correctamente como pagados los números.'
             });
         } catch (error) {
             console.log(error);
-            next(new AppError('Ocurrió un error al registrar el comprobante de pago.', 500));
+            next(new AppError('Ocurrió un error al realizar la operación.', 500));
         }
     }
 

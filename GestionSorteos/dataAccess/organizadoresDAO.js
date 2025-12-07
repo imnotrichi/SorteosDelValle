@@ -7,7 +7,7 @@ class OrganizadoresDAO {
 
     async obtenerOrganizadorPorId(id_usuario) {
         try {
-            if (!id) {
+            if (!id_usuario) {
                 throw new Error('Se debe proporcionar el ID para realizar la consulta.');
             }
 

@@ -92,7 +92,12 @@ class SorteosController {
                     return next(new AppError(`El correo del organizador '${correoOrg}' no se encuentra registrado.`, 400));
                 }
 
-                await organizadoresDAO.registrarOrganizador(organizadorObtenido.id);
+                const esOrganizador = await organizadoresDAO.obtenerOrganizadorPorId(organizadorObtenido.id);
+                
+                if (!esOrganizador) {
+                    return next(new AppError(`El usuario con correo '${correoOrg}' existe pero no es un organizador autorizado.`, 403));
+                }
+
                 organizadores.push({ id_organizador: organizadorObtenido.id });
 
                 if (global && correoOrg === correoOrganizador) {

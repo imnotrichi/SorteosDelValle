@@ -21,7 +21,7 @@ const CHAR_LIMITS = {
   EMAIL: 50
 };
 
-const MAX_FILE_SIZE_MB = 5; // Límite de 5MB por imagen
+const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
 
 const handleImageUpload = async (file) => {
@@ -202,8 +202,9 @@ const CrearSorteo = ({ currentUserEmail }) => {
   };
 
   const handleFechaInicioVentaChange = (value) => {
-    const tomorrow = getTomorrowDate();
-    if (value >= tomorrow) {
+    const today = getTodayDate();
+
+    if (value >= today) {
       setFormData({ ...formData, fechaInicioVenta: value });
     }
   };
@@ -251,6 +252,20 @@ const CrearSorteo = ({ currentUserEmail }) => {
     try {
       const imagenSorteoUrl = await handleImageUpload(formData.imagen);
 
+      let horaInicio = "00:00:00";
+      const fechaHoy = getTodayDate();
+
+      if (formData.fechaInicioVenta === fechaHoy) {
+        const ahora = new Date();
+        ahora.setMinutes(ahora.getMinutes() + 5);
+        
+        const horas = ahora.getHours().toString().padStart(2, '0');
+        const minutos = ahora.getMinutes().toString().padStart(2, '0');
+        const segundos = ahora.getSeconds().toString().padStart(2, '0');
+        
+        horaInicio = `${horas}:${minutos}:${segundos}`;
+      }
+
       const premiosConUrl = await Promise.all(
         premios.map(async (premio) => {
           const imagenUrl = await handleImageUpload(premio.imagen);
@@ -290,7 +305,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
         imagen_url: imagenSorteoUrl,
         rango_numeros: parseInt(formData.rangoNumeros, 10),
         precio_numero: parseFloat(formData.precioNumero, 10),
-        inicio_periodo_venta: `${formData.fechaInicioVenta}T00:00:00`,
+        inicio_periodo_venta: `${formData.fechaInicioVenta}T${horaInicio}`,
         fin_periodo_venta: `${formData.fechaFinVenta}T00:00:00`,
         fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`,
         configuracionData: configuracionData,
@@ -393,11 +408,11 @@ const CrearSorteo = ({ currentUserEmail }) => {
     if (!file) return null;
     
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      return `El formato de la imagen de ${contextName} no es válido. Solo JPG o PNG.`;
+      return `El formato de las imágenes seleccionadas no es válido. Solo JPG o PNG.`;
     }
     
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      return `La imagen de ${contextName} es muy pesada. Máximo ${MAX_FILE_SIZE_MB}MB.`;
+      return `Las imágenes seleccionadas son muy pesadas. Máximo ${MAX_FILE_SIZE_MB}MB.`;
     }
     
     return null;
@@ -639,7 +654,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
                   type="date"
                   value={formData.fechaInicioVenta}
                   onChange={(e) => handleFechaInicioVentaChange(e.target.value)}
-                  min={getTomorrowDate()}
+                  min={getTodayDate()}
                   required
                 />
                 <Input
