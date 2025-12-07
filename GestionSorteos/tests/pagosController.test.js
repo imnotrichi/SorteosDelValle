@@ -109,12 +109,8 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-003
     it('debería registrar un comprobante de pago exitosamente', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-003";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { numeros: [10, 20, 30], id_sorteo: sorteoId, url_comprobante } };
+        await numerosDAO.apartarNumeros({ numeros: [11,12,13], id_sorteo, id_cliente });
+        const mockReq = { body: { numeros: [11,12,13], id_sorteo, url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -130,8 +126,7 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-004
     it('no debería registrar el comprobante de pago si falta el ID del sorteo', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo, id_cliente });
-        const mockReq = { body: { numeros: [10, 20, 30], url_comprobante } };
+        const mockReq = { body: { numeros: [1, 2, 3], url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -144,12 +139,7 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-005
     it('no debería registrar el comprobante de pago si no se proporciona ningún número', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-005";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { id_sorteo: sorteoId, url_comprobante } };
+        const mockReq = { body: { id_sorteo, url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -162,12 +152,7 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-006
     it('no debería registrar el comprobante de pago si no se proporciona una imagen del comprobante', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-006";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30] } };
+        const mockReq = { body: { id_sorteo, numeros: [1,2,3] } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -180,12 +165,7 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-007
     it('no debería registrar el comprobante de pago si no existe el sorteo', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-007";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { id_sorteo: 9999, numeros: [10, 20, 30], url_comprobante } };
+        const mockReq = { body: { id_sorteo: 9999, numeros: [1,2,3], url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -202,7 +182,7 @@ describe('registrarComprobantePago (Controller)', () => {
         const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
         const sorteoId = nuevoSorteo.id;
         id_sorteos.push(sorteoId);
-        const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30], url_comprobante } };
+        const mockReq = { body: { id_sorteo: sorteoId, numeros: [1,2,3], url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);

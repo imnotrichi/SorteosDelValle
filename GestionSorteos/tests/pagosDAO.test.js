@@ -9,7 +9,6 @@ let organizadorId;
 let id_sorteo;
 let id_cliente;
 let datosSorteo;
-const id_sorteos = [];
 const id_pagos = [];
 
 beforeAll(async () => {
@@ -54,7 +53,6 @@ beforeAll(async () => {
     };
     const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
     id_sorteo = sorteoCreado.id;
-    id_sorteos.push(sorteoCreado.id);
 
     // Creamos un cliente
     const datosCliente = {
@@ -73,14 +71,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await Numero.destroy({ where: { id_sorteo: id_sorteos } });
+    await Numero.destroy({ where: { id_sorteo } });
     await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId } });
     await Organizador.destroy({ where: { id_usuario: organizadorId } });
     await Cliente.destroy({ where: { id_usuario: id_cliente } });
     await Usuario.destroy({ where: { id: organizadorId } });
     await Usuario.destroy({ where: { id: id_cliente } });
-    await Premio.destroy({ where: { id_sorteo: id_sorteo } });
-    await Sorteo.destroy({ where: { id: id_sorteos } });
+    await Premio.destroy({ where: { id_sorteo } });
+    await Sorteo.destroy({ where: { id: id_sorteo } });
     await Configuracion.destroy({ where: { id: configGlobalId } });
     await Pago.destroy({ where: { id: id_pagos } });
 });
@@ -110,11 +108,6 @@ describe('registrarComprobantePago (DAO)', () => {
         await numerosDAO.apartarNumeros({ id_sorteo, numeros: [11, 22, 33], monto: 3000, id_cliente });
 
         // Act + Assert
-        await expect(pagosDAO.registrarComprobantePago({
-            id_sorteo,
-            numeros: [40, 50, 60],
-            url_comprobante: "http://comprobante.com/comp-pago-rcp2"
-        })
-        ).rejects.toThrow('No se encontró ninguno de los números proporcionados.');
+        await expect(pagosDAO.registrarComprobantePago({ id_sorteo, numeros: [40, 50, 60], url_comprobante: "http://comprobante.com/comp-pago-rcp2" })).rejects.toThrow('No se encontró ninguno de los números proporcionados.');
     });
 });
