@@ -364,7 +364,10 @@ class NumerosController {
 
             await numerosDAO.registrarComprobantePago({ id_sorteo, numeros, monto, url_comprobante });
 
-            res.status(200).json('Se registró correctamente el comprobante de pago.');
+            res.status(200).json({
+                ok: true,
+                message: 'Se registró correctamente el comprobante de pago'
+            });
         } catch (error) {
             console.log(error);
             next(new AppError('Ocurrió un error al registrar el comprobante de pago.', 500));

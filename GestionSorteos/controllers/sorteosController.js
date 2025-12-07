@@ -201,15 +201,15 @@ class SorteosController {
             // Calculamos los datos que se mostrarán en el tablero
             const numerosSorteo = await numerosDAO.obtenerNumerosPorSorteo(idSorteo);
             let numerosApartados = 0;
-            let numerosVendidos = 0;
+            let numerosPagados = 0;
             numerosSorteo.map(numero => {
                 if (numero.estado.toLowerCase() === 'apartado') {
                     numerosApartados++;
-                } else if (numero.estado.toLowerCase() === 'vendido') {
-                    numerosVendidos++;
+                } else if (numero.estado.toLowerCase() === 'pagado') {
+                    numerosPagados++;
                 }
             })
-            const numerosDisponibles = sorteo.rango_numeros - (numerosApartados + numerosVendidos);
+            const numerosDisponibles = sorteo.rango_numeros - (numerosApartados + numerosPagados);
 
             const premiosData = sorteo.Premios.map(premio => ({
                 titulo: premio.titulo,
@@ -231,10 +231,10 @@ class SorteosController {
                 titulo: sorteo.titulo,
                 descripcion: sorteo.descripcion,
                 imagen_url: sorteo.imagen_url,
-                boletos_vendidos: numerosVendidos,
+                boletos_pagados: numerosPagados,
                 boletos_apartados: numerosApartados,
                 boletos_disponibles: numerosDisponibles,
-                dinero_recaudado: (sorteo.precio_numero * numerosVendidos).toFixed(2),
+                dinero_recaudado: (sorteo.precio_numero * numerosPagados).toFixed(2),
                 dinero_por_recaudar: (sorteo.precio_numero * numerosApartados).toFixed(2),
                 fin_periodo_venta: sorteo.fin_periodo_venta,
                 fecha_realizacion: sorteo.fecha_realizacion,

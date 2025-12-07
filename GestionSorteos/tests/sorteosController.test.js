@@ -969,7 +969,7 @@ describe('actualizarSorteo (Controller)', () => {
 
         await Numero.create({
             numero: 67,
-            estado: 'VENDIDO',
+            estado: 'PAGADO',
             id_sorteo: sorteoCreado.id,
             id_cliente: cliente.id_usuario,
             id_pago: pago.id
@@ -1112,7 +1112,7 @@ describe('eliminarSorteo (Controller)', () => {
 
         await Numero.create({
             numero: 67,
-            estado: 'VENDIDO',
+            estado: 'PAGADO',
             id_sorteo: sorteoCreado.id,
             id_cliente: cliente.id_usuario,
             id_pago: pago.id
@@ -1194,7 +1194,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         expect(tableroData.titulo).toBe(sorteoCreado.titulo);
         expect(tableroData.descripcion).toBe(sorteoCreado.descripcion);
         expect(tableroData.imagen_url).toBe(sorteoCreado.imagen_url);
-        expect(tableroData.boletos_vendidos).toBe(0);
+        expect(tableroData.boletos_pagados).toBe(0);
         expect(tableroData.boletos_apartados).toBe(0);
         expect(tableroData.boletos_disponibles).toBe(sorteoCreado.rango_numeros);
         expect(tableroData.dinero_recaudado).toBe("0.00");
