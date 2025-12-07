@@ -9,7 +9,6 @@ let organizadorId;
 let id_sorteo;
 let id_cliente;
 let datosSorteo;
-const id_sorteos = [];
 const id_pagos = [];
 
 beforeAll(async () => {
@@ -54,7 +53,6 @@ beforeAll(async () => {
     };
     const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
     id_sorteo = sorteoCreado.id;
-    id_sorteos.push(id_sorteo);
 
     // Creamos un cliente
     const datosCliente = {
@@ -73,14 +71,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await Numero.destroy({ where: { id_sorteo: id_sorteos } });
+    await Numero.destroy({ where: { id_sorteo } });
     await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId } });
     await Organizador.destroy({ where: { id_usuario: organizadorId } });
     await Cliente.destroy({ where: { id_usuario: id_cliente } });
     await Usuario.destroy({ where: { id: organizadorId } });
     await Usuario.destroy({ where: { id: id_cliente } });
-    await Premio.destroy({ where: { id_sorteo: id_sorteos } });
-    await Sorteo.destroy({ where: { id: id_sorteos } });
+    await Premio.destroy({ where: { id_sorteo } });
+    await Sorteo.destroy({ where: { id: id_sorteo } });
     await Configuracion.destroy({ where: { id: configGlobalId } });
     await PagoConComprobante.destroy({ where: { id_pago: id_pagos } });
     await Pago.destroy({ where: { id: id_pagos } });
@@ -289,9 +287,6 @@ describe('marcarNumerosComoPagados (DAO)', () => {
     // MNP-003
     it('no debería marcar los números como pagados si no se proporciona ningún número', async () => {
         // Act + Assert
-        await expect(numerosDAO.marcarNumerosComoPagados({
-            id_sorteo: id_sorteo_local,
-        })
-        ).rejects.toThrow('Se debe proporcionar al menos un número para realizar la operación.');
+        await expect(numerosDAO.marcarNumerosComoPagados({ id_sorteo })).rejects.toThrow('Se debe proporcionar al menos un número para realizar la operación.');
     });
 });
