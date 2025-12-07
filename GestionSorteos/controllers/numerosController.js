@@ -352,7 +352,6 @@ class NumerosController {
                 message: 'Se marcaron correctamente como pagados los números.'
             });
         } catch (error) {
-            console.log(error);
             next(new AppError('Ocurrió un error al realizar la operación.', 500));
         }
     }
