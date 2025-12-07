@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 const sorteosDAO = require('../dataAccess/sorteosDAO.js');
 const numerosDAO = require('../dataAccess/numerosDAO.js');
-const { Sorteo, Configuracion, Premio, Organizador, Usuario, OrganizadorSorteo, Cliente, Numero } = require("../models/index.js");
+const pagosDAO = require('../dataAccess/pagosDAO.js');
+const { Sorteo, Configuracion, Premio, Organizador, Usuario, OrganizadorSorteo, Cliente, Numero, Pago, PagoConComprobante } = require("../models/index.js");
 
 let configGlobalId;
 let organizadorId;
@@ -9,6 +10,7 @@ let id_sorteo;
 let id_cliente;
 let datosSorteo;
 const id_sorteos = [];
+const id_pagos = [];
 
 beforeAll(async () => {
     // Insertas una configuración de prueba
@@ -52,7 +54,7 @@ beforeAll(async () => {
     };
     const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
     id_sorteo = sorteoCreado.id;
-    id_sorteos.push(sorteoCreado.id);
+    id_sorteos.push(id_sorteo);
 
     // Creamos un cliente
     const datosCliente = {
@@ -71,15 +73,17 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await Numero.destroy({ where: {id_sorteo: id_sorteos} });
+    await Numero.destroy({ where: { id_sorteo: id_sorteos } });
     await OrganizadorSorteo.destroy({ where: { id_organizador: organizadorId } });
     await Organizador.destroy({ where: { id_usuario: organizadorId } });
     await Cliente.destroy({ where: { id_usuario: id_cliente } });
     await Usuario.destroy({ where: { id: organizadorId } });
     await Usuario.destroy({ where: { id: id_cliente } });
-    await Premio.destroy({ where: { id_sorteo: id_sorteo } });
+    await Premio.destroy({ where: { id_sorteo: id_sorteos } });
     await Sorteo.destroy({ where: { id: id_sorteos } });
     await Configuracion.destroy({ where: { id: configGlobalId } });
+    await PagoConComprobante.destroy({ where: { id_pago: id_pagos } });
+    await Pago.destroy({ where: { id: id_pagos } });
 });
 
 function deepClone(obj) {
@@ -257,5 +261,64 @@ describe('liberarNumero (DAO)', () => {
         const resultadoFallido = resultado1.exito === false ? resultado1 : resultado2;
         expect(resultadoFallido.exito).toBe(false);
         expect(resultadoFallido.faltantes).toEqual([21, 22, 23]);
+    });
+});
+
+describe('marcarNumerosComoPagados (DAO)', () => {
+    // MNP-001
+    it('debería marcar los números como pagados', async () => {
+        // Arrange
+        datosSorteo.titulo = "Sorteo - MNP-001";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const id_sorteo_local = sorteoCreado.id;
+        id_sorteos.push(id_sorteo_local);
+        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: id_sorteo_local, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp1" });
+
+        // Act
+        const response = await numerosDAO.marcarNumerosComoPagados({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30] });
+
+        // Assert
+        expect(response).toBe("Se registró completó la operación correctamente.");
+        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo_local);
+        id_pagos.push(numeros[0].id_pago);
+    });
+
+    // MNP-002
+    it('no debería marcar los números como pagados si no se proporciona el ID del sorteo', async () => {
+        // Arrange
+        datosSorteo.titulo = "Sorteo - MNP-002";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const id_sorteo_local = sorteoCreado.id;
+        id_sorteos.push(id_sorteo_local);
+        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: id_sorteo_local, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp2" });
+
+        // Act + Assert
+        await expect(numerosDAO.marcarNumerosComoPagados({
+            numeros: [40, 50, 60],
+        })
+        ).rejects.toThrow('Se debe proporcionar el id del sorteo para realizar la operación.');
+        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo_local);
+        id_pagos.push(numeros[0].id_pago);
+    });
+
+    // MNP-003
+    it('no debería marcar los números como pagados si no se proporciona ningún número', async () => {
+        // Arrange
+        datosSorteo.titulo = "Sorteo - MNP-003";
+        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
+        const id_sorteo_local = sorteoCreado.id;
+        id_sorteos.push(id_sorteo_local);
+        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: id_sorteo_local, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp3" });
+
+        // Act + Assert
+        await expect(numerosDAO.marcarNumerosComoPagados({
+            id_sorteo: id_sorteo_local,
+        })
+        ).rejects.toThrow('Se debe proporcionar al menos un número para realizar la operación.');
+        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo_local);
+        id_pagos.push(numeros[0].id_pago);
     });
 });

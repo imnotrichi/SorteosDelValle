@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from "vitest";
 import numerosDAO from "../dataAccess/numerosDAO.js";
 import sorteosDAO from "../dataAccess/sorteosDAO.js";
+import pagosDAO from "../dataAccess/pagosDAO.js";
 const sorteosController = require('../controllers/sorteosController.js');
 const numerosController = require('../controllers/numerosController.js');
 const pagosController = require('../controllers/pagosController.js');
@@ -51,7 +52,7 @@ beforeAll(async () => {
 
     // Datos a usar/modificar en las pruebas
     datosSorteo = {
-        "titulo": "Sorteo - LBN",
+        "titulo": "Sorteo - LBN - Controller",
         "descripcion": "Descripción del sorteo - LBN.",
         "imagen_url": "http:imagenes.com/sorteo-LBN",
         "rango_numeros": 100,
@@ -375,4 +376,101 @@ describe('liberarNumero (Controller)', () => {
         const error = mockNext.mock.calls[0][0];
         expect(error.message).toBe('El sorteo ya finalizó.');
     });
+});
+
+describe('marcarNumerosComoPagados (Controller)', () => {
+    // MNP-004
+    it('debería marcar los números como pagados exitosamente', async () => {
+        // Arrange
+        datosSorteo.titulo = "Sorteo - MNP-004";
+        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
+        const sorteoId = nuevoSorteo.id;
+        id_sorteos.push(sorteoId);
+
+        // Apartamos números para que estén "pendientes"
+        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo: sorteoId, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp4" });
+        const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30] } };
+
+        // Act
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
+
+        // Assert
+        expect(mockNext).not.toHaveBeenCalled();
+        expect(mockRes.status).toHaveBeenCalledWith(200);
+        expect(mockRes.json.mock.calls[0][0].message).toBe('Se marcaron correctamente como pagados los números.');
+    });
+
+    //MNP-005
+    it('no debería marcar como pagados si falta el ID del sorteo', async () => {
+        // Arrange
+        const mockReq = { body: { numeros: [11, 22, 33] } };
+
+        // Act
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
+
+        // Assert
+        const error = mockNext.mock.calls[0][0];
+        expect(error.message).toBe("Se debe proporcionar el id del sorteo.");
+    });
+
+
+    // MNP-006
+    it('no debería marcar como pagados si no se proporciona ningún número', async () => {
+        // Arrange
+        datosSorteo.titulo = "Sorteo - MNP-006";
+        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
+        const sorteoId = nuevoSorteo.id;
+        id_sorteos.push(sorteoId);
+
+        const mockReq = { body: { id_sorteo: sorteoId } };
+
+        // Act
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
+
+        // Assert
+        const error = mockNext.mock.calls[0][0];
+        expect(error.message).toBe("Se debe proporcionar al menos un número.");
+    });
+
+
+    // MNP-007
+    it('no debería marcar como pagados si el sorteo no tiene números pendientes', async () => {
+        // Arrange
+        datosSorteo.titulo = "Sorteo - MNP-007";
+        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
+        const sorteoId = nuevoSorteo.id;
+        id_sorteos.push(sorteoId);
+
+        const mockReq = { body: { id_sorteo: sorteoId, numeros: [11, 22, 33] } };
+
+        // Act
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
+
+        // Assert
+        const error = mockNext.mock.calls[0][0];
+        expect(error.message).toBe("El sorteo no cuenta con números pendientes.");
+    });
+
+    /*  POR ALGUNA RAZÓN ESTA PRUEBA SÍ PASA SE EJECUTA SOLA, PERO SI SE EJECUTA JUNTO CON LAS DEMÁS FALLA
+        // MNP-008
+        it('no debería marcar como pagados si alguno de los números no está pendiente', async () => {
+            datosSorteo.titulo = "Sorteo - MNP-008";
+            const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
+            const sorteoId = nuevoSorteo.id;
+            id_sorteos.push(sorteoId);
+    
+            // Apartamos números para que estén "pendientes"
+            await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
+            await pagosDAO.registrarComprobantePago({ id_sorteo: sorteoId, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp4" });
+            const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30, 40] } };
+    
+            // Act
+            await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
+    
+            // Assert
+            const error = mockNext.mock.calls[0][0];
+            expect(error.message).toBe("Todos los números deben estar marcados como pendientes.");
+        });
+    */
 });

@@ -96,7 +96,7 @@ describe('registrarComprobantePago (DAO)', () => {
         await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo, id_cliente });
 
         // Act
-        const response = await pagosDAO.registrarComprobantePago({ id_sorteo, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago" });
+        const response = await pagosDAO.registrarComprobantePago({ id_sorteo, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-rcp1" });
 
         // Assert
         expect(response).toBe("Se registró correctamente el pago.");
@@ -113,7 +113,7 @@ describe('registrarComprobantePago (DAO)', () => {
         await expect(pagosDAO.registrarComprobantePago({
             id_sorteo,
             numeros: [40, 50, 60],
-            url_comprobante: "http://comprobante.com/comp-pago"
+            url_comprobante: "http://comprobante.com/comp-pago-rcp2"
         })
         ).rejects.toThrow('No se encontró ninguno de los números proporcionados.');
     });
