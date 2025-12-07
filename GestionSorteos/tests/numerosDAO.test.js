@@ -23,7 +23,7 @@ beforeAll(async () => {
         nombres: "Ricardo Alán",
         apellido_paterno: "Gutiérrez",
         apellido_materno: "Garcés",
-        correo: "skibidigonzalez@gmail.com"
+        correo: "eltiomaschill@gmail.com"
     };
     const usuario1 = await Usuario.create({
         ...datosOrganizador
@@ -56,10 +56,10 @@ beforeAll(async () => {
 
     // Creamos un cliente
     const datosCliente = {
-        nombres: "Abel Eduardo",
+        nombres: "tio chillardo",
         apellido_paterno: "Sánchez",
         apellido_materno: "Guerrero",
-        correo: "papugomez@gmail.com"
+        correo: "estetiotambioeneschill@gmail.com"
     };
     const usuario2 = await Usuario.create({
         ...datosCliente

@@ -9,6 +9,8 @@ class NumerosController {
 
     constructor() {
         this.apartarNumeros = this.apartarNumeros.bind(this);
+        this.fechaHoy = new Date();
+        this.fechaHoy.setHours(0, 0, 0, 0);
     }
 
     /*
@@ -30,7 +32,7 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
-            if (sorteoObtenido.fecha_realizacion < new Date()) {
+            if (sorteoObtenido.fecha_realizacion < this.fechaHoy) {
                 return next(new AppError("El sorteo ya finalizó.", 400));
             }
 
@@ -188,7 +190,7 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
-            if (sorteoObtenido.fecha_realizacion < new Date()) {
+            if (sorteoObtenido.fecha_realizacion < this.fechaHoy) {
                 return next(new AppError("El sorteo ya finalizó.", 400));
             }
 
