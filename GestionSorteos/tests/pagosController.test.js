@@ -109,8 +109,8 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-003
     it('debería registrar un comprobante de pago exitosamente', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [11,12,13], id_sorteo, id_cliente });
-        const mockReq = { body: { numeros: [11,12,13], id_sorteo, url_comprobante } };
+        await numerosDAO.apartarNumeros({ numeros: [11, 12, 13], id_sorteo, id_cliente });
+        const mockReq = { body: { numeros: [11, 12, 13], id_sorteo, url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -152,7 +152,7 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-006
     it('no debería registrar el comprobante de pago si no se proporciona una imagen del comprobante', async () => {
         // Arrange
-        const mockReq = { body: { id_sorteo, numeros: [1,2,3] } };
+        const mockReq = { body: { id_sorteo, numeros: [1, 2, 3] } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -165,7 +165,7 @@ describe('registrarComprobantePago (Controller)', () => {
     // RCP-007
     it('no debería registrar el comprobante de pago si no existe el sorteo', async () => {
         // Arrange
-        const mockReq = { body: { id_sorteo: 9999, numeros: [1,2,3], url_comprobante } };
+        const mockReq = { body: { id_sorteo: 9999, numeros: [1, 2, 3], url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
@@ -182,7 +182,7 @@ describe('registrarComprobantePago (Controller)', () => {
         const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
         const sorteoId = nuevoSorteo.id;
         id_sorteos.push(sorteoId);
-        const mockReq = { body: { id_sorteo: sorteoId, numeros: [1,2,3], url_comprobante } };
+        const mockReq = { body: { id_sorteo: sorteoId, numeros: [1, 2, 3], url_comprobante } };
 
         // Act
         await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
