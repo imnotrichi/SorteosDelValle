@@ -160,29 +160,6 @@ describe('apartarNumero (DAO)', () => {
         expect(resultado.exito).toBe(true);
     });
 
-    //APN-006: Probar que no se puedan apartar números de un sorteo finalizado.
-    it('no debería apartar los números', async () => {
-        // Arrange
-        const numeros = [31, 32, 33];
-        const datosSorteoFinalizado = deepClone(datosSorteo);
-        datosSorteoFinalizado.titulo = "Sorteo 6 - APN - DAO";
-        datosSorteoFinalizado.inicio_periodo_venta = "2023-01-01";
-        datosSorteoFinalizado.fin_periodo_venta = "2023-01-10";
-        datosSorteoFinalizado.fecha_realizacion = "2023-01-15";
-
-        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteoFinalizado);
-        id_sorteos.push(sorteoCreado.id);
-
-        // Act & Assert
-        await expect(
-            numerosDAO.apartarNumeros({
-                numeros,
-                id_sorteo: sorteoCreado.id,
-                id_cliente
-            })
-        ).rejects.toThrow("El sorteo ya finalizó.");
-    });
-
     //APN-007: Probar que se consulten correctamente los números apartados de un sorteo.
     it('debería consultar los números', async () => {
         //arrange

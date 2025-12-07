@@ -1,5 +1,7 @@
 const { AppError } = require('../utils/appError.js');
 const pagosDAO = require('../dataAccess/pagosDAO.js');
+const sorteosDAO = require('../dataAccess/sorteosDAO.js');
+const numerosDAO = require('../dataAccess/numerosDAO.js');
 
 class PagosController {
 
@@ -61,7 +63,10 @@ class PagosController {
 
             await pagosDAO.registrarComprobantePago({ id_sorteo, numeros, monto, url_comprobante });
 
-            res.status(200).json('Se registró correctamente el comprobante de pago.');
+            res.status(200).json({
+                ok: true,
+                message: 'Se registró correctamente el comprobante de pago.'
+            });
         } catch (error) {
             next(new AppError('Ocurrió un error al registrar el comprobante de pago.', 500));
         }
