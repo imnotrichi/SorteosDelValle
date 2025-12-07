@@ -7,10 +7,18 @@ import ErrorModal from "../components/mensajeError";
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
-const getEstadoSorteo = (finPeriodoVenta) => {
+const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
   const ahora = new Date();
+  const fechaInicio = new Date(inicioPeriodoVenta);
   const fechaFin = new Date(finPeriodoVenta);
-  return ahora < fechaFin ? "Activo" : "Finalizado";
+
+  if (ahora < fechaInicio) {
+    return "Próximamente";
+  } else if (ahora > fechaFin) {
+    return "Finalizado";
+  } else {
+    return "Activo";
+  }
 }
 
 const MisSorteos = ({ onNavigate }) => {
@@ -33,11 +41,11 @@ const MisSorteos = ({ onNavigate }) => {
       setError(null);
       try {
         if (!usuarioLogueado || !usuarioLogueado.correo) {
-            throw new Error('No se encontró la sesión del usuario.');
+          throw new Error('No se encontró la sesión del usuario.');
         }
 
-        const idOrganizador = usuarioLogueado.idusuario; 
-        
+        const idOrganizador = usuarioLogueado.idusuario;
+
         const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/propios?correo=${usuarioLogueado.correo}`);
 
         if (!response.ok) {
@@ -49,12 +57,12 @@ const MisSorteos = ({ onNavigate }) => {
 
         data = data.map(sorteo => ({
           ...sorteo,
-          estado: getEstadoSorteo(sorteo.fin_periodo_venta)
+          estado: getEstadoSorteo(sorteo.inicio_periodo_venta, sorteo.fin_periodo_venta)
         })).sort((a, b) => {
-          if (a.estado === "Activo" && b.estado !== "Activo") return -1;
-          if (a.estado !== "Activo" && b.estado === "Activo") return 1;
-          return 0;
+          const peso = { "Activo": 1, "Próximamente": 2, "Finalizado": 3 };
+          return peso[a.estado] - peso[b.estado];
         });
+
         setSorteos(data);
       } catch (error) {
         setError(error.message);

@@ -47,7 +47,7 @@ const handleImageUpload = async (file) => {
     return data.secure_url;
 
   } catch (error) {
-    console.error('Error en handleImageUpload:', error);
+    console.error('');
     throw error;
   }
 };
@@ -331,15 +331,21 @@ const CrearSorteo = ({ currentUserEmail }) => {
                  errorMessage = errorData.message || errorMessage;
              }
         } catch (e) {
-             console.error("No se pudo leer el error del backend");
+             console.error("");
         }
         throw new Error(errorMessage);
       }
       setIsModalOpen(true);
 
     } catch (error) {
-      console.error('Error al crear sorteo:', error);
-      setError(error.message);
+      console.error('');
+      let msg = error.message;
+      
+      if (msg === 'Failed to fetch' || msg.includes('NetworkError')) {
+        msg = "No se pudo conectar con el servidor. Verifique su conexión.";
+      }
+      
+      setError(msg);
     } finally {
       setIsUploading(false);
     }

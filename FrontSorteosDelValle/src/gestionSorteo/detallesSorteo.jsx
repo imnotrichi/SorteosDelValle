@@ -123,9 +123,9 @@ const DetallesSorteo = () => {
     return fecha.split('T')[0];
   };
 
-  const boletosVendidos = sorteoData.numeros_vendidos || 0;
-  const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosVendidos;
-  const pagoGenerado = boletosVendidos * (parseFloat(sorteoData.precio_numero) || 0);
+  const boletosPagados = sorteoData.numeros_pagados || 0;
+  const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosPagados;
+  const pagoGenerado = boletosPagados * (parseFloat(sorteoData.precio_numero) || 0);
   const isActivo = sorteoData.estado === 'Activo';
 
   return (
@@ -144,8 +144,8 @@ const DetallesSorteo = () => {
               </button>
 
               <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-[32px] font-bold text-text-light">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-[32px] font-bold text-text-light break-all">
                     {sorteoData.titulo}
                   </h1>
                   <span className={`px-4 py-2 text-xl font-bold rounded-full ${isActivo ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
@@ -212,9 +212,9 @@ const DetallesSorteo = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <p className="font-medium text-gray-500 mb-1">Boletos vendidos</p>
+            <p className="font-medium text-gray-500 mb-1">Boletos pagados</p>
             <p className="text-3xl font-bold text-text-light">
-              {sorteoData.boletos_vendidos}
+              {sorteoData.boletos_pagados}
             </p>
           </div>
 
@@ -288,7 +288,7 @@ const DetallesSorteo = () => {
         <div className="mb-8">
           <DetallesSorteoCard
             descripcion={sorteoData.descripcion}
-            rangoNumeros={sorteoData.boletos_vendidos + sorteoData.boletos_apartados + sorteoData.boletos_disponibles}
+            rangoNumeros={sorteoData.boletos_pagados + sorteoData.boletos_apartados + sorteoData.boletos_disponibles}
             PrecioPorNumero={sorteoData.precio_numero}
             fechaInicio={formatDate(sorteoData.fin_periodo_venta)}
           />
