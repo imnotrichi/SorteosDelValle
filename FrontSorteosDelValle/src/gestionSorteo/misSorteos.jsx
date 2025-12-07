@@ -7,9 +7,27 @@ import ErrorModal from "../components/mensajeError";
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const parseDate = (dateString) => {
+  if (!dateString) return new Date();
+
+  if (dateString.includes('T') || dateString.includes('-')) {
+    return new Date(dateString);
+  }
+
+  try {
+    const [datePart, timePart] = dateString.split(',');
+    const [day, month, year] = datePart.trim().split('/');
+    
+    return new Date(`${year}-${month}-${day}T23:59:59`); 
+  } catch (e) {
+    console.error("Error parseando fecha:", dateString);
+    return new Date(dateString); 
+  }
+};
+
 const getEstadoSorteo = (finPeriodoVenta) => {
   const ahora = new Date();
-  const fechaFin = new Date(finPeriodoVenta);
+  const fechaFin = parseDate(finPeriodoVenta);
   return ahora < fechaFin ? "Activo" : "Finalizado";
 }
 
