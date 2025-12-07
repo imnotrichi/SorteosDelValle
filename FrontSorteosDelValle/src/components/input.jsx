@@ -1,8 +1,15 @@
 import React from 'react';
 
-const Input = ({ label, type = "text", placeholder, helperText, editing=false, ...props}) => {
-  
-  
+const Input = ({ label, type = "text", placeholder, helperText, editing = false, ...props }) => {
+
+  let fondo = "bg-background-light";
+  if (editing) {
+    fondo = "bg-[#D2D6CC]"
+  }
+  else{
+    fondo = "bg-background-light"
+  }
+
   return (
 
     <label className="flex flex-col">
@@ -10,9 +17,9 @@ const Input = ({ label, type = "text", placeholder, helperText, editing=false, .
       <div className="relative">
         <input
           type={type}
-          disabled = {editing}
+          disabled={editing}
           placeholder={placeholder}
-          className="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-light dark:text-text-dark placeholder:text-text-light/40 dark:placeholder:text-text-dark/40 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-11 px-3"
+          className={"w-full rounded-lg  dark:bg-background-dark border border-border-light dark:border-border-dark text-text-light dark:text-text-dark placeholder:text-text-light/40 dark:placeholder:text-text-dark/40 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-11 px-3 " + fondo}
           {...props}
         />
         {helperText && (
