@@ -993,25 +993,48 @@ describe('actualizarSorteo (Controller)', () => {
     });
 
     // GST-02X
-    it('GST-024X: debería llamar a next con error 400 si se actualiza la fecha de inicio del periodo de venta, pero el sorteo ya inició', async () => {
+    it('GST-024X: debería llamar a next con error 405 si se actualiza la fecha de inicio del periodo de venta, el sorteo ya inició Y tiene ventas', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);
-        datosSorteo.titulo = "Sorteo - GST024X";
-        datosSorteo.inicio_periodo_venta = "2025-11-01";
-        datosSorteo.fin_periodo_venta = "2025-12-30";
+        datosSorteo.titulo = "Sorteo - GST-024X";
+        datosSorteo.inicio_periodo_venta = "2020-01-01";
+        datosSorteo.fin_periodo_venta = "2025-12-31";
         datosSorteo.fecha_realizacion = "2026-01-01";
-        datosSorteo.Premios = {
-            "titulo": "Premio - Controller",
-            "imagen_premio_url": "http:imagenes.com/premio-controller"
-        }
-        datosSorteo.OrganizadorSorteos = [{ id_organizador: organizadorId1 }];
-        datosSorteo.id_configuracion = configId;
-        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
-        id_sorteos.push(sorteoCreado.id);
-        id_configuraciones.push(sorteoCreado.Configuracion.id);
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2019-12-31'));
 
-        const mockReq = {
-            params: { id: sorteoCreado.id }, body: { inicio_periodo_venta: "2025-11-25" }
+        let mockReq = { body: datosSorteo };
+
+        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
+        const sorteoCreado = mockRes.json.mock.calls[0][0];
+        id_sorteos.push(sorteoCreado.id);
+        id_configuraciones.push(sorteoCreado.configuracionData.id);
+
+        vi.useRealTimers();
+
+        const usuarioCliente = await Usuario.create({
+            nombres: "ClienteTest",
+            apellido_paterno: "GST024X",
+            apellido_materno: "Test",
+            correo: "cliente024x@test.com"
+        });
+        const cliente = await Cliente.create({ id_usuario: usuarioCliente.id });
+
+        await Numero.create({
+            id_sorteo: sorteoCreado.id,
+            numero: 1,
+            estado: "apartado",
+            id_cliente: cliente.id_usuario,
+            precio: sorteoCreado.precio_numero
+        });
+
+        ({ mockRes, mockNext } = setupMocks());
+
+        mockReq = {
+            params: { id: sorteoCreado.id },
+            body: {
+                inicio_periodo_venta: "2020-01-05"
+            }
         };
 
         // Act
@@ -1022,6 +1045,10 @@ describe('actualizarSorteo (Controller)', () => {
         const error = mockNext.mock.calls[0][0];
         expect(error.statusCode).toBe(405);
         expect(error.message).toBe("No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.");
+
+        await Numero.destroy({ where: { id_sorteo: sorteoCreado.id } });
+        await Cliente.destroy({ where: { id_usuario: cliente.id_usuario } });
+        await Usuario.destroy({ where: { id: usuarioCliente.id } });
     });
 
     // GST-02X
@@ -1348,7 +1375,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         expect(error.message).toBe("No se encontró el sorteo solicitado.");
     });
 
-        // ID: VTC-008
+    // ID: VTC-008
     it('VTC-008: debería llamar a next con error 403 si el usuario no es un organizador a cargo del sorteo', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);

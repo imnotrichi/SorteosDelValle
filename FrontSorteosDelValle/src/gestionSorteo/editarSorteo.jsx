@@ -14,13 +14,13 @@ const API_GATEWAY_URL = 'http://localhost:8080';
 
 
 const CHAR_LIMITS = {
-  TITULO: 255,
-  DESCRIPCION: 255,
-  PREMIO_TITULO: 255,
-  EMAIL: 50
+    TITULO: 255,
+    DESCRIPCION: 255,
+    PREMIO_TITULO: 255,
+    EMAIL: 50
 };
 
-const MAX_FILE_SIZE_MB = 5; 
+const MAX_FILE_SIZE_MB = 5;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
 
 const handleImageUpload = async (file) => {
@@ -43,7 +43,7 @@ const handleImageUpload = async (file) => {
         const data = await response.json();
         return data.secure_url;
     } catch (error) {
-        console.error('Error en handleImageUpload:', error);
+        //console.error('Error en handleImageUpload:', error);
         throw error;
     }
 };
@@ -102,7 +102,7 @@ const EditarSorteo = () => {
 
                 const data = await response.json();
                 setSorteoOriginal(data);
-                console.log('Datos del sorteo obtenidos:', data);
+                //console.log('Datos del sorteo obtenidos:', data);
 
                 const configData = data.configuracionData;
                 const usaGlobal = configData?.id === 1;
@@ -137,7 +137,7 @@ const EditarSorteo = () => {
                 })));
 
             } catch (error) {
-                console.error(error);
+                //console.error(error);
                 setError("Error al obtener los datos del sorteo");
                 setTimeout(() => navigate('/admin/misSorteos'), 2000);
             } finally {
@@ -196,7 +196,7 @@ const EditarSorteo = () => {
     };
 
     const handleGlobalConfigChange = () => {
-       
+
         setUseGlobalConfig(!useGlobalConfig);
     };
 
@@ -209,9 +209,15 @@ const EditarSorteo = () => {
     };
 
     const handleRangoNumerosChange = (value) => {
-        const numValue = parseInt(value, 10);
-        if (value === '' || (numValue >= minRangePermitido && !isNaN(numValue))) {
+        if (value === '' || !isNaN(value)) {
             setFormData({ ...formData, rangoNumeros: value });
+        }
+    };
+
+    const handleBlur = () => {
+        const valorNumerico = parseInt(formData.rangoNumeros, 10);
+        if (!formData.rangoNumeros || valorNumerico < minRangePermitido) {
+            setFormData({ ...formData, rangoNumeros: minRangePermitido });
         }
     };
 
@@ -224,22 +230,40 @@ const EditarSorteo = () => {
 
     const getTodayDate = () => {
         const today = new Date();
-        return today.toISOString().split('T')[0];
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
     };
 
     const getTomorrowDate = () => {
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        return tomorrow.toISOString().split('T')[0];
+
+        const year = tomorrow.getFullYear();
+        const month = (tomorrow.getMonth() + 1).toString().padStart(2, '0');
+        const day = tomorrow.getDate().toString().padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
     };
 
     const getNextDay = (dateString) => {
-        if (!dateString) return getTomorrowDate();
+        if (!dateString) {
+            return getTomorrowDate();
+        }
+
         const [year, month, day] = dateString.split('-').map(Number);
         const nextDay = new Date(year, month - 1, day);
+
         nextDay.setDate(nextDay.getDate() + 1);
-        return nextDay.toISOString().split('T')[0];
+
+        const nextYear = nextDay.getFullYear();
+        const nextMonth = (nextDay.getMonth() + 1).toString().padStart(2, '0');
+        const nextDayDate = nextDay.getDate().toString().padStart(2, '0');
+
+        return `${nextYear}-${nextMonth}-${nextDayDate}`;
     };
 
     const handleFechaInicioVentaChange = (value) => {
@@ -284,8 +308,16 @@ const EditarSorteo = () => {
             setError('El título del sorteo es obligatorio.');
             return false;
         }
+        if (formData.titulo.length > CHAR_LIMITS.TITULO) {
+            setError(`El título no puede exceder los ${CHAR_LIMITS.TITULO} caracteres.`);
+            return false;
+        }
         if (!formData.descripcion.trim()) {
             setError('La descripción del sorteo es obligatoria.');
+            return false;
+        }
+        if (formData.descripcion.length > CHAR_LIMITS.DESCRIPCION) {
+            setError(`La descripción no puede exceder los ${CHAR_LIMITS.DESCRIPCION} caracteres.`);
             return false;
         }
         if (!formData.rangoNumeros || parseInt(formData.rangoNumeros, 10) < minRangePermitido) {
@@ -347,24 +379,24 @@ const EditarSorteo = () => {
             }
         }
 
-        console.log(error)
+        //console.log(error)
         return true;
     };
 
     const handleSubmit = async (e) => {
-        console.log("se ha presionado submit")
+        //console.log("se ha presionado submit");
         e.preventDefault();
         setError(null);
 
         if (!validateForm()) {
-            console.log("error de formato")
+            //console.log("error de formato");
             return;
         }
-        console.log("no ha ocurrido ningun error de formato")
 
         setIsUploading(true);
 
         try {
+            // 1. Manejo de imágenes
             const imagenSorteoUrl = formData.imagen
                 ? await handleImageUpload(formData.imagen)
                 : sorteoOriginal.imagen_url;
@@ -383,18 +415,11 @@ const EditarSorteo = () => {
                 })
             );
 
-            const configuracionData = {
-                global: useGlobalConfig,
-                tiempo_limite_apartado: useGlobalConfig
-                    ? "00:00:00"
-                    : convertirDiasAFormatoHoras(formData.tiempoLimiteApartado),
-                tiempo_recordatorio_pago: useGlobalConfig
-                    ? "00:00:00"
-                    : convertirDiasAFormatoHoras(formData.tiempoRecordatorioPago),
-                correoOrganizador: organizadores[0].email
-            };
+            const inicioOriginalSimple = formatDateForInput(sorteoOriginal.inicio_periodo_venta);
+            const finOriginalSimple = formatDateForInput(sorteoOriginal.fin_periodo_venta);
+            const realizacionOriginalSimple = formatDateForInput(sorteoOriginal.fecha_realizacion);
 
-            const organizadoresData = organizadores.map(o => ({ correo: o.email }));
+            //console.log("Comparando Inicio:", formData.fechaInicioVenta, "vs Original:", inicioOriginalSimple);
 
             const payload = {
                 titulo: formData.titulo,
@@ -402,15 +427,30 @@ const EditarSorteo = () => {
                 imagen_url: imagenSorteoUrl,
                 rango_numeros: parseInt(formData.rangoNumeros, 10),
                 precio_numero: parseFloat(formData.precioNumero),
-                inicio_periodo_venta: `${formData.fechaInicioVenta}T00:00:00`,
-                fin_periodo_venta: `${formData.fechaFinVenta}T00:00:00`,
-                fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`,
-                configuracionData: configuracionData,
+
+                inicio_periodo_venta: (formData.fechaInicioVenta === inicioOriginalSimple)
+                    ? sorteoOriginal.inicio_periodo_venta
+                    : `${formData.fechaInicioVenta}T00:00:00`,
+
+                fin_periodo_venta: (formData.fechaFinVenta === finOriginalSimple)
+                    ? sorteoOriginal.fin_periodo_venta
+                    : `${formData.fechaFinVenta}T00:00:00`,
+
+                fecha_realizacion: (formData.fechaRealizacion === realizacionOriginalSimple)
+                    ? sorteoOriginal.fecha_realizacion
+                    : `${formData.fechaRealizacion}T00:00:00`,
+
+                configuracionData: {
+                    global: useGlobalConfig,
+                    tiempo_limite_apartado: useGlobalConfig ? "00:00:00" : convertirDiasAFormatoHoras(formData.tiempoLimiteApartado),
+                    tiempo_recordatorio_pago: useGlobalConfig ? "00:00:00" : convertirDiasAFormatoHoras(formData.tiempoRecordatorioPago),
+                    correoOrganizador: organizadores[0].email
+                },
                 premiosData: premiosConUrl,
-                organizadoresData: organizadoresData
+                organizadoresData: organizadores.map(o => ({ correo: o.email }))
             };
 
-            console.log('Payload a enviar:', payload);
+            //console.log('Payload a enviar:', payload);
 
             const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`, {
                 method: 'PUT',
@@ -422,23 +462,37 @@ const EditarSorteo = () => {
 
             const result = await response.json();
 
-
             if (!response.ok) {
                 throw new Error(result.message || 'Error al actualizar el sorteo');
             }
 
-            console.log('Sorteo actualizado con éxito:', result);
+            //console.log('Sorteo actualizado con éxito:', result);
             setIsModalOpen(true);
 
         } catch (error) {
-            console.error('Error al actualizar el sorteo:', error);
-            setError("Ocurrió un error en el servidor");
+            //console.error('Error al actualizar el sorteo:', error);
+            // Mostrar mensajes específicos del backend
+            if (error.message.includes("No hay un organizador")) {
+                setError(error.message);
+            } else if (error.message.includes("No se puede modificar la fecha")) {
+                setError("El servidor no permite cambiar la fecha de este sorteo (posiblemente ya está activo o tiene registros internos). Intenta dejar la fecha original.");
+            }
+            else if (error.message.includes("un organizador autorizado")) {
+                setError(error.message)
+            }
+            else {
+                setError("Ocurrió un error en el servidor");
+            }
         } finally {
             setIsUploading(false);
         }
     };
 
     const handleCancel = () => {
+
+    };
+
+    const handleCancelSalir = () => {
         navigate('/admin/misSorteos');
     };
 
@@ -450,6 +504,13 @@ const EditarSorteo = () => {
     if (isLoadingData) {
         return <div className='p-8 text-center'>Cargando datos del sorteo...</div>;
     }
+
+    const manana = getTomorrowDate();
+    const fechaOriginalInicio = sorteoOriginal ? formatDateForInput(sorteoOriginal.inicio_periodo_venta) : '';
+
+    const minFechaInicioCalculada = (fechaOriginalInicio && fechaOriginalInicio < manana)
+        ? fechaOriginalInicio
+        : manana;
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-body">
@@ -476,11 +537,13 @@ const EditarSorteo = () => {
                                     value={formData.titulo}
                                     editing={true}
                                     onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                                    maxLength={CHAR_LIMITS.TITULO}
                                     required
                                 />
                                 <TextArea
                                     label="Descripción"
                                     value={formData.descripcion}
+                                    maxLength={CHAR_LIMITS.DESCRIPCION}
                                     onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                                     required
                                 />
@@ -510,12 +573,14 @@ const EditarSorteo = () => {
                                     min={minRangePermitido}
                                     helperText={hayBoletosVendidos ? `Mínimo: ${minRangePermitido}` : ''}
                                     required
+                                    onBlur={handleBlur}
                                 />
                                 <Input
                                     label="Precio por número"
                                     type="number"
                                     step="0.01"
                                     value={formData.precioNumero}
+                                    editing={hayBoletosVendidos}
                                     onChange={(e) => handlePrecioNumeroChange(e.target.value)}
                                     disabled={hayBoletosVendidos}
                                     required
@@ -530,8 +595,9 @@ const EditarSorteo = () => {
                                     type="date"
                                     value={formData.fechaInicioVenta}
                                     onChange={(e) => handleFechaInicioVentaChange(e.target.value)}
-                                    min={getTomorrowDate()}
+                                    min={minFechaInicioCalculada}
                                     disabled={hayBoletosVendidos}
+                                    editing={hayBoletosVendidos}
                                     required
                                 />
                                 <Input
@@ -586,7 +652,7 @@ const EditarSorteo = () => {
                                         {premio.imagen_premio_url && !premio.imagen && (
                                             <img src={premio.imagen_premio_url} alt="Premio" className="w-full h-auto max-h-40 object-cover rounded-lg border border-border-light" />
                                         )}
-                                       
+
                                     </div>
                                 ))}
 
@@ -689,7 +755,7 @@ const EditarSorteo = () => {
                         <div className="flex justify-end items-center gap-3">
                             <button
                                 type="button"
-                                onClick={handleCancel}
+                                onClick={handleCancelSalir}
                                 className="flex items-center justify-center rounded-lg h-11 px-6 bg-border-light hover:bg-border-light/90 text-text-light dark:text-text-dark text-sm font-bold transition-colors"
                                 disabled={isUploading}
                             >
