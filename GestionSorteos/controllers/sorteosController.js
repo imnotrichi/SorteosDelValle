@@ -386,9 +386,11 @@ class SorteosController {
             const fechaInicioVentaBoletos = new Date(inicio_periodo_venta);
             const fechaInicioVentaBoletosOriginal = new Date(sorteoExists.inicio_periodo_venta);
 
-            // Corrección: Usamos mensaje exacto sin punto final para no romper la prueba GST-024X
             if (new Date() > fechaInicioVentaBoletosOriginal && inicio_periodo_venta) {
-                if (new Date(inicio_periodo_venta).getTime() !== fechaInicioVentaBoletosOriginal.getTime()) {
+                
+                const seEstaCambiandoLaFecha = new Date(inicio_periodo_venta).getTime() !== fechaInicioVentaBoletosOriginal.getTime();
+
+                if (seEstaCambiandoLaFecha && existe) {
                     return next(new AppError('No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.', 405));
                 }
             }
@@ -402,8 +404,7 @@ class SorteosController {
             const fechaRealizacionDate = new Date(fecha_realizacion);
             if (fechaRealizacionDate < new Date()) return next(new AppError('La fecha de realización del sorteo debe ser válida.', 400));
 
-            // --- LÓGICA DE ORGANIZADORES CON MICROSERVICIO ---
-            const organizadores = []; // Usamos 'organizadores' para consistencia
+            const organizadores = [];
             const USUARIOS_SERVICE_URL = process.env.USUARIOS_SERVICE_URL || 'http://localhost:3001';
 
             if (organizadoresData !== undefined) {
@@ -417,7 +418,6 @@ class SorteosController {
 
                     let organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrg);
 
-                    // Si no existe localmente, buscamos en el microservicio
                     if (!organizadorObtenido) {
                         console.log(`Buscando ${correoOrg} en microservicio...`);
                         try {
@@ -428,7 +428,6 @@ class SorteosController {
                             if (response.ok) {
                                 const data = await response.json();
                                 if (data.ok && data.usuario) {
-                                    // IMPORTANTE: Lo creamos localmente para que tenga ID
                                     organizadorObtenido = await usuariosDAO.crearUsuarioReplicado(data.usuario);
                                 }
                             }
@@ -441,11 +440,13 @@ class SorteosController {
                         return next(new AppError(`No hay un organizador registrado con el correo ${correoOrg}`, 400));
                     }
 
-                    try {
-                        await organizadoresDAO.registrarOrganizador(organizadorObtenido.id);
-                    } catch (err) {
-                        console.log("El usuario ya era organizador o error al registrar:", err.message);
+                    const esOrganizador = await organizadoresDAO.obtenerOrganizadorPorId(organizadorObtenido.id);
+
+                    console.log("HOLA DESDE CONTROLER, EL USAURIO:"+esOrganizador);
+                    if (!esOrganizador) {
+                        return next(new AppError(`El usuario con correo '${correoOrg}' existe pero no es un organizador autorizado.`, 403));
                     }
+
                     organizadores.push({ id_organizador: organizadorObtenido.id });
                 }
             }
@@ -473,10 +474,8 @@ class SorteosController {
                 OrganizadorSorteos: organizadores.length > 0 ? organizadores : undefined
             }
 
-            // 1. Actualizamos
             await sorteosDAO.actualizarSorteo(idSorteo, sorteoData);
 
-            // 2. RECUPERAMOS EL SORTEO COMPLETO PARA EVITAR ERROR 500
             const sorteoActualizadoCompleto = await sorteosDAO.obtenerSorteoPorId(idSorteo);
 
             const respuestaJSON = this.#formatearJsonSorteo(sorteoActualizadoCompleto, existe);
