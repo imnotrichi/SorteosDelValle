@@ -334,7 +334,7 @@ class NumerosController {
             const numerosPendientes = await numerosDAO.obtenerNumerosPendientes(id_sorteo);
 
             if (!numerosPendientes || numerosPendientes.length === 0) {
-                return next(new AppError('El sorteo no cuenta con números apartados.', 400));
+                return next(new AppError('El sorteo no cuenta con números pendientes.', 400));
             }
 
             const estanTodos = numeros.every(numSolicitado =>
@@ -347,7 +347,10 @@ class NumerosController {
 
             await numerosDAO.marcarNumerosComoPagados({ id_sorteo, numeros });
 
-            res.status(200).json('Se completó correctamente la operación.');
+            res.status(200).json({
+                ok: true,
+                message: 'Se marcaron correctamente como pagados los números.'
+            });
         } catch (error) {
             console.log(error);
             next(new AppError('Ocurrió un error al realizar la operación.', 500));
