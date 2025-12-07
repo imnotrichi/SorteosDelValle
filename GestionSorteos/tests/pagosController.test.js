@@ -119,7 +119,7 @@ describe('registrarComprobantePago (Controller)', () => {
         expect(mockNext).not.toHaveBeenCalled();
         expect(mockRes.status).toHaveBeenCalledWith(200);
         expect(mockRes.json.mock.calls[0][0].message).toBe('Se registró correctamente el comprobante de pago.');
-        const numeros = await numerosDAO.obtenerNumerosPorSorteo(sorteoId);
+        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo);
         id_pagos.push(numeros[0].id_pago);
     });
 
