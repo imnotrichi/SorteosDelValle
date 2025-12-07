@@ -12,6 +12,17 @@ const CLOUDINARY_UPLOAD_PRESET = "imagenes_sorteosdelvalle";
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+
+const CHAR_LIMITS = {
+  TITULO: 255,
+  DESCRIPCION: 255,
+  PREMIO_TITULO: 255,
+  EMAIL: 50
+};
+
+const MAX_FILE_SIZE_MB = 5; 
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
+
 const handleImageUpload = async (file) => {
     if (!file) return null;
 
