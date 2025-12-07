@@ -5,6 +5,24 @@ import { SorteoCardCliente } from '../components/sorteoCardCliente';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const parseDate = (dateString) => {
+  if (!dateString) return new Date();
+
+  // Caso 1: ISO (tiene 'T' o es standard) -> '2025-12-10T01:00:00'
+  if (dateString.includes('T') || dateString.includes('-') && !dateString.includes('/')) {
+    return new Date(dateString);
+  }
+
+  try {
+    const [datePart] = dateString.split(',');
+    const [day, month, year] = datePart.trim().split('/');
+
+    return new Date(`${year}-${month}-${day}T00:00:00`);
+  } catch (e) {
+    console.error("Error parseando fecha:", dateString);
+    return new Date();
+  }
+}
 const Inicio = () => {
   const navigate = useNavigate();
   const [sorteos, setSorteos] = useState([]);
@@ -13,7 +31,7 @@ const Inicio = () => {
   const usuario = JSON.parse(localStorage.getItem('usuario'));
 
   const nombreUsuario = usuario.nombres;
-  
+
   useEffect(() => {
     const fetchSorteosActivos = async () => {
       setIsLoading(true);
@@ -28,9 +46,9 @@ const Inicio = () => {
         const fechaActual = new Date();
 
         const sorteosVisibles = data.filter(sorteo => {
-          const fechaInicio = new Date(sorteo.inicio_periodo_venta);
-          const fechaFin = new Date(sorteo.fin_periodo_venta);
-
+          const fechaInicio = parseDate(sorteo.inicio_periodo_venta);
+          const fechaFin = parseDate(sorteo.fin_periodo_venta);
+          fechaFin.setHours(23, 59, 59, 999);
           return fechaInicio <= fechaActual && fechaActual <= fechaFin;
         });
 

@@ -11,7 +11,7 @@ export function SorteoNumerosCard({ sorteo, onClick }) {
   });
 
   //Dato simpulado
-  const boletosApartados = 3; 
+  const boletosApartados = sorteo.numeros_vendidos; 
   const totalPagar = sorteo.precioNumero * boletosApartados;
 
   return (
