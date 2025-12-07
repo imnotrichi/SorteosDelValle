@@ -15,7 +15,7 @@ let mockRes, mockNext;
 let id_pagos = [];
 const url_comprobante = "https://fastly.picsum.photos/id/412/300/200";
 let datosSorteo = {};
-let id_sorteos = {};
+let id_sorteos = [];
 
 // Función auxiliar para no repetir mocks
 const setupMocks = () => ({
