@@ -1011,7 +1011,7 @@ describe('actualizarSorteo (Controller)', () => {
         id_configuraciones.push(sorteoCreado.configuracionData.id);
 
         vi.useRealTimers();
-        
+
         const usuarioCliente = await Usuario.create({
             nombres: "ClienteTest",
             apellido_paterno: "GST024X",
@@ -1022,7 +1022,7 @@ describe('actualizarSorteo (Controller)', () => {
 
         await Numero.create({
             id_sorteo: sorteoCreado.id,
-            numero_boleto: 1,
+            numero: 1,
             estado: "apartado",
             id_cliente: cliente.id_usuario,
             precio: sorteoCreado.precio_numero
