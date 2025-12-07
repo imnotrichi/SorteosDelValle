@@ -72,19 +72,18 @@ class PagosController {
         }
     }
 
-    // Función auxiliar para formatear fechas
     #formatearFecha = (fechaISO) => {
         if (!fechaISO) return null;
         const fecha = new Date(fechaISO);
 
-        const fechaFormateada = fecha.toLocaleDateString('es-MX', {
-            timeZone: 'America/Mexico_City',
+        const fechaFormateada = fecha.toLocaleDateString('en-CA', {
+            timeZone: 'America/Hermosillo',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
         });
 
-        return fechaFormateada.replace(/\//g, '-');
+        return fechaFormateada;
     };
 
     #formatearJsonPagos(jsonPagos) {

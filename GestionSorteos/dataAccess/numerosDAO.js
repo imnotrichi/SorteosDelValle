@@ -1,4 +1,4 @@
-const { Numero, Cliente, Usuario, Pago, PagoConComprobante, sequelize } = require('../models');
+const { Numero, Cliente, Usuario, sequelize, Sorteo } = require('../models');
 const { Op } = require('sequelize');
 
 class NumerosDAO {
@@ -239,6 +239,30 @@ class NumerosDAO {
             return 'Se registró completó la operación correctamente.';
         } catch (error) {
             if (t) await t.rollback();
+            throw error;
+        }
+    }
+
+    async obtenerNumerosCliente(id_cliente) {
+        try {
+            if (!id_cliente) {
+                throw new Error('Se debe proporcionar el id del cliente para realizar la búsqueda.');
+            }
+
+            const numeros = await Numero.findAll({
+                where: {
+                    id_cliente
+                },
+                include: [
+                    {
+                        model: Sorteo,
+                        as: 'Sorteo'
+                    }
+                ]
+            });
+
+            return numeros;
+        } catch (error) {
             throw error;
         }
     }
