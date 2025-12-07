@@ -3,6 +3,7 @@ import numerosDAO from "../dataAccess/numerosDAO.js";
 import sorteosDAO from "../dataAccess/sorteosDAO.js";
 const sorteosController = require('../controllers/sorteosController.js');
 const numerosController = require('../controllers/numerosController.js');
+const pagosController = require('../controllers/pagosController.js');
 const { Sorteo, Configuracion, Premio, Organizador, Usuario, OrganizadorSorteo, Cliente, Numero, Pago, PagoConComprobante } = require("../models/index.js");
 
 let configGlobalId;
@@ -376,7 +377,7 @@ describe('liberarNumero (Controller)', () => {
     });
 });
 
-describe('liberarNumero (Controller)', () => {
+describe('registrarComprobantePago (Controller)', () => {
     // RCP-003
     it('debería registrar un comprobante de pago exitosamente', async () => {
         // Arrange
@@ -388,12 +389,12 @@ describe('liberarNumero (Controller)', () => {
         const mockReq = { body: { numeros: [10, 20, 30], id_sorteo: sorteoId, url_comprobante } };
 
         // Act
-        await numerosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
 
         // Assert
         expect(mockNext).not.toHaveBeenCalled();
         expect(mockRes.status).toHaveBeenCalledWith(200);
-        expect(mockRes.json.mock.calls[0][0].message).toBe('Se registró correctamente el comprobante de pago');
+        expect(mockRes.json.mock.calls[0][0].message).toBe('Se registró correctamente el comprobante de pago.');
         const numeros = await numerosDAO.obtenerNumerosPorSorteo(sorteoId);
         id_pagos.push(numeros[0].id_pago);
     });
@@ -405,7 +406,7 @@ describe('liberarNumero (Controller)', () => {
         const mockReq = { body: { numeros: [10, 20, 30], url_comprobante } };
 
         // Act
-        await numerosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
@@ -423,7 +424,7 @@ describe('liberarNumero (Controller)', () => {
         const mockReq = { body: { id_sorteo: sorteoId, url_comprobante } };
 
         // Act
-        await numerosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
@@ -441,7 +442,7 @@ describe('liberarNumero (Controller)', () => {
         const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30] } };
 
         // Act
-        await numerosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
@@ -459,7 +460,7 @@ describe('liberarNumero (Controller)', () => {
         const mockReq = { body: { id_sorteo: 9999, numeros: [10, 20, 30], url_comprobante } };
 
         // Act
-        await numerosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
@@ -476,7 +477,7 @@ describe('liberarNumero (Controller)', () => {
         const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30], url_comprobante } };
 
         // Act
-        await numerosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
@@ -494,7 +495,7 @@ describe('liberarNumero (Controller)', () => {
         const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30, 40, 50], url_comprobante } };
 
         // Act
-        await numerosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
