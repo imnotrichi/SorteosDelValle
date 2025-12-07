@@ -387,7 +387,10 @@ class SorteosController {
             const fechaInicioVentaBoletosOriginal = new Date(sorteoExists.inicio_periodo_venta);
 
             if (new Date() > fechaInicioVentaBoletosOriginal && inicio_periodo_venta) {
-                if (new Date(inicio_periodo_venta).getTime() !== fechaInicioVentaBoletosOriginal.getTime()) {
+                
+                const seEstaCambiandoLaFecha = new Date(inicio_periodo_venta).getTime() !== fechaInicioVentaBoletosOriginal.getTime();
+
+                if (seEstaCambiandoLaFecha && existe) {
                     return next(new AppError('No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.', 405));
                 }
             }
