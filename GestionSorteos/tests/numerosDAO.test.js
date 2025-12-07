@@ -268,57 +268,30 @@ describe('marcarNumerosComoPagados (DAO)', () => {
     // MNP-001
     it('debería marcar los números como pagados', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - MNP-001";
-        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
-        const id_sorteo_local = sorteoCreado.id;
-        id_sorteos.push(id_sorteo_local);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: id_sorteo_local, id_cliente });
-        await pagosDAO.registrarComprobantePago({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp1" });
+        await numerosDAO.apartarNumeros({ numeros: [50, 51, 52], id_sorteo, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo, numeros: [50, 51, 52], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp1" });
 
         // Act
-        const response = await numerosDAO.marcarNumerosComoPagados({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30] });
-
+        const response = await numerosDAO.marcarNumerosComoPagados({ id_sorteo, numeros: [50, 51, 52] });
         // Assert
         expect(response).toBe("Se registró completó la operación correctamente.");
-        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo_local);
+        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo);
         id_pagos.push(numeros[0].id_pago);
     });
 
     // MNP-002
     it('no debería marcar los números como pagados si no se proporciona el ID del sorteo', async () => {
-        // Arrange
-        datosSorteo.titulo = "Sorteo - MNP-002";
-        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
-        const id_sorteo_local = sorteoCreado.id;
-        id_sorteos.push(id_sorteo_local);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: id_sorteo_local, id_cliente });
-        await pagosDAO.registrarComprobantePago({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp2" });
-
         // Act + Assert
-        await expect(numerosDAO.marcarNumerosComoPagados({
-            numeros: [40, 50, 60],
-        })
+        await expect(numerosDAO.marcarNumerosComoPagados({ numeros: [40, 50, 60] })
         ).rejects.toThrow('Se debe proporcionar el id del sorteo para realizar la operación.');
-        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo_local);
-        id_pagos.push(numeros[0].id_pago);
     });
 
     // MNP-003
     it('no debería marcar los números como pagados si no se proporciona ningún número', async () => {
-        // Arrange
-        datosSorteo.titulo = "Sorteo - MNP-003";
-        const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
-        const id_sorteo_local = sorteoCreado.id;
-        id_sorteos.push(id_sorteo_local);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: id_sorteo_local, id_cliente });
-        await pagosDAO.registrarComprobantePago({ id_sorteo: id_sorteo_local, numeros: [10, 20, 30], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp3" });
-
         // Act + Assert
         await expect(numerosDAO.marcarNumerosComoPagados({
             id_sorteo: id_sorteo_local,
         })
         ).rejects.toThrow('Se debe proporcionar al menos un número para realizar la operación.');
-        const numeros = await numerosDAO.obtenerNumerosPorSorteo(id_sorteo_local);
-        id_pagos.push(numeros[0].id_pago);
     });
 });
