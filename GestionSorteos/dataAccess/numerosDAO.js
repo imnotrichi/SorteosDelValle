@@ -175,35 +175,71 @@ class NumerosDAO {
         }
     }
 
-    async registrarComprobantePago({ id_sorteo, numeros, monto, url_comprobante }) {
+    async obtenerNumerosPendientes(id_sorteo) {
+        try {
+            if (!id_sorteo) {
+                throw new Error('Se debe proporcionar el ID del sorteo para realizar la búsqueda.');
+            }
+
+            const numeros = await Numero.findAll({
+                where: {
+                    id_sorteo,
+                    estado: "PENDIENTE"
+                },
+                attributes: [
+                    "numero",
+                    "id_sorteo",
+                    "createdAt"       // Fecha de apartado
+                ],
+                include: [
+                    {
+                        model: Cliente,
+                        attributes: [],  // No queremos columnas separadas
+                        include: [
+                            {
+                                model: Usuario,
+                                attributes: [
+                                    "correo",
+                                    "nombres",
+                                    "apellido_paterno"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                raw: true
+            });
+
+            // Combinar nombre completo directamente
+            return numeros.map(num => ({
+                numero: num.numero,
+                id_sorteo: num.id_sorteo,
+                nombre_cliente: `${num["Cliente.Usuario.nombres"]} ${num["Cliente.Usuario.apellido_paterno"]}`,
+                correo_cliente: num["Cliente.Usuario.correo"],
+                fecha_apartado: num.createdAt
+            }));
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async marcarNumerosComoPagados({ id_sorteo, numeros }) {
         let t;
 
         try {
-            const numerosObtenidos = await Numero.findAll({
-                where: {
-                    id_sorteo,
-                    numero: {
-                        [Op.in]: numeros
-                    },
-                    estado: "APARTADO"
-                }
-            });
+            if (!id_sorteo) {
+                throw new Error('Se debe proporcionar el id del sorteo para realizar la operación.');
+            }
 
-            if (!numerosObtenidos || numerosObtenidos.length === 0) {
-                throw new Error('No se encontró ninguno de los números proporcionados.');
+            if (!numeros || numeros.length === 0) {
+                throw new Error('Se debe proporcionar al menos un número para realizar la operación.');
             }
 
             t = await sequelize.transaction();
 
-            const pago = await Pago.create(
-                { monto_total: monto },
-                { transaction: t }
-            );
-
             await Numero.update(
                 {
-                    estado: "PENDIENTE",
-                    id_pago: pago.id
+                    estado: "PAGADO"
                 },
                 {
                     where: {
@@ -216,17 +252,9 @@ class NumerosDAO {
                 }
             );
 
-            await PagoConComprobante.create(
-                {
-                    id_pago: pago.id,
-                    img_comprobante_url: url_comprobante
-                },
-                { transaction: t }
-            );
-
             t.commit();
 
-            return 'Se registró correctamente el pago.';
+            return 'Se registró completó la operación correctamente.';
         } catch (error) {
             if (t) await t.rollback();
             throw error;
