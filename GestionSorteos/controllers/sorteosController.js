@@ -93,7 +93,7 @@ class SorteosController {
                 }
 
                 const esOrganizador = await organizadoresDAO.obtenerOrganizadorPorId(organizadorObtenido.id);
-                
+
                 if (!esOrganizador) {
                     return next(new AppError(`El usuario con correo '${correoOrg}' existe pero no es un organizador autorizado.`, 403));
                 }
@@ -241,8 +241,8 @@ class SorteosController {
                 boletos_disponibles: numerosDisponibles,
                 dinero_recaudado: (sorteo.precio_numero * numerosPagados).toFixed(2),
                 dinero_por_recaudar: (sorteo.precio_numero * numerosApartados).toFixed(2),
-                fin_periodo_venta: sorteo.fin_periodo_venta,
-                fecha_realizacion: sorteo.fecha_realizacion,
+                fin_periodo_venta: this.#formatearFecha(sorteo.fin_periodo_venta),
+                fecha_realizacion: this.#formatearFecha(sorteo.fecha_realizacion),
                 precio_numero: sorteo.precio_numero,
                 estado: estadoSorteo,
                 premios: premiosData,
@@ -575,9 +575,9 @@ class SorteosController {
             descripcion: jsonSorteo.descripcion,
             imagen_url: jsonSorteo.imagen_url,
             rango_numeros: jsonSorteo.rango_numeros,
-            inicio_periodo_venta: jsonSorteo.inicio_periodo_venta,
-            fin_periodo_venta: jsonSorteo.fin_periodo_venta,
-            fecha_realizacion: jsonSorteo.fecha_realizacion,
+            inicio_periodo_venta: this.#formatearFecha(jsonSorteo.inicio_periodo_venta),
+            fin_periodo_venta: this.#formatearFecha(jsonSorteo.fin_periodo_venta),
+            fecha_realizacion: this.#formatearFecha(jsonSorteo.fecha_realizacion),
             precio_numero: jsonSorteo.precio_numero,
             numeros_vendidos: numeros_vendidos,
             premiosData: premios,
@@ -591,5 +591,21 @@ class SorteosController {
 
         return sorteoData;
     }
+    // Función auxiliar para formatear fechas
+    #formatearFecha = (fechaISO) => {
+        if (!fechaISO) return null;
+        const fecha = new Date(fechaISO);
+
+        // Configura aquí tu zona horaria (ej. 'America/Mexico_City', 'America/Hermosillo', etc.)
+        return fecha.toLocaleString('es-MX', {
+            timeZone: 'America/Mexico_City',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true // Pone AM/PM
+        });
+    };
 }
 module.exports = new SorteosController();
