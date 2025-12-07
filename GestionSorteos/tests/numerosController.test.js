@@ -438,9 +438,9 @@ describe('marcarNumerosComoPagados (Controller)', () => {
         const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
         const sorteoId = nuevoSorteo.id;
         id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [4, 5, 6], id_sorteo: sorteoId, id_cliente });
-        await pagosDAO.registrarComprobantePago({ id_sorteo: sorteoId, numeros: [4, 5, 6], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp4" });
-        const mockReq = { body: { id_sorteo: sorteoId, numeros: [4, 5, 6, 7, 8] } };
+        await numerosDAO.apartarNumeros({ numeros: [80, 81, 82], id_sorteo: sorteoId, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo: sorteoId, numeros: [80, 81, 82], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp4" });
+        const mockReq = { body: { id_sorteo: sorteoId, numeros: [80, 81, 82, 83, 84] } };
 
         // Act
         await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
