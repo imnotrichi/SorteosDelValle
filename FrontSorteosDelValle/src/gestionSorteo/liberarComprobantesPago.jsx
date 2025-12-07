@@ -43,49 +43,6 @@ const COMPROBANTES_MOCK = [
   }
 ];
 
-const HeaderCliente = ({ onNavigate }) => {
-  return (
-    <header className="sticky top-0 z-20 w-full bg-background-light/80 backdrop-blur-sm border-b border-border-light">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <div className="flex items-center gap-4 text-text-light">
-            <button onClick={() => onNavigate('/')} className="cursor-pointer">
-              <svg width="120" height="50" viewBox="0 0 120 50" fill="none">
-                <text x="10" y="35" fill="#2D5016" fontSize="20" fontWeight="bold">
-                  Sorteos del Valle
-                </text>
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex flex-1 justify-end gap-2 items-center">
-            <nav className="hidden md:flex items-center gap-9 mr-7">
-              <button
-                onClick={() => onNavigate('/')}
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Inicio
-              </button>
-
-              <button
-                onClick={() => onNavigate('/mis-numeros')}
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Mis números
-              </button>
-            </nav>
-
-            <div className="flex items-center gap-2 pl-4 border-l border-gray-200 ml-4">
-              <div className="w-6 h-6 bg-gray-400 rounded-full"></div>
-              <span className="text-sm font-medium">Ricardo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
-
 const ComprobanteCard = ({ comprobante, isSelected, onToggle, onVerComprobante }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">

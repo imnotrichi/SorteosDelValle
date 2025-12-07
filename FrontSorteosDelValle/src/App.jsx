@@ -17,6 +17,7 @@ import MisNumeros from "./registrarPago/misNumeros.jsx";
 import { AuthProvider, useAuth } from "./registrarUsuario/AuthContext.jsx";
 import SessionExpiredModal from "./components/sesionExpiradaModal.jsx"
 import RegistrarComprobante from "./registrarPago/registrarComprobante.jsx";
+import LiberarComprobantesPago from "./gestionSorteo/liberarComprobantesPago.jsx";
 
 
 const MainLayout = ({ children }) => {
@@ -92,6 +93,7 @@ function AppContent() {
           <Route path="/admin/sorteos/:idSorteo" element={<MainLayout><DetallesSorteo /></MainLayout>} />
           <Route path="/admin/editar/:id" element={<MainLayout><EditarSorteo /></MainLayout>} />
           <Route path="/admin/sorteo/numeros/:id" element={<MainLayout><LiberarNumeros /></MainLayout>} />
+          <Route path="/admin/comprobantesPago/:id" element={<MainLayout><LiberarComprobantesPago /></MainLayout>} />
         </Route>
 
         <Route path="*" element={<PaginaNoEncontrada />} />
