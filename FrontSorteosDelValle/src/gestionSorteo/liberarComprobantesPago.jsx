@@ -140,8 +140,6 @@ export default function LiberarComprobantesPago() {
 
   return (
     <div className="min-h-screen bg-background-light pb-32">
-      <HeaderCliente onNavigate={() => {}} />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4 w-full">
@@ -241,7 +239,7 @@ export default function LiberarComprobantesPago() {
               <button
                 onClick={handleMarcarPagado}
                 disabled={seleccionados.length === 0}
-                className="w-full flex items-center justify-center rounded-lg h-12 px-4 bg-primary hover:bg-primary/90 text-text-light text-lg font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex flex-col items-center justify-center rounded-lg h-auto min-h-[48px] py-3 px-4 bg-primary hover:bg-primary/90 text-text-light text-base font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed gap-1"
               >
                 Marcar como pagado
                 {seleccionados.length > 0 && (
