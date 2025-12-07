@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const COMPROBANTES_MOCK = [
   {
@@ -103,6 +104,7 @@ const ComprobanteCard = ({ comprobante, isSelected, onToggle, onVerComprobante }
 };
 
 export default function LiberarComprobantesPago() {
+  const navigate = useNavigate();
   const [busqueda, setBusqueda] = useState('');
   const [seleccionados, setSeleccionados] = useState(['001', '003']);
 
@@ -115,7 +117,7 @@ export default function LiberarComprobantesPago() {
   };
 
   const handleCancelar = () => {
-    console.log('Cancelar');
+    navigate(-1);
   };
 
   const handleMarcarPagado = () => {
