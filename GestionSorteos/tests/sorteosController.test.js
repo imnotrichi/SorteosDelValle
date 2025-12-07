@@ -131,14 +131,14 @@ describe('crearSorteo (Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
-        const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoCreado).toHaveProperty('id');
         expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
         expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
         expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
-        expect(Number(sorteoCreado.rango_numeros)).toBe(Number(datosSorteo.rango_numeros)); expect(toShort(sorteoCreado.inicio_periodo_venta)).toBe(datosSorteo.inicio_periodo_venta);
-        expect(toShort(sorteoCreado.fin_periodo_venta)).toBe(datosSorteo.fin_periodo_venta);
-        expect(toShort(sorteoCreado.fecha_realizacion)).toBe(datosSorteo.fecha_realizacion);
+        expect(Number(sorteoCreado.rango_numeros)).toBe(Number(datosSorteo.rango_numeros));
+        expect(sorteoCreado.inicio_periodo_venta).toBe(formatearFecha(datosSorteo.inicio_periodo_venta));
+        expect(sorteoCreado.fin_periodo_venta).toBe(formatearFecha(datosSorteo.fin_periodo_venta));
+        expect(sorteoCreado.fecha_realizacion).toBe(formatearFecha(datosSorteo.fecha_realizacion));
         expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
     });
 
@@ -306,15 +306,14 @@ describe('crearSorteo (Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
-        const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoCreado).toHaveProperty('id');
         expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
         expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
         expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
         expect(sorteoCreado.rango_numeros).toBe(datosSorteo.rango_numeros);
-        expect(toShort(sorteoCreado.inicio_periodo_venta)).toBe(datosSorteo.inicio_periodo_venta);
-        expect(toShort(sorteoCreado.fin_periodo_venta)).toBe(datosSorteo.fin_periodo_venta);
-        expect(toShort(sorteoCreado.fecha_realizacion)).toBe(datosSorteo.fecha_realizacion);
+        expect(sorteoCreado.inicio_periodo_venta).toBe(formatearFecha(datosSorteo.inicio_periodo_venta));
+        expect(sorteoCreado.fin_periodo_venta).toBe(formatearFecha(datosSorteo.fin_periodo_venta));
+        expect(sorteoCreado.fecha_realizacion).toBe(formatearFecha(datosSorteo.fecha_realizacion));
         expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
     });
 
@@ -510,15 +509,14 @@ describe('crearSorteo (Controller)', () => {
         const sorteoCreado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
-        const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoCreado).toHaveProperty('id');
         expect(sorteoCreado.titulo).toBe(datosSorteo.titulo);
         expect(sorteoCreado.descripcion).toBe(datosSorteo.descripcion);
         expect(sorteoCreado.imagen_url).toBe(datosSorteo.imagen_url);
         expect(sorteoCreado.rango_numeros).toBe(datosSorteo.rango_numeros);
-        expect(toShort(sorteoCreado.inicio_periodo_venta)).toBe(datosSorteo.inicio_periodo_venta);
-        expect(toShort(sorteoCreado.fin_periodo_venta)).toBe(datosSorteo.fin_periodo_venta);
-        expect(toShort(sorteoCreado.fecha_realizacion)).toBe(datosSorteo.fecha_realizacion);
+        expect(sorteoCreado.inicio_periodo_venta).toBe(formatearFecha(datosSorteo.inicio_periodo_venta));
+        expect(sorteoCreado.fin_periodo_venta).toBe(formatearFecha(datosSorteo.fin_periodo_venta));
+        expect(sorteoCreado.fecha_realizacion).toBe(formatearFecha(datosSorteo.fecha_realizacion));
         expect(Number(sorteoCreado.precio_numero)).toBe(datosSorteo.precio_numero);
     });
 
@@ -696,13 +694,12 @@ describe('actualizarSorteo (Controller)', () => {
         const sorteoActualizado = mockRes.json.mock.calls[0][0];
         id_sorteos.push(sorteoActualizado.id);
         id_configuraciones.push(sorteoActualizado.configuracionData.id);
-        const toShort = d => new Date(d).toISOString().substring(0, 10);
         expect(sorteoActualizado.descripcion).toBe(datosSorteoActualizado.descripcion);
         expect(sorteoActualizado.imagen_url).toBe(datosSorteoActualizado.imagen_url);
         expect(sorteoActualizado.rango_numeros).toBe(datosSorteoActualizado.rango_numeros);
-        expect(toShort(sorteoActualizado.inicio_periodo_venta)).toBe(datosSorteoActualizado.inicio_periodo_venta);
-        expect(toShort(sorteoActualizado.fin_periodo_venta)).toBe(datosSorteoActualizado.fin_periodo_venta);
-        expect(toShort(sorteoActualizado.fecha_realizacion)).toBe(datosSorteoActualizado.fecha_realizacion);
+        expect(sorteoActualizado.inicio_periodo_venta).toBe(formatearFecha(datosSorteoActualizado.inicio_periodo_venta));
+        expect(sorteoActualizado.fin_periodo_venta).toBe(formatearFecha(datosSorteoActualizado.fin_periodo_venta));
+        expect(sorteoActualizado.fecha_realizacion).toBe(formatearFecha(datosSorteoActualizado.fecha_realizacion));
     });
 
     it('debería llamar a next con error 404 si el sorteo a actualizar no existe', async () => {
@@ -1204,6 +1201,7 @@ describe('obtenerTableroSorteo(Controller)', () => {
         let mockReq = { body: datosSorteo };
         await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
         const sorteoCreado = mockRes.json.mock.calls[0][0];
+        console.log("SORTEO CREADO:", JSON.stringify(sorteoCreado, null, 2));
         id_sorteos.push(sorteoCreado.id);
         id_configuraciones.push(sorteoCreado.configuracionData.id);
         mockReq = { params: { id: sorteoCreado.id, idUsuario: organizadorId1 } };
@@ -1226,9 +1224,8 @@ describe('obtenerTableroSorteo(Controller)', () => {
         expect(tableroData.boletos_disponibles).toBe(sorteoCreado.rango_numeros);
         expect(tableroData.dinero_recaudado).toBe("0.00");
         expect(tableroData.dinero_por_recaudar).toBe("0.00");
-        const toShort = d => new Date(d).toISOString().substring(0, 10);
-        expect(toShort(tableroData.fin_periodo_venta)).toBe(toShort(sorteoCreado.fin_periodo_venta));
-        expect(toShort(tableroData.fecha_realizacion)).toBe(toShort(sorteoCreado.fecha_realizacion));
+        expect(tableroData.fin_periodo_venta).toBe(sorteoCreado.fin_periodo_venta);
+        expect(tableroData.fecha_realizacion).toBe(sorteoCreado.fecha_realizacion);
         expect(tableroData.precio_numero).toBe(Number(sorteoCreado.precio_numero).toFixed(2));
         expect(tableroData.estado).toBe("Activo");
     });
@@ -1397,4 +1394,21 @@ describe('obtenerTableroSorteo(Controller)', () => {
         expect(error.statusCode).toBe(403);
         expect(error.message).toBe("Usted no tiene los permisos para ver el tablero del sorteo.");
     });
-})
+});
+// Función auxiliar para formatear fechas
+function formatearFecha(fechaISO) {
+    if (!fechaISO) return null;
+    const fecha = new Date(fechaISO);
+
+    // Configura aquí tu zona horaria (ej. 'America/Mexico_City', 'America/Hermosillo', etc.)
+    return fecha.toLocaleString('es-MX', {
+        timeZone: 'America/Mexico_City',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true // Pone AM/PM
+    });
+};
+
