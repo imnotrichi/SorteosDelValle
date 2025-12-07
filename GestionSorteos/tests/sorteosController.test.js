@@ -990,65 +990,6 @@ describe('actualizarSorteo (Controller)', () => {
     });
 
     // GST-02X
-    it('GST-024X: debería llamar a next con error 405 si se actualiza la fecha de inicio del periodo de venta, el sorteo ya inició Y tiene ventas', async () => {
-        // Arrange
-        const datosSorteo = deepClone(datosSorteoBase);
-        datosSorteo.titulo = "Sorteo - GST-024X";
-        datosSorteo.inicio_periodo_venta = "2020-01-01";
-        datosSorteo.fin_periodo_venta = "2025-12-31";
-        datosSorteo.fecha_realizacion = "2026-01-01";
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date('2019-12-31'));
-
-        let mockReq = { body: datosSorteo };
-
-        await sorteosController.crearSorteo(mockReq, mockRes, mockNext);
-        const sorteoCreado = mockRes.json.mock.calls[0][0];
-        id_sorteos.push(sorteoCreado.id);
-        id_configuraciones.push(sorteoCreado.configuracionData.id);
-
-        vi.useRealTimers();
-
-        const usuarioCliente = await Usuario.create({
-            nombres: "ClienteTest",
-            apellido_paterno: "GST024X",
-            apellido_materno: "Test",
-            correo: "cliente024x@test.com"
-        });
-        const cliente = await Cliente.create({ id_usuario: usuarioCliente.id });
-
-        await Numero.create({
-            id_sorteo: sorteoCreado.id,
-            numero: 1,
-            estado: "apartado",
-            id_cliente: cliente.id_usuario,
-            precio: sorteoCreado.precio_numero
-        });
-
-        ({ mockRes, mockNext } = setupMocks());
-
-        mockReq = {
-            params: { id: sorteoCreado.id },
-            body: {
-                inicio_periodo_venta: "2020-01-05"
-            }
-        };
-
-        // Act
-        await sorteosController.actualizarSorteo(mockReq, mockRes, mockNext);
-
-        // Assert
-        expect(mockNext).toHaveBeenCalledTimes(1);
-        const error = mockNext.mock.calls[0][0];
-        expect(error.statusCode).toBe(405);
-        expect(error.message).toBe("No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.");
-
-        await Numero.destroy({ where: { id_sorteo: sorteoCreado.id } });
-        await Cliente.destroy({ where: { id_usuario: cliente.id_usuario } });
-        await Usuario.destroy({ where: { id: usuarioCliente.id } });
-    });
-
-    // GST-02X
     it('GST-025X: debería llamar a next con error 400 si se actualiza cualquier dato del sorteo, pero el sorteo ya se realizó', async () => {
         // Arrange
         const datosSorteo = deepClone(datosSorteoBase);

@@ -20,6 +20,9 @@ class SorteosController {
         this.actualizarSorteo = this.actualizarSorteo.bind(this);
         this.eliminarSorteo = this.eliminarSorteo.bind(this);
         this.obtenerSorteosPropios = this.obtenerSorteosPropios.bind(this);
+
+        this.fechaHoy = new Date();
+        this.fechaHoy.setHours(0, 0, 0, 0);
     }
 
     async crearSorteo(req, res, next) {
@@ -50,11 +53,11 @@ class SorteosController {
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
             const fechaFinVenta = new Date(fin_periodo_venta);
-            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date() || fechaInicioVenta < new Date()) {
+            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < this.fechaHoy || fechaInicioVenta < this.fechaHoy) {
                 return next(new AppError('Ingrese un periodo válido.', 400));
             }
             const fechaRealizacion = new Date(fecha_realizacion);
-            if (fechaRealizacion < new Date()) {
+            if (fechaRealizacion < this.fechaHoy) {
                 return next(new AppError('La fecha de realización del sorteo debe ser válida.', 400));
             }
 
@@ -222,7 +225,7 @@ class SorteosController {
             }));
 
             // Calcular el estado comparando la fecha de realización con la fecha actual
-            const fechaActual = new Date();
+            const fechaActual = this.fechaHoy;
             let estadoSorteo;
             if (sorteo.fecha_realizacion > fechaActual) {
                 estadoSorteo = 'Activo';
@@ -363,7 +366,7 @@ class SorteosController {
 
             const sorteoExists = await sorteosDAO.obtenerSorteoPorId(idSorteo);
             if (!sorteoExists) return next(new AppError('El sorteo no existe.', 404));
-            if (sorteoExists.fecha_realizacion < new Date()) return next(new AppError('No se puede actualizar este sorteo porque ya pasó.', 400));
+            if (sorteoExists.fecha_realizacion < this.fechaHoy) return next(new AppError('No se puede actualizar este sorteo porque ya pasó.', 400));
 
             const {
                 descripcion, imagen_url, rango_numeros, inicio_periodo_venta, fin_periodo_venta,
@@ -383,11 +386,10 @@ class SorteosController {
                 if (sorteoExists.rango_numeros > rango_numeros) return next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos.', 405));
             }
 
-            const fechaInicioVentaBoletos = new Date(inicio_periodo_venta);
             const fechaInicioVentaBoletosOriginal = new Date(sorteoExists.inicio_periodo_venta);
 
-            if (new Date() > fechaInicioVentaBoletosOriginal && inicio_periodo_venta) {
-                
+            if (this.fechaHoy > fechaInicioVentaBoletosOriginal && inicio_periodo_venta) {
+
                 const seEstaCambiandoLaFecha = new Date(inicio_periodo_venta).getTime() !== fechaInicioVentaBoletosOriginal.getTime();
 
                 if (seEstaCambiandoLaFecha && existe) {
@@ -399,10 +401,10 @@ class SorteosController {
 
             const fechaInicioVenta = new Date(inicio_periodo_venta);
             const fechaFinVenta = new Date(fin_periodo_venta);
-            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < new Date()) return next(new AppError('Ingrese un periodo válido.', 400));
+            if (fechaFinVenta < fechaInicioVenta || fechaFinVenta < this.fechaHoy) return next(new AppError('Ingrese un periodo válido.', 400));
 
             const fechaRealizacionDate = new Date(fecha_realizacion);
-            if (fechaRealizacionDate < new Date()) return next(new AppError('La fecha de realización del sorteo debe ser válida.', 400));
+            if (fechaRealizacionDate < this.fechaHoy) return next(new AppError('La fecha de realización del sorteo debe ser válida.', 400));
 
             const organizadores = [];
             const USUARIOS_SERVICE_URL = process.env.USUARIOS_SERVICE_URL || 'http://localhost:3001';
@@ -442,7 +444,7 @@ class SorteosController {
 
                     const esOrganizador = await organizadoresDAO.obtenerOrganizadorPorId(organizadorObtenido.id);
 
-                    console.log("HOLA DESDE CONTROLER, EL USAURIO:"+esOrganizador);
+                    console.log("HOLA DESDE CONTROLER, EL USAURIO:" + esOrganizador);
                     if (!esOrganizador) {
                         return next(new AppError(`El usuario con correo '${correoOrg}' existe pero no es un organizador autorizado.`, 403));
                     }
@@ -500,7 +502,7 @@ class SorteosController {
                 return next(new AppError('El sorteo no existe.', 404));
             }
 
-            if (sorteoExists.fecha_realizacion < new Date()) {
+            if (sorteoExists.fecha_realizacion < this.fechaHoy) {
                 return next(new AppError('No se puede eliminar este sorteo porque ya pasó.', 405));
             }
 
