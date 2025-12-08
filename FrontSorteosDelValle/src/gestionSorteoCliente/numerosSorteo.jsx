@@ -9,6 +9,23 @@ import SorteoNoDisponible from '../components/mensajeNoDisponible';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const parseDate = (dateString) => {
+  if (!dateString) return new Date();
+
+  if (dateString.includes('T') || dateString.includes('-') && !dateString.includes('/')) {
+    return new Date(dateString);
+  }
+
+  try {
+    const [datePart] = dateString.split(',');
+    const [day, month, year] = datePart.trim().split('/');
+    return new Date(`${year}-${month}-${day}T00:00:00`);
+  } catch (e) {
+    console.error("Error parseando fecha:", dateString);
+    return new Date();
+  }
+};
+
 const NumerosSorteo = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -39,9 +56,14 @@ const NumerosSorteo = () => {
         const dataNumeros = await responseNumeros.json();
 
         const fechaActual = new Date();
-        const fechaInicio = new Date(dataSorteo.inicio_periodo_venta);
-        const fechaFin = new Date(dataSorteo.fin_periodo_venta);
-        
+        const fechaInicio = parseDate(dataSorteo.inicio_periodo_venta);
+        const fechaFin = parseDate(dataSorteo.fin_periodo_venta);
+
+
+        if (fechaFin.getHours() === 0 && fechaFin.getMinutes() === 0) {
+          fechaFin.setHours(23, 59, 59, 999);
+        }
+
         const estaEnVenta = fechaInicio <= fechaActual && fechaActual <= fechaFin;
         setEsPeriodoVenta(estaEnVenta);
 
@@ -95,8 +117,8 @@ const NumerosSorteo = () => {
     const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
 
     if (!usuarioLogueado) {
-        setErrorModalMessage('Debes iniciar sesión para apartar números.');
-        return;
+      setErrorModalMessage('Debes iniciar sesión para apartar números.');
+      return;
     }
 
     setIsProcessing(true);
@@ -111,8 +133,8 @@ const NumerosSorteo = () => {
         body: JSON.stringify({
           numeros: numerosSeleccionados,
           id_sorteo: parseInt(id),
-          id_cliente: usuarioLogueado.idusuario, 
-          correo_usuario: usuarioLogueado.correo 
+          id_cliente: usuarioLogueado.idusuario,
+          correo_usuario: usuarioLogueado.correo
         }),
       });
 
@@ -169,7 +191,7 @@ const NumerosSorteo = () => {
               key={numero}
               numero={numero}
               estaSeleccionado={estaSeleccionado}
-              estaDisponible={esPeriodoVenta} 
+              estaDisponible={esPeriodoVenta}
               onClick={handleSeleccionarNumero}
             />
           );
@@ -192,8 +214,8 @@ const NumerosSorteo = () => {
   if (!sorteoData) {
     return (
       <div className="min-h-screen bg-background-light">
-         <HeaderCliente onNavigate={navigate} userName="Ricardo" />
-         <SorteoNoDisponible />
+        <HeaderCliente onNavigate={navigate} userName="Ricardo" />
+        <SorteoNoDisponible />
       </div>
     );
   }
@@ -205,7 +227,7 @@ const NumerosSorteo = () => {
       <HeaderCliente onNavigate={navigate} userName="Ricardo" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {!esPeriodoVenta && (
           <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r shadow-sm">
             <div className="flex items-center">
@@ -215,7 +237,7 @@ const NumerosSorteo = () => {
               <div>
                 <p className="font-bold text-yellow-700">Sorteo no disponible para venta.</p>
                 <p className="text-sm text-yellow-600">
-                  El periodo de venta para este sorteo 
+                  El periodo de venta para este sorteo
                   {new Date() < sorteoData.fechaInicio ? ' aún no ha comenzado.' : ' ha finalizado.'}
                 </p>
               </div>
