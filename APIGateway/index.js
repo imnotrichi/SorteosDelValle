@@ -27,6 +27,12 @@ if (sorteosServiceUrl) {
     }
   }));
 
+  app.use('/api/pagos', proxy(sorteosServiceUrl,{
+    proxyReqPathResolver: function (req) {
+     return req.originalUrl;
+    }
+  }));
+
   app.use('/api/numeros', proxy(sorteosServiceUrl, {
     proxyReqPathResolver: function (req) {
       return req.originalUrl;

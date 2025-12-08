@@ -3,58 +3,184 @@ import { useParams, useNavigate } from 'react-router-dom';
 import HeaderCliente from '../components/headerCliente';
 import FormSection from '../components/formulario';
 import FileUpload from '../components/subirImagen';
+import SuccessModal from '../components/mensajeExito';
+import ErrorModal from '../components/mensajeError';
+
+const CLOUDINARY_CLOUD_NAME = "drczej3mh";
+const CLOUDINARY_UPLOAD_PRESET = "imagenes_sorteosdelvalle";
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+const API_GATEWAY_URL = 'http://localhost:8080';
+
+const handleImageUpload = async (file) => {
+    if (!file) return null;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    try {
+        const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al subir la imagen a Cloudinary');
+        }
+
+        const data = await response.json();
+        return data.secure_url;
+    } catch (error) {
+        console.error('Error en handleImageUpload:', error);
+        throw error;
+    }
+};
 
 const RegistrarComprobante = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+
     const usuario = JSON.parse(localStorage.getItem('usuario'));
     const nombreUsuario = usuario?.nombres || 'Cliente';
 
-    const [numeros, setNumeros] = useState([]);
-    const [selectedNumeros, setSelectedNumeros] = useState([]);
-    const [imagen, setImagen] = useState(null);
+    const [sorteoInfo, setSorteoInfo] = useState(null);
+    const [listaNumeros, setListaNumeros] = useState([]);
+    const [numerosSeleccionados, setNumerosSeleccionados] = useState([]);
+
+    const [imagenFile, setImagenFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
-    const [precioUnitario, setPrecioUnitario] = useState(0);
+
+    const [isUploading, setIsUploading] = useState(false);
+    const [precioUnitario, setPrecioUnitario] = useState(100);
+    const [isLoadingData, setIsLoadingData] = useState(true);
+
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [errorModalMessage, setErrorModalMessage] = useState(null);
 
     useEffect(() => {
-        const mockData = [
-            { id: 11, numero: 11, estado: 'apartado' },
-            { id: 12, numero: 12, estado: 'apartado' },
-            { id: 13, numero: 13, estado: 'pendiente' }, 
-            { id: 14, numero: 14, estado: 'pagado' },    
-        ];
 
-        setNumeros(mockData);
-        setPrecioUnitario(100); 
-    }, [id]);
+        const fetchNumeroData = async () => {
+            setIsLoadingData(true);
+            try {
+                if (!usuario.correo) {
+                    throw new Error("No hay sesión de usuario activa.");
+                }
 
-    const handleCheckboxChange = (numeroId) => {
-        setSelectedNumeros(prev => {
-            if (prev.includes(numeroId)) {
-                return prev.filter(id => id !== numeroId);
+                const responseNumeros = await fetch(`${API_GATEWAY_URL}/api/numeros/cliente-sorteo?correo=${usuario.correo}&id=${id}`);
+                if (!responseNumeros.ok) throw new Error('Error al obtener los números del cliente');
+
+                const dataNumeros = await responseNumeros.json();
+
+                let precio = parseFloat(dataNumeros.precio_numero);
+
+                setSorteoInfo({
+                    id_sorteo: dataNumeros.id_sorteo,
+                    titulo: dataNumeros.titulo,
+                    fecha_realizacion: dataNumeros.fecha_realizacion
+                });
+
+                setListaNumeros(dataNumeros.numeros || []);
+                setPrecioUnitario(precio);
+
+            } catch (error) {
+                console.error(error);
+                setErrorModalMessage("Error al cargar la información del sorteo.");
+            } finally {
+                setIsLoadingData(false);
+            }
+        };
+
+        if (id) fetchNumeroData();
+    }, [id, usuario.correo]);
+
+    const handleCheckboxChange = (numeroValor) => {
+        setNumerosSeleccionados(prev => {
+            if (prev.includes(numeroValor)) {
+                return prev.filter(n => n !== numeroValor);
             } else {
-                return [...prev, numeroId];
+                return [...prev, numeroValor];
             }
         });
     };
 
-    const handleImageComprobanteChange = (e) => {
+    const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setFormData({ ...formData, imagen: file });
+            setImagenFile(file);
+            const objectUrl = URL.createObjectURL(file);
+            setPreviewUrl(objectUrl);
         }
     };
 
-    const totalPagar = selectedNumeros.length * precioUnitario;
+
+
+    const handleSubmit = async (e) => {
+        if (numerosSeleccionados.length === 0 || !imagenFile) return;
+        setIsUploading(true);
+
+        try {
+            const cloudinaryUrl = await handleImageUpload(imagenFile);
+
+            const payload = {
+                id_sorteo: sorteoInfo.id_sorteo,
+                numeros: numerosSeleccionados,
+                url_comprobante: cloudinaryUrl
+            }
+
+            console.log("Envienado al backend: ", payload);
+
+            const response = await fetch(`${API_GATEWAY_URL}/api/pagos/registrar-comprobante`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al registrar el comprobante');
+            }
+
+            setShowSuccessModal(true);
+
+        } catch (error) {
+            console.error(error)
+            setErrorModalMessage("Ocurrió un error al enviar tu comprobante. Inenta nuevamente");
+        }
+        finally {
+            setIsUploading(false);
+        };
+    };
+
+    const handleCloseSuccess = () => {
+        setShowSuccessModal(false);
+        navigate('/mis-numeros');
+    }
+
+    const totalPagar = numerosSeleccionados.length * precioUnitario;
 
     const getEstadoBadgeColor = (estado) => {
+        const estadoLower = estado ? estado.toLowerCase() : '';
         switch (estado) {
-            case 'apartado': return 'bg-[#CECECE] text-[#616161]';
-            case 'pendiente': return 'bg-[#FFF3CD] text-[#F4BE15]';
-            case 'pagado': return 'bg-[#BAF8AB] text-[#187F12]';
+            case 'APARTADO': return 'bg-[#CECECE] text-[#616161]';
+            case 'PENDIENTE': return 'bg-[#FFF3CD] text-[#F4BE15]';
+            case 'PAGADO': return 'bg-[#BAF8AB] text-[#187F12]';
             default: return 'bg-gray-100 text-gray-500';
         }
     };
+
+    if (isLoadingData) {
+        return (
+            <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando tus números...</p>
+                </div>
+            </div>
+        );
+    }
+    if (!sorteoInfo) return <div className="p-10 text-center">No se encontró información del sorteo.</div>;
 
     return (
         <div className="min-h-screen bg-[#eafbe4]">
@@ -62,68 +188,90 @@ const RegistrarComprobante = () => {
 
             <div className="max-w-6xl mx-auto px-4 py-8">
 
-                {/* Título y Subtítulo */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Registrar comprobante de pago</h1>
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Registrar Comprobante</h1>
                     <p className="text-gray-500 font-medium">Sube tu comprobante para confirmar el pago de tus números apartados</p>
+                    <p className="text-gray-500 mt-1">
+                        Sorteo: <span className="font-medium text-gray-800">{sorteoInfo.titulo}</span>
+                    </p>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
 
-                    {/* --- COLUMNA IZQUIERDA (Lista y Subida) --- */}
                     <div className="flex-1 flex flex-col gap-6">
 
-                        {/* 1. Lista de Números */}
-                        <FormSection title={`1. selecciona los números a pagar  $${precioUnitario}`}>
+                        <FormSection title={`1. selecciona los números a pagar  $${precioUnitario}`}>
                             <div className="divide-y divide-gray-100">
-                                {numeros.map((num) => {
-                                    const isDisabled = num.estado === 'pagado'; 
-                                    return (
-                                        <div key={num.id} className={`flex items-center justify-between p-4 ${isDisabled ? 'bg-gray-50 opacity-60' : 'hover:bg-gray-50'}`}>
-                                            <div className="flex items-center gap-4">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-6 h-6 rounded-full border-2 border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer"
-                                                    checked={selectedNumeros.includes(num.id)}
-                                                    onChange={() => handleCheckboxChange(num.id)}
-                                                    disabled={isDisabled}
-                                                />
-                                                <span className="text-gray-800 font-medium text-lg">
-                                                    Número #{num.numero}-Sorteo playa 2025
+                                {listaNumeros.length > 0 ? (
+                                    listaNumeros.map((item, index) => {
+                                        const estadoLower = item.estado.toLowerCase();
+                                        const isDisabled = estadoLower !== 'apartado' && estadoLower !== 'apartados';
+                                        const isSelected = numerosSeleccionados.includes(item.numero);
+
+                                        return (
+                                            <div key={index} className={`flex items-center justify-between p-4 ${isDisabled ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50 cursor-pointer'}`} onClick={() => !isDisabled && handleCheckboxChange(item.numero)}>
+                                                <div className="flex items-center gap-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-5 h-5 text-green-600 rounded focus:ring-green-500 cursor-pointer"
+                                                        checked={isSelected}
+                                                        onChange={() => handleCheckboxChange(item.numero)}
+                                                        disabled={isDisabled}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    <div>
+                                                        <p className="font-bold text-gray-800 text-lg">Número {item.numero}</p>
+                                                        <p className="text-xs text-gray-500 capitalize">{item.estado}</p>
+                                                    </div>
+                                                </div>
+
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${getEstadoBadgeColor(item.estado)}`}>
+                                                    {item.estado}
                                                 </span>
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full text-sm font-bold capitalize ${getEstadoBadgeColor(num.estado)}`}>
-                                                {num.estado}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })
+                                ) : (
+                                    <p className="p-4 text-gray-500 text-center">No tienes números asociados a este sorteo.</p>
+                                )}
                             </div>
                         </FormSection>
 
-                        {/* 2. Subir Imagen */}
-                        <FormSection title={"2. Imagen"}>
+                        <FormSection title={"2. Imagen de pago"}>
                             <FileUpload
-                                id="sorteo-imagen"
-                                onChange={handleImageComprobanteChange}
-                            //TODO: fileValue={formData.imagen}
+                                id="comprobante-upload"
+                                label="Seleccionar imagen"
+                                onChange={handleImageChange}
+                                fileValue={imagenFile}
                             />
+
+                            {previewUrl && (
+                                <div className="mt-4">
+                                    <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
+                                    <div className="relative w-full max-w-xs h-64 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                                        <img
+                                            src={previewUrl}
+                                            alt="Vista previa"
+                                            className='w-full h-full object-contain'
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </FormSection>
                     </div>
 
-                    {/* --- COLUMNA DERECHA (Resumen Sticky) --- */}
                     <div className="w-full lg:w-96">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-8">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Resumen de pago</h2>
 
                             <div className="flex justify-between mb-2 text-sm text-gray-500">
-                                <span>Boletos seleccionados</span>
-                                <span>{selectedNumeros.length}</span>
+                                <span>Números seleccionados</span>
+                                <span>{numerosSeleccionados.length}</span>
                             </div>
 
                             <div className="flex justify-between mb-6 text-sm text-gray-500 border-b border-gray-100 pb-4">
-                                <span>Subtotal</span>
-                                <span>${totalPagar.toFixed(2)} MXN</span>
+                                <span>Precio unitario</span>
+                                <span className="font-medium">${precioUnitario}</span>
                             </div>
 
                             <div className="flex justify-between items-center mb-6">
@@ -132,19 +280,47 @@ const RegistrarComprobante = () => {
                             </div>
 
                             <button
-                                className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-colors ${selectedNumeros.length > 0 && imagen
+                                onClick={handleSubmit}
+                                className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-colors ${numerosSeleccionados.length > 0 && imagenFile
                                     ? 'bg-[#4ade80] hover:bg-[#42c974] text-gray-900'
                                     : 'bg-gray-300 cursor-not-allowed text-gray-500'
                                     }`}
-                                disabled={selectedNumeros.length === 0 || !imagen}
+                                disabled={numerosSeleccionados.length === 0 || !imagenFile || isUploading}
                             >
-                                Enviar comprobante
+                                {isUploading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Enviando...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Enviar Comprobante</span>
+                                    </>
+                                )}
                             </button>
+
+                            <p className="text-xs text-gray-400 text-center mt-4">
+                                Tus números pasarán a estado "Pendiente" hasta que el administrador verifique el pago.
+                            </p>
                         </div>
                     </div>
 
                 </div>
             </div>
+
+            <SuccessModal
+                isOpen={showSuccessModal}
+                onClose={handleCloseSuccess}
+                title="¡Comprobante enviado!"
+                message="Hemos recibido tu comprobante. Tus números están en proceso de verificación."
+            />
+
+            <ErrorModal
+                isOpen={!!errorModalMessage}
+                onClose={() => setErrorModalMessage(null)}
+                title="Error"
+                message={errorModalMessage}
+            />
         </div>
     );
 };
