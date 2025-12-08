@@ -374,33 +374,29 @@ class NumerosController {
                 return next(new AppError('El cliente no existe.', 404));
             }
 
-            const numerosObtenidos = await numerosDAO.obtenerNumerosCliente(usuarioObtenido.id);
+            const sorteosObtenidos = await numerosDAO.obtenerNumerosCliente(usuarioObtenido.id);
 
-            if (!numerosObtenidos || numerosObtenidos.length === 0) {
+            if (!sorteosObtenidos || sorteosObtenidos.length === 0) {
                 return next(new AppError('El cliente no tiene números apartados, pendientes o pagados.', 404));
             }
 
-            const sorteosData = {};
-
-            numerosObtenidos.forEach(numero => {
-                const idSorteo = numero.Sorteo.id;
-
-                if (!sorteosData[idSorteo]) {
-                    sorteosData[idSorteo] = {
-                        id_sorteo: idSorteo,
-                        titulo: numero.Sorteo.titulo,
-                        fecha_realizacion: this.#formatearFecha(numero.Sorteo.fecha_realizacion),
-                        imagen_url: numero.Sorteo.imagen_url,
-                        precio_numero: numero.Sorteo.precio_numero,
-                        numeros: []
-                    };
-                }
-
-                sorteosData[idSorteo].numeros.push({ numero: numero.numero, estado: numero.estado });
+            const sorteosData = sorteosObtenidos.map(sorteo => {
+                return {
+                    id_sorteo: sorteo.id,
+                    titulo: sorteo.titulo,
+                    fecha_realizacion: this.#formatearFecha(sorteo.fecha_realizacion),
+                    imagen_url: sorteo.imagen_url,
+                    precio_numero: sorteo.precio_numero,
+                    numeros: sorteo.Numeros.map(numero => ({
+                        numero: numero.numero,
+                        estado: numero.estado
+                    }))
+                };
             });
 
             res.status(200).json(Object.values(sorteosData));
         } catch (error) {
+            console.log(error)
             next(new AppError('Ocurrió un error al obtener los números.', 500));
         }
     }
