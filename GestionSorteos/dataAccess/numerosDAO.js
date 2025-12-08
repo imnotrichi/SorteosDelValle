@@ -249,14 +249,14 @@ class NumerosDAO {
                 throw new Error('Se debe proporcionar el id del cliente para realizar la búsqueda.');
             }
 
-            const numeros = await Numero.findAll({
-                where: {
-                    id_cliente
-                },
+            const numeros = await Sorteo.findAll({
                 include: [
                     {
-                        model: Sorteo,
-                        as: 'Sorteo'
+                        model: Numero,
+                        as: 'Numeros',
+                        where: {
+                            id_cliente: id_cliente 
+                        }
                     }
                 ]
             });
