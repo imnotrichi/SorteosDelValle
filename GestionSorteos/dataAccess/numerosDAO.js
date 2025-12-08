@@ -267,6 +267,37 @@ class NumerosDAO {
         }
     }
 
+    async obtenerNumerosClienteSorteo(id_sorteo, id_cliente) {
+        try {
+            if (!id_cliente) {
+                throw new Error('Se debe proporcionar el id del cliente para realizar la búsqueda.');
+            }
+
+            if (!id_sorteo) {
+                throw new Error('Se debe proporcionar el id del sorteo para realizar la búsqueda.');
+            }
+
+            const numeros = await Sorteo.findOne({
+                where: {
+                    id: id_sorteo
+                },
+                include: [
+                    {
+                        model: Numero,
+                        as: 'Numeros',
+                        where: {
+                            id_cliente: id_cliente 
+                        }
+                    }
+                ]
+            });
+
+            return numeros;
+        } catch (error) {
+            throw error;
+        }
+    }
+
 }
 
 module.exports = new NumerosDAO();

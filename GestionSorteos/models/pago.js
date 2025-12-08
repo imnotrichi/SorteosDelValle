@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Pago.hasOne(models.PagoConComprobante, {foreignKey: 'id_pago'});
       Pago.hasOne(models.PagoEnLinea,{foreignKey: 'id_pago'});
+      Pago.hasMany(models.Numero,{foreignKey: 'id_pago'});
     }
   }
   Pago.init({

@@ -9,6 +9,7 @@ class NumerosController {
 
     constructor() {
         this.obtenerNumerosCliente = this.obtenerNumerosCliente.bind(this);
+        this.obtenerNumerosClienteSorteo = this.obtenerNumerosClienteSorteo.bind(this);
         this.apartarNumeros = this.apartarNumeros.bind(this);
         this.fechaHoy = new Date();
         this.fechaHoy.setHours(0, 0, 0, 0);
@@ -400,6 +401,52 @@ class NumerosController {
 
             res.status(200).json(Object.values(sorteosData));
         } catch (error) {
+            next(new AppError('Ocurrió un error al obtener los números.', 500));
+        }
+    }
+
+    async obtenerNumerosClienteSorteo(req, res, next) {
+        try {
+            const id_sorteo = req.query.id;
+            const correo_cliente = req.query.correo;
+
+            if (!id_sorteo) {
+                return next(new AppError('Se debe proporcionar el id del sorteo para realizar la búsqueda.', 400));
+            }
+
+            if (!correo_cliente) {
+                return next(new AppError('Se debe proporcionar el correo del cliente para realizar la búsqueda.', 400));
+            }
+
+            const sorteo = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
+            const cliente = await usuariosDAO.obtenerUsuarioPorCorreo(correo_cliente);
+
+            if (!sorteo) {
+                return next(new AppError('El sorteo no existe.', 404));
+            }
+
+            if (!cliente) {
+                return next(new AppError('El cliente no existe.', 404));
+            }
+
+            const sorteoObtenido = await numerosDAO.obtenerNumerosClienteSorteo(id_sorteo, cliente.id);
+
+            const sorteoData = {
+                id_sorteo: sorteoObtenido.id,
+                titulo: sorteoObtenido.titulo,
+                fecha_realizacion: this.#formatearFecha(sorteoObtenido.fecha_realizacion),
+                imagen_url: sorteoObtenido.imagen_url,
+                precio_numero: sorteoObtenido.precio_numero,
+                numeros: []
+            }
+
+            sorteoObtenido.Numeros.forEach(numero => {
+                sorteoData.numeros.push({ numero: numero.numero, estado: numero.estado });
+            });
+
+            res.status(200).json(sorteoData);
+        } catch (error) {
+            console.log(error);
             next(new AppError('Ocurrió un error al obtener los números.', 500));
         }
     }
