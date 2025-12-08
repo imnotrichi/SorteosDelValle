@@ -361,19 +361,19 @@ class NumerosController {
 
     async obtenerNumerosCliente(req, res, next) {
         try {
-            const id_usuario = req.params.id;
+            const correo_cliente = req.query.correo;
 
-            if (!id_usuario) {
+            if (!correo_cliente) {
                 return next(new AppError('Se debe proporcionar el id del cliente para realizar la bsqueda.', 400));
             }
 
-            const usuarioObtenido = await usuariosDAO.obtenerUsuarioPorId(id_usuario);
+            const usuarioObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(correo_cliente);
 
             if (!usuarioObtenido) {
                 return next(new AppError('El cliente no existe.', 404));
             }
 
-            const numerosObtenidos = await numerosDAO.obtenerNumerosCliente(id_usuario);
+            const numerosObtenidos = await numerosDAO.obtenerNumerosCliente(usuarioObtenido.id);
 
             if (!numerosObtenidos || numerosObtenidos.length === 0) {
                 return next(new AppError('El cliente no tiene números apartados, pendientes o pagados.', 404));
@@ -389,7 +389,9 @@ class NumerosController {
                         id_sorteo: idSorteo,
                         titulo: numero.Sorteo.titulo,
                         fecha_realizacion: this.#formatearFecha(numero.Sorteo.fecha_realizacion),
-                        numeros: [],
+                        imagen_url: numero.Sorteo.imagen_url,
+                        precio_numero: numero.Sorteo.precio_numero,
+                        numeros: []
                     };
                 }
 
@@ -407,7 +409,7 @@ class NumerosController {
         const fecha = new Date(fechaISO);
 
         return fecha.toLocaleDateString('en-CA', {
-            timeZone: 'America/Mexico_City',
+            timeZone: 'America/Hermosillo',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
