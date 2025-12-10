@@ -83,24 +83,38 @@ const DetallesSorteo = () => {
         const dataId = await respId.json();
         const idLocalUsuario = dataId.id;
 
-        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        const [respInfo, respTablero] = await Promise.all([
+           fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteo}`),
+           fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`)
+        ]);
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(`${response.status}: ${errData.message || 'Error al obtener los detalles del tablero'}`);
+        if (!respTablero.ok) {
+           const errData = await respTablero.json();
+           throw new Error(`${respTablero.status}: ${errData.message || 'Error al obtener tablero'}`);
+        }
+        
+        let infoData = {};
+        if (respInfo.ok) {
+            infoData = await respInfo.json();
         }
 
-        let data = await response.json();
-        setSorteo(data);
+        const tableroData = await respTablero.json();
+
+        const inicioVenta = infoData.inicio_periodo_venta || tableroData.inicio_periodo_venta; 
+        const finVenta = infoData.fin_periodo_venta || tableroData.fin_periodo_venta;
+
+        const estadoReal = getEstadoSorteo(inicioVenta, finVenta);
+
+        setSorteo({
+            ...tableroData,
+            estado: estadoReal,
+            fin_periodo_venta: tableroData.fin_periodo_venta, 
+            fecha_realizacion: tableroData.fecha_realizacion
+        });
 
       } catch (error) {
         console.error('Error al cargar el sorteo:', error);
-        setError(getFriendlyErrorMessage(error)); 
+        setError(getFriendlyErrorMessage(error));
         setSorteo(null);
       } finally {
         setIsloading(false);
@@ -163,15 +177,61 @@ const DetallesSorteo = () => {
     return <SorteoNoDisponible />;
   }
 
+  const parseDate = (dateString) => {
+    if (!dateString) return new Date();
+
+    if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
+      return new Date(dateString);
+    }
+
+    try {
+      const parts = dateString.split(',');
+      const datePart = parts[0].trim();
+
+      const [day, month, year] = datePart.split('/').map(Number);
+
+      return new Date(year, month - 1, day);
+
+    } catch (e) {
+      return new Date();
+    }
+  };
+
+  const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
+    const ahora = new Date();
+    const fechaInicio = parseDate(inicioPeriodoVenta);
+    const fechaFin = parseDate(finPeriodoVenta);
+
+    if (ahora < fechaInicio) return "Próximamente";
+    if (ahora > fechaFin) return "Finalizado";
+    return "Activo";
+  }
+
   const formatDate = (fecha) => {
-    if (!fecha) return '';
-    return fecha.split('T')[0];
+    if (!fecha) return 'Fecha no disponible';
+
+    const date = parseDate(fecha);
+
+    return date.toLocaleDateString('es-MX', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   };
 
   const boletosPagados = sorteoData.numeros_pagados || 0;
   const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosPagados;
   const pagoGenerado = boletosPagados * (parseFloat(sorteoData.precio_numero) || 0);
   const isActivo = sorteoData.estado === 'Activo';
+
+  const getBadgeColor = (estado) => {
+      switch(estado) {
+          case 'Activo': return 'bg-green-500 text-white';
+          case 'Próximamente': return 'bg-yellow-500 text-white';
+          case 'Finalizado': return 'bg-gray-500 text-white';
+          default: return 'bg-gray-500 text-white';
+      }
+  };
 
   return (
     <div className="min-h-screen bg-background-light font-display">
@@ -193,8 +253,7 @@ const DetallesSorteo = () => {
                   <h1 className="text-[32px] font-bold text-text-light break-all">
                     {sorteoData.titulo}
                   </h1>
-                  <span className={`px-4 py-2 text-xl font-bold rounded-full ${isActivo ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
-                    }`}>
+                  <span className={`px-4 py-2 text-xl font-bold rounded-full ${getBadgeColor(sorteoData.estado)}`}>
                     {sorteoData.estado}
                   </span>
                 </div>
