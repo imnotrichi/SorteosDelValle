@@ -370,7 +370,7 @@ class SorteosController {
 
             const {
                 descripcion, imagen_url, rango_numeros, inicio_periodo_venta, fin_periodo_venta,
-                fecha_realizacion, configuracionData, organizadoresData
+                fecha_realizacion, precio_numero, configuracionData, organizadoresData, premiosData
             } = req.body;
 
             if (!descripcion && !imagen_url && rango_numeros == null && !inicio_periodo_venta &&
@@ -384,6 +384,18 @@ class SorteosController {
             if (existe) {
                 if (rango_numeros < 1) return next(new AppError('Se debe ingresar un rango de números mayor a 0.', 400));
                 if (sorteoExists.rango_numeros > rango_numeros) return next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos.', 405));
+            }
+
+            if (premiosData) {
+                if (existe) {
+                    return next(new AppError('No se pueden modificar los premios del sorteo porque ya hay números vendidos.', 405));
+                }
+            }
+            
+            if (precio_numero) {
+                if (existe) {
+                    return next(new AppError('No se pueden modificar el precio del número porque ya hay números vendidos.', 405));
+                }
             }
 
             const fechaInicioVentaBoletosOriginal = new Date(sorteoExists.inicio_periodo_venta);
@@ -471,7 +483,7 @@ class SorteosController {
             }
 
             const sorteoData = {
-                descripcion, imagen_url, rango_numeros, inicio_periodo_venta, fin_periodo_venta, fecha_realizacion,
+                descripcion, imagen_url, rango_numeros, inicio_periodo_venta, fin_periodo_venta, fecha_realizacion, precio_numero, premiosData,
                 id_configuracion: configuracion?.id,
                 OrganizadorSorteos: organizadores.length > 0 ? organizadores : undefined
             }
@@ -482,7 +494,6 @@ class SorteosController {
 
             const respuestaJSON = this.#formatearJsonSorteo(sorteoActualizadoCompleto, existe);
             res.status(200).json(respuestaJSON);
-
         } catch (error) {
             console.log(error);
             next(new AppError('Ocurrió un error al actualizar el sorteo.', 500));
