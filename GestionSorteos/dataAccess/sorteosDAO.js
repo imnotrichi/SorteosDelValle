@@ -238,6 +238,8 @@ class SorteosDAO {
     }
 
     async actualizarSorteo(idSorteo, sorteoData) {
+        let t;
+
         try {
             const sorteoBuscado = await this.obtenerSorteoPorId(idSorteo);
 
@@ -252,15 +254,19 @@ class SorteosDAO {
                 inicio_periodo_venta,
                 fin_periodo_venta,
                 fecha_realizacion,
+                premiosData,
                 id_configuracion,
                 OrganizadorSorteos
             } = sorteoData;
+
+            t = await sequelize.transaction();
 
             if (OrganizadorSorteos) {
                 await OrganizadorSorteo.destroy({
                     where: {
                         id_sorteo: idSorteo
-                    }
+                    },
+                    transaction: t
                 });
 
                 const nuevosRegistros = OrganizadorSorteos.map(organizador => ({
@@ -270,15 +276,49 @@ class SorteosDAO {
 
                 // 3. Crear nuevas entradas de asociación de manera eficiente
                 if (nuevosRegistros.length > 0) {
-                    await OrganizadorSorteo.bulkCreate(nuevosRegistros);
+                    await OrganizadorSorteo.bulkCreate(nuevosRegistros, {
+                        transaction: t
+                    });
                 }
             };
 
-            await sorteoBuscado.update(sorteoData, { new: true });
+            if (premiosData) {
+                await Premio.destroy({
+                    where: {
+                        id_sorteo: idSorteo
+                    },
+                    transaction: t
+                });
+
+                const nuevosPremios = premiosData.map(premio => ({
+                    titulo: premio.titulo,
+                    imagen_premio_url: premio.imagen_premio_url,
+                    id_sorteo: idSorteo
+                }));
+
+                if (nuevosPremios.length > 0) {
+                    await Premio.bulkCreate(nuevosPremios, {
+                        transaction: t
+                    });
+                }
+            }
+
+            delete sorteoData.premiosData;
+
+            console.log('---> TODO BIEN AQUÍ ANTES DE ACTUALIZAR.');
+            
+            await sorteoBuscado.update(sorteoData, { transaction: t });
+            
+            console.log('---> TODO BIEN AQUÍ DESPUES DE ACTUALIZAR.');
+
+            await t.commit();
+            
             const sorteo = await this.obtenerSorteoPorId(idSorteo);
+            
             return sorteo;
         } catch (error) {
             console.log(error);
+            await t.rollback();
             throw error;
         }
     }
