@@ -10,6 +10,28 @@ import volverIcon from '../assets/volver.png';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const getFriendlyErrorMessage = (error, context = 'general') => {
+  const message = error.message || '';
+
+  if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+    return "No se pudo conectar con el servidor. Por favor, verifica tu conexión.";
+  }
+
+  if (context === 'delete') {
+    if (message.includes('405')) return "No es posible eliminar este sorteo porque ya tiene boletos vendidos o ya finalizó.";
+    if (message.includes('404')) return "El sorteo que intentas eliminar no fue encontrado.";
+    if (message.includes('403')) return "No tienes permisos para eliminar este sorteo.";
+  }
+
+  if (context === 'fetch') {
+    if (message.includes('403')) return "No tienes autorización para ver los detalles de este sorteo.";
+    if (message.includes('404')) return "No encontramos la información del sorteo solicitado.";
+    if (message.includes('401')) return "Tu sesión ha expirado. Por favor ingresa nuevamente.";
+  }
+
+  return "Ocurrió un error inesperado. Inténtalo más tarde.";
+};
+
 const DetallesSorteo = () => {
   const navigate = useNavigate();
   const id = useParams();
@@ -23,12 +45,24 @@ const DetallesSorteo = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
+  const getUsuarioSeguro = () => {
+    try {
+      const storedUser = localStorage.getItem('usuario');
+      if (!storedUser) return null;
+      return JSON.parse(storedUser);
+    } catch (e) {
+      console.error("Error storage:", e);
+      return null;
+    }
+  };
 
   useEffect(() => {
     const fetchTableroData = async () => {
       setIsloading(true);
       setError(null);
+
+      const usuarioLogueado = getUsuarioSeguro();
+
       try {
         if (!usuarioLogueado || !usuarioLogueado.correo) {
           throw new Error("No se identificó la sesión del usuario.");

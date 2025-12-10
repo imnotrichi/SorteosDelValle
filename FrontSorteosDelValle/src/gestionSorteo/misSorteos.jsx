@@ -19,6 +19,7 @@ const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
   } else {
     return "Activo";
   }
+}
   
 const parseDate = (dateString) => {
   if (!dateString) return new Date();
@@ -38,15 +39,28 @@ const parseDate = (dateString) => {
   }
 };
 
-const getEstadoSorteo = (finPeriodoVenta) => {
-  const ahora = new Date();
-  const fechaFin = parseDate(finPeriodoVenta);
-  return ahora < fechaFin ? "Activo" : "Finalizado";
-}
+const getFriendlyErrorMessage = (error, context = 'general') => {
+  const message = error.message || '';
+  
+  if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+    return "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
+  }
+
+  if (context === 'delete') {
+    if (message.includes('405')) return "No puedes eliminar este sorteo porque ya tiene boletos vendidos o el sorteo ya pasó.";
+    if (message.includes('404')) return "El sorteo que intentas eliminar ya no existe.";
+  }
+
+  if (context === 'fetch') {
+    if (message.includes('401') || message.includes('403')) return "Tu sesión ha expirado o no tienes permisos. Por favor, inicia sesión nuevamente.";
+    if (message.includes('404')) return "No pudimos encontrar la información de tus sorteos.";
+  }
+
+  return "Ocurrió un problema inesperado. Por favor, intenta realizar la acción nuevamente más tarde.";
+};
 
 const MisSorteos = ({ onNavigate }) => {
   const navigate = useNavigate();
-  const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
 
   const [sorteos, setSorteos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,10 +72,24 @@ const MisSorteos = ({ onNavigate }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [idSorteoAEliminar, setIdSorteoAEliminar] = useState(null);
 
+  const getUsuarioSeguro = () => {
+    try {
+      const storedUser = localStorage.getItem('usuario');
+      if (!storedUser) return null;
+      return JSON.parse(storedUser);
+    } catch (e) {
+      console.error("");
+      return null;
+    }
+  };
+
   useEffect(() => {
     const fetchSorteos = async () => {
       setIsLoading(true);
       setError(null);
+
+      const usuarioLogueado = getUsuarioSeguro();
+
       try {
         if (!usuarioLogueado || !usuarioLogueado.correo) {
           throw new Error('No se encontró la sesión del usuario.');
@@ -72,8 +100,7 @@ const MisSorteos = ({ onNavigate }) => {
         const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/propios?correo=${usuarioLogueado.correo}`);
 
         if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.message || 'Error al obtener los sorteos');
+          throw new Error(`Error al obtener datos`);
         }
 
         let data = await response.json();
@@ -88,7 +115,8 @@ const MisSorteos = ({ onNavigate }) => {
 
         setSorteos(data);
       } catch (error) {
-        setError(error.message);
+        console.error("");
+        setError(getFriendlyErrorMessage(error, 'fetch'));
       } finally {
         setIsLoading(false);
       }
@@ -112,8 +140,15 @@ const MisSorteos = ({ onNavigate }) => {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Error al eliminar el sorteo');
+        let errorMessage = 'Error al eliminar';
+        try {
+            const errData = await response.json();
+            errorMessage = errData.message || errorMessage;
+        } catch (e) {
+            console.error("");
+        }
+        
+        throw new Error(`${response.status}: ${errorMessage}`);
       }
 
       setSorteos(sorteosActuales =>
@@ -123,7 +158,8 @@ const MisSorteos = ({ onNavigate }) => {
       setShowSuccessModal(true);
 
     } catch (error) {
-      setErrorMessage(error.message);
+      console.error("");
+      setErrorMessage(getFriendlyErrorMessage(error, 'delete'));
       setShowErrorModal(true);
     } finally {
       setIdSorteoAEliminar(null);
