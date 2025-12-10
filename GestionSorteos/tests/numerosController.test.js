@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from "vitest";
 import numerosDAO from "../dataAccess/numerosDAO.js";
 import sorteosDAO from "../dataAccess/sorteosDAO.js";
+import pagosDAO from "../dataAccess/pagosDAO.js";
 const sorteosController = require('../controllers/sorteosController.js');
 const numerosController = require('../controllers/numerosController.js');
 const pagosController = require('../controllers/pagosController.js');
@@ -11,10 +12,10 @@ let organizadorId;
 let id_sorteo;
 let id_cliente;
 let mockRes, mockNext;
-let id_sorteos = [];
 let id_pagos = [];
 const url_comprobante = "https://fastly.picsum.photos/id/412/300/200";
 let datosSorteo = {};
+let id_sorteos = [];
 
 // Función auxiliar para no repetir mocks
 const setupMocks = () => ({
@@ -39,7 +40,7 @@ beforeAll(async () => {
         nombres: "Ricardo Alán",
         apellido_paterno: "Gutiérrez",
         apellido_materno: "Garcés",
-        correo: "alanparra@gmail.com"
+        correo: "kingizzrad@gmail.com"
     };
     const usuario1 = await Usuario.create({
         ...datosOrganizador
@@ -51,7 +52,7 @@ beforeAll(async () => {
 
     // Datos a usar/modificar en las pruebas
     datosSorteo = {
-        "titulo": "Sorteo - LBN",
+        "titulo": "Sorteo - LBN - Controller",
         "descripcion": "Descripción del sorteo - LBN.",
         "imagen_url": "http:imagenes.com/sorteo-LBN",
         "rango_numeros": 100,
@@ -68,14 +69,14 @@ beforeAll(async () => {
     };
     const sorteoCreado = await sorteosDAO.crearSorteo(datosSorteo);
     id_sorteo = sorteoCreado.id;
-    id_sorteos.push(sorteoCreado.id);
+    id_sorteos.push(id_sorteo);
 
     // Creamos un cliente
     const datosCliente = {
         nombres: "Abel Eduardo",
         apellido_paterno: "Sánchez",
         apellido_materno: "Guerrero",
-        correo: "juanbirote@gmail.com"
+        correo: "ijustwanted@gmail.com"
     };
     const usuario2 = await Usuario.create({
         ...datosCliente
@@ -264,7 +265,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-008: Probar que no se libere ningún número si no se proporciona el ID del sorteo.
     it('no debería liberar ningún número si no se proporciona el ID del sorteo', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
         const mockReq = { body: { numeros: [21, 22, 23] } };
 
         // Act
@@ -278,7 +278,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-009: Probar que no se libere ningún número si no se proporciona el ID de un sorteo existente.
     it('no debería liberar ningún número si se proporciona el ID de un sorteo inexistente', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
         const mockReq = { body: { numeros: [21, 22, 23], id_sorteo: 999 } };
 
         // Act
@@ -292,7 +291,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-010: Probar que no se libere ningún número si no se proporciona ningún número.
     it('no debería liberar ningún número si no proporciona ningún número', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
         const mockReq = { body: { id_sorteo } };
 
         // Act
@@ -306,7 +304,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-011: Probar que no se libere ningún número si el parámetro números no es un arreglo.
     it('no debería liberar ningún número si no proporciona ningún número', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
         const mockReq = { body: { numeros: 10, id_sorteo } };
 
         // Act
@@ -320,7 +317,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-012: Probar que no se libere ningún número si se proporcionan datos no numéricos en el parámetro numeros.
     it('no debería liberar ningún número si se proporcionan datos no numéricos', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
         const mockReq = { body: { numeros: [21, "A"], id_sorteo } };
 
         // Act
@@ -334,7 +330,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-013: Probar que no se libere ningún número si el arreglo de números está vacío.
     it('no debería liberar ningún número si se proporciona un arreglo vacío', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
         const mockReq = { body: { numeros: [], id_sorteo } };
 
         // Act
@@ -348,7 +343,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-014: Probar que no se libere ningún número si alguno de los números no está dentro del rango de números del sorteo.
     it('no debería liberar ningún número si se proporcionan números fuera del rango del sorteo', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
         const mockReq = { body: { numeros: [-1, 0, 999], id_sorteo } };
 
         // Act
@@ -362,8 +356,6 @@ describe('liberarNumero (Controller)', () => {
     // LBN-015: Probar que no se libere ningún número de un sorteo que ya finalizó.
     it('no debería liberar ningún número si el sorteo ya finalizó', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [21, 22, 23], id_sorteo, id_cliente });
-        // Actualizamos la fecha de realización del sorteo
         const datosActualizados = { fecha_realizacion: "2025-11-17" };
         await sorteosDAO.actualizarSorteo(id_sorteo, datosActualizados);
         const mockReq = { body: { numeros: [21, 22, 23], id_sorteo } };
@@ -377,128 +369,84 @@ describe('liberarNumero (Controller)', () => {
     });
 });
 
-describe('registrarComprobantePago (Controller)', () => {
-    // RCP-003
-    it('debería registrar un comprobante de pago exitosamente', async () => {
+describe('marcarNumerosComoPagados (Controller)', () => {
+    // MNP-004
+    it('debería marcar los números como pagados exitosamente', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-003";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { numeros: [10, 20, 30], id_sorteo: sorteoId, url_comprobante } };
+        await numerosDAO.apartarNumeros({ numeros: [11, 12, 16], id_sorteo, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo, numeros: [11, 12, 16], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp4" });
+        const mockReq = { body: { id_sorteo, numeros: [11, 12, 16] } };
 
         // Act
-        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
 
         // Assert
         expect(mockNext).not.toHaveBeenCalled();
         expect(mockRes.status).toHaveBeenCalledWith(200);
-        expect(mockRes.json.mock.calls[0][0].message).toBe('Se registró correctamente el comprobante de pago.');
-        const numeros = await numerosDAO.obtenerNumerosPorSorteo(sorteoId);
-        id_pagos.push(numeros[0].id_pago);
+        expect(mockRes.json.mock.calls[0][0].message).toBe('Se marcaron correctamente como pagados los números.');
     });
 
-    // RCP-004
-    it('no debería registrar el comprobante de pago si falta el ID del sorteo', async () => {
+    //MNP-005
+    it('no debería marcar como pagados si falta el ID del sorteo', async () => {
         // Arrange
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo, id_cliente });
-        const mockReq = { body: { numeros: [10, 20, 30], url_comprobante } };
+        const mockReq = { body: { numeros: [11, 12, 33] } };
 
         // Act
-        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
         expect(error.message).toBe("Se debe proporcionar el id del sorteo.");
     });
 
-    // RCP-005
-    it('no debería registrar el comprobante de pago si no se proporciona ningún número', async () => {
+
+    // MNP-006
+    it('no debería marcar como pagados si no se proporciona ningún número', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-005";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { id_sorteo: sorteoId, url_comprobante } };
+        const mockReq = { body: { id_sorteo } };
 
         // Act
-        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
         expect(error.message).toBe("Se debe proporcionar al menos un número.");
     });
 
-    // RCP-006
-    it('no debería registrar el comprobante de pago si no se proporciona una imagen del comprobante', async () => {
+
+    // MNP-007
+    it('no debería marcar como pagados si el sorteo no tiene números pendientes', async () => {
         // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-006";
+        datosSorteo.titulo = "Sorteo - MNP-007";
         const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
         const sorteoId = nuevoSorteo.id;
         id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30] } };
+        await numerosDAO.apartarNumeros({ numeros: [1, 2, 3], id_sorteo: sorteoId, id_cliente });
+        const mockReq = { body: { id_sorteo: sorteoId, numeros: [1, 2, 3] } };
 
         // Act
-        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
-        expect(error.message).toBe("Se debe proporcionar la imagen del comprobante de pago.");
+        expect(error.message).toBe("El sorteo no cuenta con números pendientes.");
     });
 
-    // RCP-007
-    it('no debería registrar el comprobante de pago si no existe el sorteo', async () => {
-        // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-007";
+    // MNP-008
+    it('no debería marcar como pagados si alguno de los números no está pendiente', async () => {
+        datosSorteo.titulo = "Sorteo - MNP-008";
         const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
         const sorteoId = nuevoSorteo.id;
         id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { id_sorteo: 9999, numeros: [10, 20, 30], url_comprobante } };
+        await numerosDAO.apartarNumeros({ numeros: [80, 81, 82], id_sorteo: sorteoId, id_cliente });
+        await pagosDAO.registrarComprobantePago({ id_sorteo: sorteoId, numeros: [80, 81, 82], monto: 3000, url_comprobante: "http:comprobante.com/comp-pago-mnp4" });
+        const mockReq = { body: { id_sorteo: sorteoId, numeros: [80, 81, 82, 83, 84] } };
 
         // Act
-        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
+        await numerosController.marcarNumerosComoPagados(mockReq, mockRes, mockNext);
 
         // Assert
         const error = mockNext.mock.calls[0][0];
-        expect(error.message).toBe("El sorteo no existe.");
-    });
-
-    // RCP-008
-    it('no debería registrar el comprobante de pago si el sorteo no tiene números apartados', async () => {
-        // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-008";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30], url_comprobante } };
-
-        // Act
-        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
-
-        // Assert
-        const error = mockNext.mock.calls[0][0];
-        expect(error.message).toBe("El sorteo no cuenta con números apartados.");
-    });
-
-    // RCP-009
-    it('no debería registrar el comprobante de pago si alguno de los números del comprobante no está apartado', async () => {
-        // Arrange
-        datosSorteo.titulo = "Sorteo - RCP-009";
-        const nuevoSorteo = await sorteosDAO.crearSorteo(datosSorteo);
-        const sorteoId = nuevoSorteo.id;
-        id_sorteos.push(sorteoId);
-        await numerosDAO.apartarNumeros({ numeros: [10, 20, 30], id_sorteo: sorteoId, id_cliente });
-        const mockReq = { body: { id_sorteo: sorteoId, numeros: [10, 20, 30, 40, 50], url_comprobante } };
-
-        // Act
-        await pagosController.registrarComprobantePago(mockReq, mockRes, mockNext);
-
-        // Assert
-        const error = mockNext.mock.calls[0][0];
-        expect(error.message).toBe("Todos los números deben estar apartados.");
+        expect(error.message).toBe("Todos los números deben estar marcados como pendientes.");
     });
 });

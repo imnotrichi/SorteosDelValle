@@ -1,9 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderCliente from '../components/headerCliente';
-import {SorteoNumerosCard} from '../components/sorteoNumerosCard';
+import { SorteoNumerosCard } from '../components/sorteoNumerosCard';
 
-//const API_GATEWAY_URL = 'http://localhost:8080';
+const API_GATEWAY_URL = 'http://localhost:8080';
+
+const parseDate = (dateString) => {
+    if (!dateString) return new Date();
+
+    if (dateString.includes('T') || dateString.includes('-') && !dateString.includes('/')) {
+        return new Date(dateString);
+    }
+
+    try {
+        const [datePart] = dateString.split(',');
+        const [day, month, year] = datePart.trim().split('/');
+        return new Date(`${year}-${month}-${day}T00:00:00`);
+    } catch (e) {
+        return new Date();
+    }
+};
 
 const MisNumeros = () => {
     const navigate = useNavigate();
@@ -11,7 +27,6 @@ const MisNumeros = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const usuario = JSON.parse(localStorage.getItem('usuario'));
-
     const nombreUsuario = usuario.nombres;
 
     /**  useEffect(() => {
@@ -53,81 +68,47 @@ const MisNumeros = () => {
      }, []); **/
 
     useEffect(() => {
-        const cargarDatosMock = () => {
+        const fetchSorteosActivos = async () => {
             setIsLoading(true);
+            try {
+                if (!usuario.correo) throw new Error("Usuario no autenticado");
 
-            const hoy = new Date();
-            const ayer = new Date(hoy);
-            ayer.setDate(hoy.getDate() - 1); 
-            const manana = new Date(hoy);
-            manana.setDate(hoy.getDate() + 5); 
-            const datosMock = [
-                {
-                    id: 999,
-                    titulo: "Gran Sorteo iPhone 15 Pro (MOCK)",
-                    descripcion: "Este es un sorteo de prueba para validar el diseño.",
-                    imagen_url: "https://res.cloudinary.com/drczej3mh/image/upload/v1765003531/g01veblbosur1dbcpuzm.jpg", 
-                    rango_numeros: 100,
-                    inicio_periodo_venta: ayer.toISOString(), 
-                    fin_periodo_venta: manana.toISOString(),
-                    fecha_realizacion: manana.toISOString(),
-                    precio_numero: 50.00, 
-                    numeros_vendidos: 5,
-                    premiosData: [
-                        {
-                            id: 1,
-                            titulo: "iPhone 15 Pro Max",
-                            imagen_premio_url: "https://placehold.co/100x100/png"
-                        }
-                    ],
-                    organizadoresData: [
-                        { id: 1, correo: "abel@gmail.com" }
-                    ],
-                    configuracionData: {
-                        id: 1,
-                        tiempo_limite_apartado: 15,
-                        tiempo_recordatorio_pago: 24
-                    }
-                },
-                {
-                    id: 1000,
-                    titulo: "Rifa de Bono en Efectivo",
-                    descripcion: "Gana $10,000 pesos en efectivo.",
-                    imagen_url: "https://res.cloudinary.com/drczej3mh/image/upload/v1765003531/g01veblbosur1dbcpuzm.jpg",
-                    rango_numeros: 500,
-                    inicio_periodo_venta: ayer.toISOString(),
-                    fin_periodo_venta: manana.toISOString(),
-                    fecha_realizacion: manana.toISOString(),
-                    precio_numero: 120.50,
-                    numeros_vendidos: 100,
-                    premiosData: [],
-                    organizadoresData: [],
-                    configuracionData: {}
+                const response = await fetch(`${API_GATEWAY_URL}/api/numeros/cliente?correo=${usuario.correo}`); //TODO: cambiarlo por correo
+
+                if (!response.ok) {
+                    throw new Error('Error en la petición');
                 }
-            ];
 
-            const fechaActual = new Date();
+                const data = await response.json();
+                const fechaActual = new Date();
 
-            const sorteosVisibles = datosMock.filter(sorteo => {
-                const fechaInicio = new Date(sorteo.inicio_periodo_venta);
-                const fechaFin = new Date(sorteo.fin_periodo_venta);
-                return fechaInicio <= fechaActual && fechaActual <= fechaFin;
-            });
+                const sorteosVisibles = data.filter(sorteo => {
+                    const fechaInicio = parseDate(sorteo.inicio_periodo_venta);
+                    const fechaFin = parseDate(sorteo.fin_periodo_venta);
 
-            const dataFormateada = sorteosVisibles.map(sorteo => ({
-                ...sorteo,
-                precioNumero: parseFloat(sorteo.precio_numero)
-            }));
+                    fechaFin.setHours(23, 59, 59, 999);
 
-            setTimeout(() => {
+                    return fechaInicio <= fechaActual && fechaActual <= fechaFin;
+                });
+
+                const dataFormateada = sorteosVisibles.map(sorteo => ({
+                    ...sorteo,
+                    id: sorteo.id_sorteo || sorteo.id,
+                    precioNumero: parseFloat(sorteo.precio_numero)
+                }));
+
                 setSorteos(dataFormateada);
+            } catch (error) {
+                console.error("No se pudieron cargar los sorteos ", error);
+
+                setSorteos([]);
+            } finally {
                 setIsLoading(false);
-            }, 500);
+            }
         };
 
-        cargarDatosMock();
+        fetchSorteosActivos();
     }, []);
-
 
     if (isLoading) {
         return (
@@ -146,16 +127,15 @@ const MisNumeros = () => {
             <HeaderCliente onNavigate={navigate} userName={nombreUsuario} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <h1 className="text-[32px] font-bold tracking-tight text-text-light mb-8">
-                    Mis números
-                </h1>
-                <p>Aquí puedes ver y gestionar los números que has apartado en nuestros sorteos. Completa tu pago para asegurar tu participación</p>
+                <h1 className="mb-3 text-3xl font-bold text-gray-900">Mis números</h1>
+                <p className="mb-5 text-gray-500 font-medium">Aquí puedes ver y gestionar los números que has apartado en nuestros sorteos. Completa tu pago para asegurar tu participación</p>
+
 
                 {sorteos.length > 0 ? (
                     <div className="flex flex-col gap-6">
                         {sorteos.map((sorteo) => (
                             <SorteoNumerosCard
-                                key={sorteo.id}
+                                key={sorteo.id_sorteo}
                                 sorteo={sorteo}
                                 onClick={() => navigate(`/registrar-comprobante/${sorteo.id}`)}
                             />

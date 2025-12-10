@@ -99,7 +99,7 @@ class PagosDAO {
                 { transaction: t }
             );
 
-            t.commit();
+            await t.commit();
 
             return 'Se registró correctamente el pago.';
         } catch (error) {

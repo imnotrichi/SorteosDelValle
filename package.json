@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "install:all": "concurrently \"cd APIGateway && npm install\" \"cd ManejoUsuarios && npm install\" \"cd GestionSorteos && npm install\" \"cd FrontSorteosDelValle && npm install\"",
     "start": "concurrently \"cd APIGateway && node --watch index.js\" \"cd ManejoUsuarios && node --watch index.js\" \"cd GestionSorteos && node --watch index.js\" \"cd FrontSorteosDelValle && npm run dev\""
   },
   "repository": {

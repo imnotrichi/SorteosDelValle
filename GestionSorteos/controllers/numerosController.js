@@ -8,7 +8,11 @@ const { json } = require('express');
 class NumerosController {
 
     constructor() {
+        this.obtenerNumerosCliente = this.obtenerNumerosCliente.bind(this);
+        this.obtenerNumerosClienteSorteo = this.obtenerNumerosClienteSorteo.bind(this);
         this.apartarNumeros = this.apartarNumeros.bind(this);
+        this.fechaHoy = new Date();
+        this.fechaHoy.setHours(0, 0, 0, 0);
     }
 
     /*
@@ -30,7 +34,7 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
-            if (sorteoObtenido.fecha_realizacion < new Date()) {
+            if (sorteoObtenido.fecha_realizacion < this.fechaHoy) {
                 return next(new AppError("El sorteo ya finalizó.", 400));
             }
 
@@ -188,7 +192,7 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
-            if (sorteoObtenido.fecha_realizacion < new Date()) {
+            if (sorteoObtenido.fecha_realizacion < this.fechaHoy) {
                 return next(new AppError("El sorteo ya finalizó.", 400));
             }
 
@@ -352,10 +356,108 @@ class NumerosController {
                 message: 'Se marcaron correctamente como pagados los números.'
             });
         } catch (error) {
-            console.log(error);
             next(new AppError('Ocurrió un error al realizar la operación.', 500));
         }
     }
+
+    async obtenerNumerosCliente(req, res, next) {
+        try {
+            const correo_cliente = req.query.correo;
+
+            if (!correo_cliente) {
+                return next(new AppError('Se debe proporcionar el id del cliente para realizar la bsqueda.', 400));
+            }
+
+            const usuarioObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(correo_cliente);
+
+            if (!usuarioObtenido) {
+                return next(new AppError('El cliente no existe.', 404));
+            }
+
+            const sorteosObtenidos = await numerosDAO.obtenerNumerosCliente(usuarioObtenido.id);
+
+            if (!sorteosObtenidos || sorteosObtenidos.length === 0) {
+                return next(new AppError('El cliente no tiene números apartados, pendientes o pagados.', 404));
+            }
+
+            const sorteosData = sorteosObtenidos.map(sorteo => {
+                return {
+                    id_sorteo: sorteo.id,
+                    titulo: sorteo.titulo,
+                    fecha_realizacion: this.#formatearFecha(sorteo.fecha_realizacion),
+                    imagen_url: sorteo.imagen_url,
+                    precio_numero: sorteo.precio_numero,
+                    numeros: sorteo.Numeros.map(numero => ({
+                        numero: numero.numero,
+                        estado: numero.estado
+                    }))
+                };
+            });
+
+            res.status(200).json(Object.values(sorteosData));
+        } catch (error) {
+            console.log(error)
+            next(new AppError('Ocurrió un error al obtener los números.', 500));
+        }
+    }
+
+    async obtenerNumerosClienteSorteo(req, res, next) {
+        try {
+            const id_sorteo = req.query.id;
+            const correo_cliente = req.query.correo;
+
+            if (!id_sorteo) {
+                return next(new AppError('Se debe proporcionar el id del sorteo para realizar la búsqueda.', 400));
+            }
+
+            if (!correo_cliente) {
+                return next(new AppError('Se debe proporcionar el correo del cliente para realizar la búsqueda.', 400));
+            }
+
+            const sorteo = await sorteosDAO.obtenerSorteoPorId(id_sorteo);
+            const cliente = await usuariosDAO.obtenerUsuarioPorCorreo(correo_cliente);
+
+            if (!sorteo) {
+                return next(new AppError('El sorteo no existe.', 404));
+            }
+
+            if (!cliente) {
+                return next(new AppError('El cliente no existe.', 404));
+            }
+
+            const sorteoObtenido = await numerosDAO.obtenerNumerosClienteSorteo(id_sorteo, cliente.id);
+
+            const sorteoData = {
+                id_sorteo: sorteoObtenido.id,
+                titulo: sorteoObtenido.titulo,
+                fecha_realizacion: this.#formatearFecha(sorteoObtenido.fecha_realizacion),
+                imagen_url: sorteoObtenido.imagen_url,
+                precio_numero: sorteoObtenido.precio_numero,
+                numeros: []
+            }
+
+            sorteoObtenido.Numeros.forEach(numero => {
+                sorteoData.numeros.push({ numero: numero.numero, estado: numero.estado });
+            });
+
+            res.status(200).json(sorteoData);
+        } catch (error) {
+            console.log(error);
+            next(new AppError('Ocurrió un error al obtener los números.', 500));
+        }
+    }
+
+    #formatearFecha = (fechaISO) => {
+        if (!fechaISO) return null;
+        const fecha = new Date(fechaISO);
+
+        return fecha.toLocaleDateString('en-CA', {
+            timeZone: 'America/Hermosillo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).replace(/-/g, '/');
+    };
 
 }
 

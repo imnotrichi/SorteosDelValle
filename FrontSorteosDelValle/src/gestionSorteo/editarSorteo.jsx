@@ -48,9 +48,23 @@ const handleImageUpload = async (file) => {
     }
 };
 
-const formatDateForInput = (isoDate) => {
-    if (!isoDate) return '';
-    return isoDate.split('T')[0];
+const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+
+    if (dateString.includes('T')) {
+        return dateString.split('T')[0];
+    }
+
+    const fechaLimpia = dateString.split(',')[0].trim();
+
+    const partes = fechaLimpia.split('/');
+
+    if (partes.length === 3) {
+        const [dia, mes, anio] = partes;
+        return `${anio}-${mes}-${dia}`;
+    }
+
+    return '';
 };
 
 const convertirHorasADias = (horasString) => {
@@ -233,7 +247,6 @@ const EditarSorteo = () => {
         const year = today.getFullYear();
         const month = (today.getMonth() + 1).toString().padStart(2, '0');
         const day = today.getDate().toString().padStart(2, '0');
-
         return `${year}-${month}-${day}`;
     };
 
@@ -267,15 +280,15 @@ const EditarSorteo = () => {
     };
 
     const handleFechaInicioVentaChange = (value) => {
-        const tomorrow = getTomorrowDate();
-        if (value >= tomorrow) {
+        const hoy = getTodayDate();
+        if (value >= hoy || value === formatDateForInput(sorteoOriginal.inicio_periodo_venta)) {
             setFormData({ ...formData, fechaInicioVenta: value });
         }
     };
 
     const handleFechaFinVentaChange = (value) => {
-        const tomorrow = getTomorrowDate();
-        if (value >= tomorrow && value >= formData.fechaInicioVenta) {
+        const hoy = getTodayDate();
+        if (value >= hoy && value >= formData.fechaInicioVenta) {
             setFormData({ ...formData, fechaFinVenta: value });
         }
     };
@@ -428,18 +441,9 @@ const EditarSorteo = () => {
                 rango_numeros: parseInt(formData.rangoNumeros, 10),
                 precio_numero: parseFloat(formData.precioNumero),
 
-                inicio_periodo_venta: (formData.fechaInicioVenta === inicioOriginalSimple)
-                    ? sorteoOriginal.inicio_periodo_venta
-                    : `${formData.fechaInicioVenta}T00:00:00`,
-
-                fin_periodo_venta: (formData.fechaFinVenta === finOriginalSimple)
-                    ? sorteoOriginal.fin_periodo_venta
-                    : `${formData.fechaFinVenta}T00:00:00`,
-
-                fecha_realizacion: (formData.fechaRealizacion === realizacionOriginalSimple)
-                    ? sorteoOriginal.fecha_realizacion
-                    : `${formData.fechaRealizacion}T00:00:00`,
-
+                inicio_periodo_venta: `${formData.fechaInicioVenta}T00:00:00`,
+                fin_periodo_venta: `${formData.fechaFinVenta}T00:00:00`,
+                fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`,
                 configuracionData: {
                     global: useGlobalConfig,
                     tiempo_limite_apartado: useGlobalConfig ? "00:00:00" : convertirDiasAFormatoHoras(formData.tiempoLimiteApartado),
@@ -505,13 +509,12 @@ const EditarSorteo = () => {
         return <div className='p-8 text-center'>Cargando datos del sorteo...</div>;
     }
 
-    const manana = getTomorrowDate();
+    const hoy = getTodayDate();
     const fechaOriginalInicio = sorteoOriginal ? formatDateForInput(sorteoOriginal.inicio_periodo_venta) : '';
 
-    const minFechaInicioCalculada = (fechaOriginalInicio && fechaOriginalInicio < manana)
+    const minFechaInicioCalculada = (fechaOriginalInicio && fechaOriginalInicio < hoy)
         ? fechaOriginalInicio
-        : manana;
-
+        : hoy;
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-body">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 pb-24">
