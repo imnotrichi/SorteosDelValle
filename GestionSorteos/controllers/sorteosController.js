@@ -98,6 +98,7 @@ class SorteosController {
                     organizadorLocal = await usuariosDAO.crearUsuarioReplicado(datosOrganizadorRemoto);
                 }
                 
+                await organizadoresDAO.registrarOrganizador(organizadorLocal.id);
                 organizadores.push({ id_organizador: organizadorLocal.id });
 
                 if (global && correoOrg === correoOrganizador) {

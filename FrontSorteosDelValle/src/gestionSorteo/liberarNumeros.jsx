@@ -200,7 +200,7 @@ export default function LiberarNumerosUI() {
             className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light hover:bg-border-light/80 transition-colors"
           >
             <span className="text-base font-bold text-text-light">
-              Volver
+              Cancelar
             </span>
           </button>
           <div className="flex-1 min-w-0">

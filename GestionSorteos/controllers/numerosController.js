@@ -11,8 +11,6 @@ class NumerosController {
         this.obtenerNumerosCliente = this.obtenerNumerosCliente.bind(this);
         this.obtenerNumerosClienteSorteo = this.obtenerNumerosClienteSorteo.bind(this);
         this.apartarNumeros = this.apartarNumeros.bind(this);
-        this.fechaHoy = new Date();
-        this.fechaHoy.setHours(0, 0, 0, 0);
     }
 
     /*
@@ -24,6 +22,9 @@ class NumerosController {
     }
     */
     async apartarNumeros(req, res, next) {
+        const fechaHoy = new Date();
+        fechaHoy.setHours(0, 0, 0, 0);
+
         try {
             let { numeros, id_sorteo, id_cliente, correo_usuario } = req.body;
 
@@ -182,6 +183,9 @@ class NumerosController {
     }
     */
     async liberarNumeros(req, res, next) {
+        const fechaHoy = new Date();
+        fechaHoy.setHours(0, 0, 0, 0);
+
         try {
             const { numeros, id_sorteo } = req.body;
             // Validaciones del sorteo
@@ -225,7 +229,7 @@ class NumerosController {
                     if (faltantes.length > 1) {
                         return next(new AppError(`Los números ${faltantes.join(", ")} no están apartados o ya fueron liberados.`, 409));
                     }
-                    return next(AppError(`El número ${noDisponibles[0]} no está apartado o ya fue liberado.`, 409));
+                    return next(new AppError(`El número ${faltantes[0]} no está apartado o ya fue liberado.`, 409));
                 }
 
                 // Hubo un conflicto de concurrencia
