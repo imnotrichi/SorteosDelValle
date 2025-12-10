@@ -138,9 +138,9 @@ const CrearSorteo = ({ currentUserEmail }) => {
     if (value !== '' && !/^(0|[1-9][0-9]*)$/.test(value)) {
       return;
     }
-    
+
     const numValue = parseInt(value, 10);
-    const maxPermitido = maxDiasDinamic; 
+    const maxPermitido = maxDiasDinamic;
 
     if (value === '' || (numValue >= 0 && numValue <= maxPermitido)) {
       setFormData({ ...formData, [field]: value });
@@ -149,7 +149,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
   const handleRangoNumerosChange = (value) => {
     const isValidLength = /^\d{0,5}$/.test(value);
-    
+
     if (value === '' || (isValidLength && parseInt(value, 10) > 0)) {
       setFormData({ ...formData, rangoNumeros: value });
     }
@@ -252,7 +252,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
     try {
       const imagenSorteoUrl = await handleImageUpload(formData.imagen);
 
-      let horaInicio = "12:00:00"; 
+      let horaInicio = "12:00:00";
       const fechaHoy = getTodayDate();
 
       if (formData.fechaInicioVenta === fechaHoy) {
@@ -262,11 +262,19 @@ const CrearSorteo = ({ currentUserEmail }) => {
       }
 
       const restar7Horas = (fechaStr) => {
-        const fecha = new Date(fechaStr);
-        fecha.setHours(fecha.getHours() - 7);
-        
+        const fechaObj = new Date(fechaStr);
+
+        fechaObj.setHours(fechaObj.getHours() - 7);
+
+        const hoyMediaNoche = new Date();
+        hoyMediaNoche.setHours(0, 0, 0, 0);
+
+        if (fechaObj < hoyMediaNoche) {
+          fechaObj.setTime(hoyMediaNoche.getTime());
+        }
+
         const pad = (n) => n.toString().padStart(2, '0');
-        return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}:${pad(fecha.getSeconds())}`;
+        return `${fechaObj.getFullYear()}-${pad(fechaObj.getMonth() + 1)}-${pad(fechaObj.getDate())}T${pad(fechaObj.getHours())}:${pad(fechaObj.getMinutes())}:${pad(fechaObj.getSeconds())}`;
       };
 
       const premiosConUrl = await Promise.all(
@@ -327,14 +335,14 @@ const CrearSorteo = ({ currentUserEmail }) => {
       if (!response.ok) {
         let errorMessage = 'Inténtelo nuevamente.';
         try {
-             const errorData = await response.json();
-             if (errorData.message === 'Ya existe un sorteo con ese título.') {
-                 errorMessage = 'Ya existe un sorteo registrado con ese título. Por favor, ingrese uno diferente.';
-             } else {
-                 errorMessage = errorData.message || errorMessage;
-             }
+          const errorData = await response.json();
+          if (errorData.message === 'Ya existe un sorteo con ese título.') {
+            errorMessage = 'Ya existe un sorteo registrado con ese título. Por favor, ingrese uno diferente.';
+          } else {
+            errorMessage = errorData.message || errorMessage;
+          }
         } catch (e) {
-             console.error("");
+          console.error("");
         }
         throw new Error(errorMessage);
       }
@@ -343,11 +351,11 @@ const CrearSorteo = ({ currentUserEmail }) => {
     } catch (error) {
       console.error('');
       let msg = error.message;
-      
+
       if (msg === 'Failed to fetch' || msg.includes('NetworkError')) {
         msg = "No se pudo conectar con el servidor. Verifique su conexión.";
       }
-      
+
       setError(msg);
     } finally {
       setIsUploading(false);
@@ -415,15 +423,15 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
   const checkFileValidity = (file, contextName) => {
     if (!file) return null;
-    
+
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
       return `El formato de las imágenes seleccionadas no es válido. Solo JPG o PNG.`;
     }
-    
+
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       return `Las imágenes seleccionadas son muy pesadas. Máximo ${MAX_FILE_SIZE_MB}MB.`;
     }
-    
+
     return null;
   };
 
@@ -518,7 +526,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
 
     const emailsList = organizadores.map(o => o.email.trim().toLowerCase());
     const uniqueEmails = new Set(emailsList);
-    
+
     if (emailsList.length !== uniqueEmails.size) {
       setError('No puedes agregar el mismo organizador más de una vez.');
       return false;
@@ -565,8 +573,8 @@ const CrearSorteo = ({ currentUserEmail }) => {
       }
     }
     if (parseInt(formData.tiempoLimiteApartado, 10) > maxDiasDinamic) {
-       setError(`El tiempo límite excede el máximo permitido de ${maxDiasDinamic} días.`);
-       return false;
+      setError(`El tiempo límite excede el máximo permitido de ${maxDiasDinamic} días.`);
+      return false;
     }
 
     return true;
@@ -578,7 +586,7 @@ const CrearSorteo = ({ currentUserEmail }) => {
       const fin = new Date(formData.fechaFinVenta);
       const diffTiempo = fin - inicio;
       const diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
-      
+
       if (diffDias > 0) {
         return Math.min(diffDias, 34);
       }

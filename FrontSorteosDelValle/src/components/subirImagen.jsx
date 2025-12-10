@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import uploadIcon from '../assets/subir.png';
 
-const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, initialImage }) => {
+const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, initialImage, disabled = false }) => {
 
   const [preview, setPreview] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -16,7 +17,6 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, initialI
     if (fileValue) {
       const objectUrl = URL.createObjectURL(fileValue);
       setPreview(objectUrl);
-
       return () => URL.revokeObjectURL(objectUrl);
     } else if (!initialImage) {
       setPreview(null);
@@ -55,7 +55,8 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, initialI
     if (files && files.length > 0) {
       const file = files[0];
       if (file.type.startsWith('image/')) {
-        processFile(file);
+        const fakeEvent = { target: { files: [file] } };
+        if (onChange) onChange(fakeEvent);
       } else {
         alert("Por favor, suelta solo archivos de imagen.");
       }
@@ -82,17 +83,20 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, initialI
       
       <label
         htmlFor={id}
-        className="relative flex flex-col items-center justify-center w-full h-52 border-2 border-border-light dark:border-border-dark border-dashed rounded-lg cursor-pointer bg-background-light dark:bg-background-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all overflow-hidden group"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={containerClasses}
       >
         {preview ? (
           <>
             <img 
               src={preview} 
               alt="Vista previa" 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-lg"
             />
             
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white rounded-lg">
               <span className="material-symbols-outlined text-3xl mb-1">edit</span>
               <p className="text-sm font-bold">Haz clic para cambiar</p>
             </div>

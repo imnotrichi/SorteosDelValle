@@ -1,4 +1,5 @@
 const usuariosDAO = require('../dataAccess/usuariosDAO.js');
+const organizadoresDAO = require('../dataAccess/organizadoresDAO.js');
 const { AppError } = require('../utils/appError.js');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
