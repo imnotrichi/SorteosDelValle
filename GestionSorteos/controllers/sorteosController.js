@@ -73,38 +73,35 @@ class SorteosController {
             for (let i = 0; i < organizadoresData.length; i++) {
                 const correoOrg = organizadoresData[i].correo;
 
-                let organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrg);
-
-                if (!organizadorObtenido) {
-                    console.log(`Usuario ${correoOrg} no encontrado localmente. Conectando a ${USUARIOS_SERVICE_URL}...`);
-                    try {
-                        const response = await fetch(`${USUARIOS_SERVICE_URL}/api/usuarios/sincronizar?correo=${correoOrg}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.ok && data.usuario) {
-                                organizadorObtenido = await usuariosDAO.crearUsuarioReplicado(data.usuario);
-                                console.log(`Usuario ${correoOrg} sincronizado exitosamente.`);
-                            }
+                let datosOrganizadorRemoto = null;
+                try {
+                    const response = await fetch(`${USUARIOS_SERVICE_URL}/api/usuarios/validar-organizador?correo=${correoOrg}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.esOrganizador) {
+                            datosOrganizadorRemoto = data.usuario;
+                        } else {
+                            return next(new AppError(`El correo '${correoOrg}' no pertenece a un organizador válido.`, 403));
                         }
-                    } catch (err) {
-                        console.error("Error de comunicación con ManejoUsuarios:", err.message);
+                    } else {
+                        throw new Error('Error en la respuesta del microservicio');
                     }
+                } catch (err) {
+                    console.error("Error validando organizador:", err.message);
+                    return next(new AppError(`No se pudo validar al organizador '${correoOrg}'. Intente más tarde.`, 500));
                 }
 
-                if (!organizadorObtenido) {
-                    return next(new AppError(`El correo del organizador '${correoOrg}' no se encuentra registrado.`, 400));
+                let organizadorLocal = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrg);
+
+                if (!organizadorLocal) {
+                    console.log(`Replicando usuario organizador ${correoOrg} localmente...`);
+                    organizadorLocal = await usuariosDAO.crearUsuarioReplicado(datosOrganizadorRemoto);
                 }
-
-                const esOrganizador = await organizadoresDAO.obtenerOrganizadorPorId(organizadorObtenido.id);
-
-                if (!esOrganizador) {
-                    return next(new AppError(`El usuario con correo '${correoOrg}' existe pero no es un organizador autorizado.`, 403));
-                }
-
-                organizadores.push({ id_organizador: organizadorObtenido.id });
+                
+                organizadores.push({ id_organizador: organizadorLocal.id });
 
                 if (global && correoOrg === correoOrganizador) {
-                    organizadorPrincipal = organizadorObtenido;
+                    organizadorPrincipal = organizadorLocal;
                 }
             }
 
