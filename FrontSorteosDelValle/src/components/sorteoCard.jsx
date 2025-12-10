@@ -8,7 +8,7 @@ export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoleto
       case "Activo":
         return "bg-green-500 text-white";
       case "Próximamente":
-        return "bg-blue-500 text-white";
+        return "bg-yellow-500 text-white";
       case "Finalizado":
       default:
         return "bg-gray-500 text-white";

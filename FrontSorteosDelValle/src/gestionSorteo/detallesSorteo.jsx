@@ -38,6 +38,68 @@ const getFriendlyErrorMessage = (error) => {
   return "Ocurrió un error inesperado. Inténtalo de nuevo más tarde.";
 };
 
+const getBadgeColor = (estado) => {
+  switch (estado) {
+    case 'Activo': return 'bg-green-500 text-white';
+    case 'Próximamente': return 'bg-yellow-500 text-white';
+    case 'Finalizado': return 'bg-gray-500 text-white';
+    default: return 'bg-gray-500 text-white';
+  }
+};
+
+const parseDate = (dateString) => {
+  if (!dateString) return new Date();
+
+  // 1. Si ya es formato ISO
+  if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
+    return new Date(dateString);
+  }
+
+  try {
+    const parts = dateString.split(',');
+    const datePart = parts[0].trim();
+    
+    const [day, month, year] = datePart.split('/').map(Number);
+
+    let hours = 0;
+    let minutes = 0;
+
+    if (parts[1]) {
+      const timePart = parts[1].trim().toLowerCase();
+      const match = timePart.match(/(\d{1,2}):(\d{2})\s*([ap].*)/);
+      
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period.includes('p') && hours !== 12) hours += 12;
+        else if (period.includes('a') && hours === 12) hours = 0;
+      } else {
+         if (hours === 0 && minutes === 0) {
+             hours = 23; 
+             minutes = 59;
+         }
+      }
+    }
+
+    return new Date(year, month - 1, day, hours, minutes);
+
+  } catch (e) {
+    return new Date();
+  }
+};
+
+  const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
+    const ahora = new Date();
+    const fechaInicio = parseDate(inicioPeriodoVenta);
+    const fechaFin = parseDate(finPeriodoVenta);
+
+    if (ahora < fechaInicio) return "Próximamente";
+    if (ahora > fechaFin) return "Finalizado";
+    return "Activo";
+  }
+
 const DetallesSorteo = () => {
   const navigate = useNavigate();
   const id = useParams();
@@ -84,32 +146,32 @@ const DetallesSorteo = () => {
         const idLocalUsuario = dataId.id;
 
         const [respInfo, respTablero] = await Promise.all([
-           fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteo}`),
-           fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`)
+          fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteo}`),
+          fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`)
         ]);
 
         if (!respTablero.ok) {
-           const errData = await respTablero.json();
-           throw new Error(`${respTablero.status}: ${errData.message || 'Error al obtener tablero'}`);
+          const errData = await respTablero.json();
+          throw new Error(`${respTablero.status}: ${errData.message || 'Error al obtener tablero'}`);
         }
-        
+
         let infoData = {};
         if (respInfo.ok) {
-            infoData = await respInfo.json();
+          infoData = await respInfo.json();
         }
 
         const tableroData = await respTablero.json();
 
-        const inicioVenta = infoData.inicio_periodo_venta || tableroData.inicio_periodo_venta; 
+        const inicioVenta = infoData.inicio_periodo_venta || tableroData.inicio_periodo_venta;
         const finVenta = infoData.fin_periodo_venta || tableroData.fin_periodo_venta;
 
         const estadoReal = getEstadoSorteo(inicioVenta, finVenta);
 
         setSorteo({
-            ...tableroData,
-            estado: estadoReal,
-            fin_periodo_venta: tableroData.fin_periodo_venta, 
-            fecha_realizacion: tableroData.fecha_realizacion
+          ...tableroData,
+          estado: estadoReal,
+          fin_periodo_venta: tableroData.fin_periodo_venta,
+          fecha_realizacion: tableroData.fecha_realizacion
         });
 
       } catch (error) {
@@ -177,36 +239,6 @@ const DetallesSorteo = () => {
     return <SorteoNoDisponible />;
   }
 
-  const parseDate = (dateString) => {
-    if (!dateString) return new Date();
-
-    if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
-      return new Date(dateString);
-    }
-
-    try {
-      const parts = dateString.split(',');
-      const datePart = parts[0].trim();
-
-      const [day, month, year] = datePart.split('/').map(Number);
-
-      return new Date(year, month - 1, day);
-
-    } catch (e) {
-      return new Date();
-    }
-  };
-
-  const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
-    const ahora = new Date();
-    const fechaInicio = parseDate(inicioPeriodoVenta);
-    const fechaFin = parseDate(finPeriodoVenta);
-
-    if (ahora < fechaInicio) return "Próximamente";
-    if (ahora > fechaFin) return "Finalizado";
-    return "Activo";
-  }
-
   const formatDate = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
 
@@ -223,15 +255,6 @@ const DetallesSorteo = () => {
   const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosPagados;
   const pagoGenerado = boletosPagados * (parseFloat(sorteoData.precio_numero) || 0);
   const isActivo = sorteoData.estado === 'Activo';
-
-  const getBadgeColor = (estado) => {
-      switch(estado) {
-          case 'Activo': return 'bg-green-500 text-white';
-          case 'Próximamente': return 'bg-yellow-500 text-white';
-          case 'Finalizado': return 'bg-gray-500 text-white';
-          default: return 'bg-gray-500 text-white';
-      }
-  };
 
   return (
     <div className="min-h-screen bg-background-light font-display">
