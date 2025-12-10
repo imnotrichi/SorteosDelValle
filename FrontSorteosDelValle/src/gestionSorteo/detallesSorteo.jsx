@@ -382,7 +382,7 @@ const DetallesSorteo = () => {
             <span className="material-symbols-outlined text-3xl transition-transform">
               receipt_long
             </span>
-            <span className="text-lg font-bold">Ver comprobantes de pago</span>
+            <span className="text-lg font-bold">Ver números pagados</span>
           </button>
 
           <button

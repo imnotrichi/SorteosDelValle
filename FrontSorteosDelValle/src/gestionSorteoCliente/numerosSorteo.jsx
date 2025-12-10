@@ -156,7 +156,7 @@ const NumerosSorteo = () => {
 
   const handleCloseSuccess = () => {
     setShowSuccessModal(false);
-    navigate('/');
+    window.location.reload();
   };
 
   const handleCloseError = () => {

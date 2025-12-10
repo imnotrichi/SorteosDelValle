@@ -155,7 +155,7 @@ const RegistrarComprobante = () => {
 
     const handleCloseSuccess = () => {
         setShowSuccessModal(false);
-        navigate('/mis-numeros');
+        window.location.reload();
     }
 
     const totalPagar = numerosSeleccionados.length * precioUnitario;
