@@ -10,7 +10,7 @@
   --color-text-light: #1F2300;
   --color-card-light: #FFFFFF;
   --color-border-light: #CEE8C7;
-  --color-button-add-light: #89AD80;
+  --color-button-add-light: #407832;
   --color-card-number: #1E6636;
   --color-card-number-2: #187F12;
   --color-background-status: #A4F590;
@@ -36,4 +36,14 @@
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }

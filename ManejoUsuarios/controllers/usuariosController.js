@@ -1,4 +1,5 @@
 const usuariosDAO = require('../dataAccess/usuariosDAO.js');
+const organizadoresDAO = require('../dataAccess/organizadoresDAO.js');
 const { AppError } = require('../utils/appError.js');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
@@ -195,6 +196,49 @@ class UsuariosController {
         } catch (error) {
             console.error(error);
             next(new AppError('Error interno al buscar usuario para sincronización', 500));
+        }
+    }
+
+    async validarEsOrganizador(req, res, next) {
+        try {
+            const { correo } = req.query;
+
+            if (!correo) {
+                return next(new AppError('El parámetro correo es requerido.', 400));
+            }
+
+            const usuario = await usuariosDAO.obtenerUsuarioPorCorreo(correo);
+
+            if (!usuario) {
+                return res.status(200).json({
+                    esOrganizador: false,
+                    mensaje: 'Usuario no encontrado'
+                });
+            }
+
+            const organizador = await organizadoresDAO.obtenerOrganizadorPorId(usuario.id);
+
+            if (!organizador) {
+                return res.status(200).json({
+                    esOrganizador: false,
+                    mensaje: 'El usuario existe pero no es organizador'
+                });
+            }
+
+            res.status(200).json({
+                esOrganizador: true,
+                usuario: {
+                    nombres: usuario.nombres,
+                    apellido_paterno: usuario.apellido_paterno,
+                    apellido_materno: usuario.apellido_materno,
+                    correo: usuario.correo,
+                    telefono: usuario.telefono,
+                }
+            });
+
+        } catch (error) {
+            console.error(error);
+            next(new AppError('Error al validar el rol de organizador.', 500));
         }
     }
 

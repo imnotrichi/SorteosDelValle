@@ -8,21 +8,46 @@ const API_GATEWAY_URL = 'http://localhost:8080';
 const parseDate = (dateString) => {
   if (!dateString) return new Date();
 
-  // Caso 1: ISO (tiene 'T' o es standard) -> '2025-12-10T01:00:00'
-  if (dateString.includes('T') || dateString.includes('-') && !dateString.includes('/')) {
+  if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
     return new Date(dateString);
   }
 
   try {
-    const [datePart] = dateString.split(',');
-    const [day, month, year] = datePart.trim().split('/');
+    const parts = dateString.split(',');
+    const datePart = parts[0].trim();
 
-    return new Date(`${year}-${month}-${day}T00:00:00`);
+    const [day, month, year] = datePart.split('/').map(Number);
+
+    let hours = 0;
+    let minutes = 0;
+
+    if (parts[1]) {
+      const timePart = parts[1].trim().toLowerCase();
+      const match = timePart.match(/(\d{1,2}):(\d{2})\s*([ap].*)/);
+      
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period.includes('p') && hours !== 12) hours += 12;
+        else if (period.includes('a') && hours === 12) hours = 0;
+      } else {
+         if (hours === 0 && minutes === 0) {
+             hours = 23; 
+             minutes = 59;
+         }
+      }
+    }
+
+    return new Date(year, month - 1, day, hours, minutes);
+
   } catch (e) {
     console.error("Error parseando fecha:", dateString);
     return new Date();
   }
-}
+};
+
 const Inicio = () => {
   const navigate = useNavigate();
   const [sorteos, setSorteos] = useState([]);
@@ -48,8 +73,8 @@ const Inicio = () => {
         const sorteosVisibles = data.filter(sorteo => {
           const fechaInicio = parseDate(sorteo.inicio_periodo_venta);
           const fechaFin = parseDate(sorteo.fin_periodo_venta);
-          fechaFin.setHours(23, 59, 59, 999);
-          return fechaInicio <= fechaActual && fechaActual <= fechaFin;
+
+          return fechaActual >= fechaInicio && fechaActual <= fechaFin;
         });
 
         const dataFormateada = sorteosVisibles.map(sorteo => ({
@@ -111,7 +136,7 @@ const Inicio = () => {
                 No hay sorteos disponibles en este momento
               </h3>
               <p className="text-gray-600 text-sm">
-                Vuelve más tarde para ver nuevas rifas disponibles.
+                Vuelve más tarde para ver nuevas rifas disponibles
               </p>
             </div>
           </div>

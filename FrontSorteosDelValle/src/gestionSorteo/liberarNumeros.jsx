@@ -135,13 +135,20 @@ export default function LiberarNumerosUI() {
       });
 
       if (!response.ok) {
+        let mensajeError = 'Error en la petición';
+
         try {
           const errorData = await response.json();
           console.error("Error backend:", errorData);
+          
+          if (errorData.message) {
+            mensajeError = errorData.message;
+          }
         } catch (e) {
           console.error("La respuesta no es un JSON válido");
         }
-        throw new Error('Error en la petición');
+        
+        throw new Error(mensajeError);
       }
 
       setShowSuccessModal(true);
@@ -200,7 +207,7 @@ export default function LiberarNumerosUI() {
             className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light hover:bg-border-light/80 transition-colors"
           >
             <span className="text-base font-bold text-text-light">
-              Volver
+              Cancelar
             </span>
           </button>
           <div className="flex-1 min-w-0">

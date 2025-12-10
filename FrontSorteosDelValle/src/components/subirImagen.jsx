@@ -1,41 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import uploadIcon from '../assets/subir.png';
 
-const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, disabled }) => {
+const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, initialImage, disabled = false }) => {
 
-  const [fileName, setFileName] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
+    if (initialImage && !fileValue) {
+      setPreview(initialImage);
+    }
+  }, [initialImage, fileValue]);
+
+  useEffect(() => {
     if (fileValue) {
-      setFileName(fileValue.name);
-    } else {
-      setFileName(null);
+      const objectUrl = URL.createObjectURL(fileValue);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else if (!initialImage) {
+      setPreview(null);
       if (inputRef.current) {
         inputRef.current.value = null;
       }
     }
-  }, [fileValue]);
-
-  const processFile = (file) => {
-    if (file) {
-      setFileName(file.name);
-
-      if (onChange) {
-        const syntheticEvent = {
-          target: {
-            files: [file]
-          }
-        };
-        onChange(syntheticEvent);
-      }
-    }
-  };
+  }, [fileValue, initialImage]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    processFile(file);
+    if (file && onChange) {
+      onChange(e);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -60,7 +55,8 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, disabled
     if (files && files.length > 0) {
       const file = files[0];
       if (file.type.startsWith('image/')) {
-        processFile(file);
+        const fakeEvent = { target: { files: [file] } };
+        if (onChange) onChange(fakeEvent);
       } else {
         alert("Por favor, suelta solo archivos de imagen.");
       }
@@ -78,47 +74,44 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, disabled
   }
 
   return (
-    <div>
-      <span className={`text-sm font-medium pb-2 block ${disabled ? 'text-gray-400' : 'text-text-light dark:text-text-dark'}`}>
-        {label}
-      </span>
-
+    <div className="font-display">
+      {label && (
+        <span className="text-sm font-medium pb-2 block text-text-light dark:text-text-dark">
+          {label}
+        </span>
+      )}
+      
       <label
         htmlFor={id}
-        className={containerClasses}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        className={containerClasses}
       >
-
-        <div className="flex flex-col items-center justify-center py-6 text-center px-4 pointer-events-none">
-
-          <img
-            src={uploadIcon}
-            alt="Upload"
-            className={`w-8 h-6 mb-2 transition-opacity ${disabled ? 'opacity-50 grayscale' : ''}`}
-          />
-
-          {fileName ? (
-            <p className="text-sm font-semibold text-button-add-light break-all">{fileName}</p>
-          ) : (
-            <>
-              <p className={`text-sm ${disabled ? 'text-gray-400' : 'text-text-light/60 dark:text-text-dark/60'}`}>
-                {isDragging ? (
-                  <span className="font-bold text-primary">¡Suelta la imagen aquí!</span>
-                ) : (
-                  <>
-                    <span className="font-semibold">{disabled ? "Edición bloqueada" : "Haz clic aquí"}</span>
-                    {!disabled && " o arrastra una imagen"}
-                  </>
-                )}
-              </p>
-              <p className="text-xs text-text-light/40 dark:text-text-dark/40 mt-1">
-                PNG o JPG (Max. 800x400px)
-              </p>
-            </>
-          )}
-        </div>
+        {preview ? (
+          <>
+            <img 
+              src={preview} 
+              alt="Vista previa" 
+              className="w-full h-full object-cover rounded-lg"
+            />
+            
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white rounded-lg">
+              <span className="material-symbols-outlined text-3xl mb-1">edit</span>
+              <p className="text-sm font-bold">Haz clic para cambiar</p>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6 text-center px-4">
+            <img src={uploadIcon} alt="Upload" className="w-8 h-6 mb-2 opacity-60" />
+            <p className="text-sm text-text-light/60 dark:text-text-dark/60">
+              <span className="font-semibold">Haz clic aquí</span> para subir una imagen
+            </p>
+            <p className="text-xs text-text-light/40 dark:text-text-dark/40 mt-1">
+              PNG o JPG (Max. 5MB)
+            </p>
+          </div>
+        )}
 
         <input
           id={id}

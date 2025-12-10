@@ -293,12 +293,6 @@ const MisSorteos = ({ onNavigate }) => {
               <p className="text-gray-600 text-sm mb-6">
                 Crea tu primer sorteo para comenzar a gestionar tus rifas
               </p>
-              <button
-                onClick={() => navigate('/crearSorteo')}
-                className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-text-light rounded-lg text-sm font-medium transition-colors"
-              >
-                Crear primer sorteo
-              </button>
             </div>
           </div>
         )}
