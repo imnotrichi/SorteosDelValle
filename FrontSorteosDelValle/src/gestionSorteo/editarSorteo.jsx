@@ -83,6 +83,7 @@ const convertirDiasAFormatoHoras = (dias) => {
 const EditarSorteo = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [numerosVendidos, setNumerosVendidos] = useState(0);
 
     const [sorteoOriginal, setSorteoOriginal] = useState(null);
     const [isLoadingData, setIsLoadingData] = useState(true);
@@ -115,7 +116,9 @@ const EditarSorteo = () => {
                 }
 
                 const data = await response.json();
+
                 setSorteoOriginal(data);
+                setNumerosVendidos(data.numeros_vendidos);
                 //console.log('Datos del sorteo obtenidos:', data);
 
                 const configData = data.configuracionData;
@@ -396,6 +399,7 @@ const EditarSorteo = () => {
         return true;
     };
 
+
     const handleSubmit = async (e) => {
         //console.log("se ha presionado submit");
         e.preventDefault();
@@ -434,6 +438,7 @@ const EditarSorteo = () => {
 
             //console.log("Comparando Inicio:", formData.fechaInicioVenta, "vs Original:", inicioOriginalSimple);
 
+
             const payload = {
                 titulo: formData.titulo,
                 descripcion: formData.descripcion,
@@ -465,6 +470,7 @@ const EditarSorteo = () => {
             });
 
             const result = await response.json();
+
 
             if (!response.ok) {
                 throw new Error(result.message || 'Error al actualizar el sorteo');
@@ -633,32 +639,59 @@ const EditarSorteo = () => {
                                             <p className="text-lg font-bold text-text-light">
                                                 #{index + 1}
                                             </p>
-                                            {index > 0 && !hayBoletosVendidos && (
+
+                                            {premios.length > 1 && !hayBoletosVendidos && (
                                                 <button
                                                     type="button"
                                                     onClick={() => handleEliminarPremio(premio.id)}
-                                                    className="text-text-light/40 hover:text-red-500 transition-colors"
+                                                    className="text-text-light/40 dark:text-text-dark/40 hover:text-red-500 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-2xl">delete</span>
                                                 </button>
                                             )}
                                         </div>
+
                                         <Input
                                             label="Título"
                                             placeholder='ej. "Teclado Gamer marca Ocelot"'
                                             value={premio.titulo}
                                             onChange={(e) => handlePremioChange(premio.id, 'titulo', e.target.value)}
+                                            maxLength={CHAR_LIMITS.PREMIO_TITULO}
                                             disabled={hayBoletosVendidos}
                                             required
                                         />
 
                                         {premio.imagen_premio_url && !premio.imagen && (
-                                            <img src={premio.imagen_premio_url} alt="Premio" className="w-full h-auto max-h-40 object-cover rounded-lg border border-border-light" />
+                                            <div className="flex flex-col gap-2">
+                                                <span className="text-sm font-medium text-text-light">Imagen actual:</span>
+                                                <img
+                                                    src={premio.imagen_premio_url}
+                                                    alt={`Premio ${index + 1}`}
+                                                    className="w-full h-auto max-h-48 object-cover rounded-lg border border-border-light"
+                                                />
+                                            </div>
                                         )}
 
+                                        <FileUpload
+                                            label={premio.imagen_premio_url ? "Cambiar imagen" : "Imagen"}
+                                            id={`premio-imagen-${premio.id}`}
+                                            onChange={(e) => handlePremioImageChange(premio.id, e)}
+                                            fileValue={premio.imagen}
+                                            disabled={hayBoletosVendidos}
+                                        />
                                     </div>
                                 ))}
 
+                                {!hayBoletosVendidos && (
+                                    <button
+                                        type="button"
+                                        onClick={handleAnadirPremio} 
+                                        className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors font-body"
+                                    >
+                                        <img src={addIcon} alt="Añadir" className="w-5 h-5 brightness-0 invert" />
+                                        Añadir premio
+                                    </button>
+                                )}
                             </div>
                         </FormSection>
                     </div>
