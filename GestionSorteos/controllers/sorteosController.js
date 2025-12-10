@@ -81,7 +81,7 @@ class SorteosController {
                         if (data.esOrganizador) {
                             datosOrganizadorRemoto = data.usuario;
                         } else {
-                            return next(new AppError(`El correo del organizador '${correoOrg}' no se encuentra registrado`, 400));
+                            return next(new AppError(`El correo del organizador '${correoOrg}' no se encuentra registrado.`, 400));
                         }
                     } else {
                         throw new Error('Error en la respuesta del microservicio');
