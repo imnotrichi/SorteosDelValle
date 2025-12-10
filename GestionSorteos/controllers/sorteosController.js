@@ -81,7 +81,7 @@ class SorteosController {
                         if (data.esOrganizador) {
                             datosOrganizadorRemoto = data.usuario;
                         } else {
-                            return next(new AppError(`El correo '${correoOrg}' no pertenece a un organizador válido.`, 403));
+                            return next(new AppError(`El correo '${correoOrg}' no pertenece a un organizador válido.`, 400));
                         }
                     } else {
                         throw new Error('Error en la respuesta del microservicio');
@@ -456,7 +456,7 @@ class SorteosController {
 
                     console.log("HOLA DESDE CONTROLER, EL USAURIO:" + esOrganizador);
                     if (!esOrganizador) {
-                        return next(new AppError(`El usuario con correo '${correoOrg}' existe pero no es un organizador autorizado.`, 403));
+                        return next(new AppError(`El usuario con correo '${correoOrg}' existe pero no es un organizador autorizado.`, 400));
                     }
 
                     organizadores.push({ id_organizador: organizadorObtenido.id });
