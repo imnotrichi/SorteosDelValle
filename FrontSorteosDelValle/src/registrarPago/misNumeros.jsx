@@ -5,13 +5,28 @@ import { SorteoNumerosCard } from '../components/sorteoNumerosCard';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const parseDate = (dateString) => {
+    if (!dateString) return new Date();
+
+    if (dateString.includes('T') || dateString.includes('-') && !dateString.includes('/')) {
+        return new Date(dateString);
+    }
+
+    try {
+        const [datePart] = dateString.split(',');
+        const [day, month, year] = datePart.trim().split('/');
+        return new Date(`${year}-${month}-${day}T00:00:00`);
+    } catch (e) {
+        return new Date();
+    }
+};
+
 const MisNumeros = () => {
     const navigate = useNavigate();
     const [sorteos, setSorteos] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
     const usuario = JSON.parse(localStorage.getItem('usuario'));
-
     const nombreUsuario = usuario.nombres;
 
     /**  useEffect(() => {
@@ -56,7 +71,9 @@ const MisNumeros = () => {
         const fetchSorteosActivos = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/activos`);
+                if (!usuario.correo) throw new Error("Usuario no autenticado");
+
+                const response = await fetch(`${API_GATEWAY_URL}/api/numeros/cliente?correo=${usuario.correo}`); //TODO: cambiarlo por correo
 
                 if (!response.ok) {
                     throw new Error('Error en la petición');
@@ -66,19 +83,21 @@ const MisNumeros = () => {
                 const fechaActual = new Date();
 
                 const sorteosVisibles = data.filter(sorteo => {
-                    const fechaInicio = new Date(sorteo.inicio_periodo_venta);
-                    const fechaFin = new Date(sorteo.fin_periodo_venta);
+                    const fechaInicio = parseDate(sorteo.inicio_periodo_venta);
+                    const fechaFin = parseDate(sorteo.fin_periodo_venta);
+
+                    fechaFin.setHours(23, 59, 59, 999);
 
                     return fechaInicio <= fechaActual && fechaActual <= fechaFin;
                 });
 
                 const dataFormateada = sorteosVisibles.map(sorteo => ({
                     ...sorteo,
+                    id: sorteo.id_sorteo || sorteo.id,
                     precioNumero: parseFloat(sorteo.precio_numero)
                 }));
 
                 setSorteos(dataFormateada);
-                console.log(dataFormateada)
             } catch (error) {
                 console.error("No se pudieron cargar los sorteos ", error);
 
@@ -108,16 +127,15 @@ const MisNumeros = () => {
             <HeaderCliente onNavigate={navigate} userName={nombreUsuario} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <h1 className="text-[32px] font-bold tracking-tight text-text-light mb-8">
-                    Mis números
-                </h1>
-                <p>Aquí puedes ver y gestionar los números que has apartado en nuestros sorteos. Completa tu pago para asegurar tu participación</p>
+                <h1 className="mb-3 text-3xl font-bold text-gray-900">Mis números</h1>
+                <p className="mb-5 text-gray-500 font-medium">Aquí puedes ver y gestionar los números que has apartado en nuestros sorteos. Completa tu pago para asegurar tu participación</p>
+
 
                 {sorteos.length > 0 ? (
                     <div className="flex flex-col gap-6">
                         {sorteos.map((sorteo) => (
                             <SorteoNumerosCard
-                                key={sorteo.id}
+                                key={sorteo.id_sorteo}
                                 sorteo={sorteo}
                                 onClick={() => navigate(`/registrar-comprobante/${sorteo.id}`)}
                             />
