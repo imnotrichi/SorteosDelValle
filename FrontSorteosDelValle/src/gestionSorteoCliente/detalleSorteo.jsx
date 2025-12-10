@@ -9,6 +9,75 @@ import SorteoNoDisponible from '../components/mensajeNoDisponible';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const parseDate = (dateString) => {
+  if (!dateString) return new Date();
+
+  if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
+    return new Date(dateString);
+  }
+
+  try {
+    const parts = dateString.split(',');
+    const datePart = parts[0].trim();
+
+    const [day, month, year] = datePart.split('/').map(Number);
+
+    let hours = 0;
+    let minutes = 0;
+
+    if (parts[1]) {
+      const timePart = parts[1].trim().toLowerCase();
+      const match = timePart.match(/(\d{1,2}):(\d{2})\s*([ap].*)/);
+
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period.includes('p') && hours !== 12) {
+          hours += 12;
+        } else if (period.includes('a') && hours === 12) {
+          hours = 0;
+        }
+      } else {
+        if (hours === 0 && minutes === 0) {
+          hours = 23;
+          minutes = 59;
+        }
+      }
+    }
+
+    return new Date(year, month - 1, day, hours, minutes);
+
+  } catch (e) {
+    console.error("Error parseando fecha:", dateString);
+    return new Date();
+  }
+};
+
+const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
+  const ahora = new Date();
+  const fechaInicio = parseDate(inicioPeriodoVenta);
+  const fechaFin = parseDate(finPeriodoVenta);
+
+  if (ahora < fechaInicio) {
+    return "Próximamente";
+  } else if (ahora > fechaFin) {
+    return "Finalizado";
+  } else {
+    return "Activo";
+  }
+};
+
+const getBadgeColor = (estado) => {
+  switch (estado) {
+    case 'Activo': return 'bg-background-status text-card-number-2';
+    case 'Próximamente': return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+    case 'Finalizado': return 'bg-gray-200 text-gray-600';
+    default: return 'bg-gray-200 text-gray-600';
+  }
+};
+
 const DetalleSorteo = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -31,6 +100,9 @@ const DetalleSorteo = () => {
         const sorteoFormateado = {
           ...data,
           precioNumero: parseFloat(data.precio_numero),
+          inicioPeriodoVenta: data.inicio_periodo_venta,
+          finPeriodoVenta: data.fin_periodo_venta,
+          fechaRealizacion: data.fecha_realizacion,
           finPeriodoVenta: data.fin_periodo_venta,
           fechaRealizacion: data.fecha_realizacion,
           premios: data.premiosData?.map(premio => ({
@@ -39,6 +111,11 @@ const DetalleSorteo = () => {
             imagenPremioUrl: premio.imagen_premio_url
           })) || []
         };
+
+        sorteoFormateado.estadoActual = getEstadoSorteo(
+          sorteoFormateado.inicioPeriodoVenta,
+          sorteoFormateado.finPeriodoVenta
+        );
 
         setSorteoData(sorteoFormateado);
       } catch (error) {
@@ -56,7 +133,7 @@ const DetalleSorteo = () => {
 
   const formatFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
-    const date = new Date(fecha);
+    const date = parseDate(fecha);
     return date.toLocaleDateString('es-MX', {
       day: 'numeric',
       month: 'long',
@@ -78,13 +155,13 @@ const DetalleSorteo = () => {
   if (!sorteoData) {
     return (
       <div className="min-h-screen bg-background-light">
-         <HeaderCliente onNavigate={navigate} userName="Ricardo" />
-         <SorteoNoDisponible />
+        <HeaderCliente onNavigate={navigate} userName="Ricardo" />
+        <SorteoNoDisponible />
       </div>
     );
   }
 
-  const esActivo = new Date(sorteoData.finPeriodoVenta) > new Date();
+  const esSorteoActivo = sorteoData.estadoActual === 'Activo';
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -99,23 +176,17 @@ const DetalleSorteo = () => {
           >
             <img src={volverIcon} alt="Volver" className="w-11 h-11" />
           </button>
-          
+
           <div className="min-w-0">
-             <h1 className="text-[32px] font-bold tracking-tight text-text-light break-words leading-tight">
-                {sorteoData.titulo}
-             </h1>
+            <h1 className="text-[32px] font-bold tracking-tight text-text-light break-words leading-tight">
+              {sorteoData.titulo}
+            </h1>
           </div>
 
           <div className="flex-shrink-0">
-             {esActivo ? (
-               <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-background-status text-card-number-2 whitespace-nowrap">
-                 Activo
-               </span>
-             ) : (
-               <span className="inline-flex items-center px-4 py-2 text-xl font-bold rounded-full bg-gray-200 text-gray-600 whitespace-nowrap">
-                 Finalizado
-               </span>
-             )}
+            <span className={`inline-flex items-center px-4 py-2 text-xl font-bold rounded-full whitespace-nowrap shadow-sm ${getBadgeColor(sorteoData.estadoActual)}`}>
+              {sorteoData.estadoActual}
+            </span>
           </div>
         </div>
 
@@ -145,20 +216,31 @@ const DetalleSorteo = () => {
         </div>
 
         <div className="bg-card-number rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <p className="text-base font-medium text-white/80 mb-1">Precio por número</p>
               <p className="text-4xl font-bold text-white">
                 ${sorteoData.precioNumero.toFixed(2)}
               </p>
             </div>
-            <button
-              onClick={() => navigate(`/sorteo/${id}/numeros`)}
-              className="flex items-center justify-center rounded-lg h-14 px-8 bg-primary hover:bg-primary/90 text-text-light text-xl font-bold transition-colors shadow-lg gap-2"
-            >
-              <img src={boletoIcon} alt="Boleto" className="w-6 h-6" />
-              Ver números disponibles
-            </button>
+
+            {esSorteoActivo ? (
+              <button
+                onClick={() => navigate(`/sorteo/${id}/numeros`)}
+                className="flex items-center justify-center rounded-lg h-14 px-8 bg-primary hover:bg-primary/90 text-text-light text-xl font-bold transition-colors shadow-lg gap-2"
+              >
+                <img src={boletoIcon} alt="Boleto" className="w-6 h-6" />
+                Ver números disponibles
+              </button>
+            ) : (
+              <div className="px-6 py-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                <span className="text-white font-bold text-lg">
+                  {sorteoData.estadoActual === 'Próximamente'
+                    ? 'La venta iniciará pronto'
+                    : 'Venta finalizada'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
