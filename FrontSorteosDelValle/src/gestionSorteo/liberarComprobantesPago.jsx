@@ -8,18 +8,18 @@ const API_GATEWAY_URL = 'http://localhost:8080';
 const ImageModal = ({ isOpen, onClose, imageUrl }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative max-w-4xl max-h-[90vh] w-full" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="relative flex justify-center items-center" onClick={e => e.stopPropagation()}>
         <button 
           onClick={onClose}
-          className="absolute -top-10 right-0 text-white hover:text-gray-300"
+          className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
         >
           <span className="material-symbols-outlined text-4xl">close</span>
         </button>
         <img 
           src={imageUrl} 
           alt="Comprobante" 
-          className="w-full h-full object-contain rounded-lg bg-white"
+          className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl bg-white"
         />
       </div>
     </div>
@@ -56,13 +56,13 @@ const ComprobanteCard = ({ comprobante, isSelected, onToggle, onVerComprobante }
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <div className="bg-background-light rounded-lg p-3">
-              <p className="text-sm text-gray-600 mb-1">Números:</p>
+              <p className="text-sm font-semibold text-text-light mb-1">Números:</p>
               <p className="text-base font-semibold text-text-light break-words">
                 {comprobante.numeros.join(', ')}
               </p>
             </div>
             <div className="bg-background-light rounded-lg p-3">
-              <p className="text-sm text-gray-600 mb-1">Total pagado:</p>
+              <p className="text-sm font-semibold text-text-light mb-1">Total pagado:</p>
               <p className="text-base font-semibold text-text-light">
                 ${parseFloat(comprobante.total_esperado).toFixed(2)}
               </p>
@@ -74,7 +74,7 @@ const ComprobanteCard = ({ comprobante, isSelected, onToggle, onVerComprobante }
               e.stopPropagation();
               onVerComprobante(comprobante.url_comprobante);
             }}
-            className="w-full flex items-center justify-center gap-2 rounded-lg h-11 px-4 bg-gray-100 hover:bg-gray-200 text-text-light text-sm font-bold transition-colors"
+            className="w-full flex items-center justify-center gap-2 rounded-lg h-11 px-4 bg-border-light hover:bg-border-light/80 text-text-light text-sm font-bold transition-colors"
           >
             <span className="material-symbols-outlined text-lg">visibility</span>
             Ver comprobante
@@ -192,6 +192,15 @@ export default function LiberarComprobantesPago() {
     );
   });
 
+  const obtenerNumerosSeleccionados = () => {
+    return comprobantes
+      .filter(c => seleccionados.includes(c.id_pago))
+      .flatMap(c => c.numeros)
+      .sort((a, b) => a - b);
+  };
+
+  const listaNumerosSeleccionados = obtenerNumerosSeleccionados();
+
   return (
     <div className="min-h-screen bg-background-light pb-32 font-display">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -200,18 +209,18 @@ export default function LiberarComprobantesPago() {
           <div className="flex items-center gap-4 w-full">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center justify-center px-6 h-12 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light hover:bg-border-light/80 transition-colors"
             >
               <span className="text-base font-bold text-text-light">
-                Volver
+                Cancelar
               </span>
             </button>
             <div className="flex-1 min-w-0">
               <h1 className="text-[32px] font-bold tracking-tight text-text-light break-words">
-                Gestión de Comprobantes
+                Gestión de Números Pagados
               </h1>
               <p className="text-lg text-gray-600">
-                Verifica los comprobantes y marca los números como pagados.
+                Verifica los comprobantes y marca los números como pagados
               </p>
             </div>
           </div>
@@ -232,7 +241,7 @@ export default function LiberarComprobantesPago() {
                     placeholder="Buscar por nombre, correo o número..."
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full rounded-lg bg-background-light border border-border-light text-text-light placeholder:text-text-light/40 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-12 pl-10 pr-4"
+                    className="w-full rounded-lg bg-gray-50 border border-gray-300 text-text-light placeholder:text-gray-400 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-12 pl-10 pr-4"
                   />
                 </div>
               </div>
@@ -273,30 +282,40 @@ export default function LiberarComprobantesPago() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 sticky top-24">
               <h3 className="text-xl font-bold text-text-light mb-4">
-                Resumen de acción
+                Resumen de números
               </h3>
               
               <div className="bg-background-light rounded-lg p-4 mb-6">
-                <p className="text-base text-gray-600 mb-2">
-                  Seleccionados:
+                <p className="text-base text-gray-600 mb-3">
+                  Números seleccionados:
                 </p>
-                <div className="max-h-32 overflow-y-auto mb-2 scrollbar-thin">
-                    {seleccionados.length > 0 ? (
-                        <ul className="list-disc list-inside text-sm text-text-light">
-                            {seleccionados.map(id => {
-                                const c = comprobantes.find(x => x.id_pago === id);
-                                return <li key={id} className="truncate">{c ? c.nombres_cliente : 'Desconocido'}</li>
-                            })}
-                        </ul>
+                <div className="max-h-60 overflow-y-auto mb-2 scrollbar-thin pr-2">
+                    {listaNumerosSeleccionados.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                            {listaNumerosSeleccionados.map((num, idx) => (
+                                <span 
+                                  key={`${num}-${idx}`} 
+                                  className="bg-white border border-gray-300 text-text-light text-sm font-bold px-2.5 py-1 rounded shadow-sm"
+                                >
+                                  {num}
+                                </span>
+                            ))}
+                        </div>
                     ) : (
-                        <p className="text-base text-gray-400 italic">Ninguno</p>
+                        <p className="text-base text-gray-400 italic">Ningún número seleccionado</p>
                     )}
                 </div>
                 
                 <div className="border-t border-border-light pt-4 mt-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-base text-gray-600">Total Pagos:</span>
+                    <span className="text-base text-gray-600">Total números:</span>
                     <span className="text-2xl font-bold text-text-light">
+                      {listaNumerosSeleccionados.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-sm text-gray-500">Comprobantes:</span>
+                    <span className="text-sm font-medium text-gray-600">
                       {seleccionados.length}
                     </span>
                   </div>
@@ -308,10 +327,9 @@ export default function LiberarComprobantesPago() {
                 disabled={seleccionados.length === 0 || isProcessing}
                 className="w-full flex flex-col items-center justify-center rounded-lg h-auto min-h-[48px] py-3 px-4 bg-primary hover:bg-primary/90 text-text-light text-base font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed gap-1"
               >
-                {isProcessing ? 'Procesando...' : 'Marcar como Pagado'}
+                {isProcessing ? 'Procesando...' : 'Marcar como pagado'}
                 {!isProcessing && seleccionados.length > 0 && (
                   <span className="text-xs font-normal opacity-80">
-                    (Liberará números asociados)
                   </span>
                 )}
               </button>
@@ -329,7 +347,7 @@ export default function LiberarComprobantesPago() {
       <SuccessModal
         isOpen={showSuccess}
         onClose={handleSuccessClose}
-        title="¡Números marcados como pagados correctamente!"
+        title="¡Números liberados de manera exitosa!"
       />
 
       <ErrorModal
