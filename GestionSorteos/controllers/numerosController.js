@@ -35,7 +35,7 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
-            if (sorteoObtenido.fecha_realizacion < this.fechaHoy) {
+            if (sorteoObtenido.fecha_realizacion < fechaHoy) {
                 return next(new AppError("El sorteo ya finalizó.", 400));
             }
 
@@ -196,7 +196,7 @@ class NumerosController {
             if (!sorteoObtenido) {
                 return next(new AppError(`No se encontró el sorteo con ID: ${id_sorteo}.`, 404));
             }
-            if (sorteoObtenido.fecha_realizacion < this.fechaHoy) {
+            if (sorteoObtenido.fecha_realizacion < fechaHoy) {
                 return next(new AppError("El sorteo ya finalizó.", 400));
             }
 

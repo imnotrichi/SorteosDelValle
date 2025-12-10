@@ -135,13 +135,20 @@ export default function LiberarNumerosUI() {
       });
 
       if (!response.ok) {
+        let mensajeError = 'Error en la petición';
+
         try {
           const errorData = await response.json();
           console.error("Error backend:", errorData);
+          
+          if (errorData.message) {
+            mensajeError = errorData.message;
+          }
         } catch (e) {
           console.error("La respuesta no es un JSON válido");
         }
-        throw new Error('Error en la petición');
+        
+        throw new Error(mensajeError);
       }
 
       setShowSuccessModal(true);
