@@ -10,6 +10,96 @@ import volverIcon from '../assets/volver.png';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const getFriendlyErrorMessage = (error) => {
+  const fullMessage = error.message || '';
+
+  if (fullMessage.includes('Failed to fetch') || fullMessage.includes('NetworkError')) {
+    return "No hay conexión con el servidor. Verifica tu internet.";
+  }
+
+  if (fullMessage.includes(':')) {
+    const [statusCodeStr, ...msgParts] = fullMessage.split(':');
+    const serverMessage = msgParts.join(':').trim();
+    const statusCode = parseInt(statusCodeStr, 10);
+
+    if (statusCode >= 400 && statusCode < 500) {
+      if (serverMessage && serverMessage !== 'Object' && serverMessage.length > 0) {
+        return serverMessage;
+      }
+    }
+    if (statusCode >= 500) {
+      return "Tuvimos un problema técnico interno. Por favor intenta más tarde.";
+    }
+  }
+
+  if (fullMessage.includes('401') || fullMessage.includes('403')) return "No tienes permisos para realizar esta acción.";
+  if (fullMessage.includes('404')) return "No encontramos la información solicitada.";
+
+  return "Ocurrió un error inesperado. Inténtalo de nuevo más tarde.";
+};
+
+const getBadgeColor = (estado) => {
+  switch (estado) {
+    case 'Activo': return 'bg-green-500 text-white';
+    case 'Próximamente': return 'bg-yellow-500 text-white';
+    case 'Finalizado': return 'bg-gray-500 text-white';
+    default: return 'bg-gray-500 text-white';
+  }
+};
+
+const parseDate = (dateString) => {
+  if (!dateString) return new Date();
+
+  // 1. Si ya es formato ISO
+  if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
+    return new Date(dateString);
+  }
+
+  try {
+    const parts = dateString.split(',');
+    const datePart = parts[0].trim();
+    
+    const [day, month, year] = datePart.split('/').map(Number);
+
+    let hours = 0;
+    let minutes = 0;
+
+    if (parts[1]) {
+      const timePart = parts[1].trim().toLowerCase();
+      const match = timePart.match(/(\d{1,2}):(\d{2})\s*([ap].*)/);
+      
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period.includes('p') && hours !== 12) hours += 12;
+        else if (period.includes('a') && hours === 12) hours = 0;
+      } else {
+         if (hours === 0 && minutes === 0) {
+             hours = 23; 
+             minutes = 59;
+         }
+      }
+    }
+
+    return new Date(year, month - 1, day, hours, minutes);
+
+  } catch (e) {
+    return new Date();
+  }
+};
+
+  const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
+    const ahora = new Date();
+    const fechaInicio = parseDate(inicioPeriodoVenta);
+    const fechaFin = parseDate(finPeriodoVenta);
+
+    if (ahora < fechaInicio) return "Próximamente";
+    if (ahora > fechaFin) return "Finalizado";
+    return "Activo";
+  }
+
 const DetallesSorteo = () => {
   const navigate = useNavigate();
   const id = useParams();
@@ -23,12 +113,24 @@ const DetallesSorteo = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
+  const getUsuarioSeguro = () => {
+    try {
+      const storedUser = localStorage.getItem('usuario');
+      if (!storedUser) return null;
+      return JSON.parse(storedUser);
+    } catch (e) {
+      console.error("Error storage:", e);
+      return null;
+    }
+  };
 
   useEffect(() => {
     const fetchTableroData = async () => {
       setIsloading(true);
       setError(null);
+
+      const usuarioLogueado = getUsuarioSeguro();
+
       try {
         if (!usuarioLogueado || !usuarioLogueado.correo) {
           throw new Error("No se identificó la sesión del usuario.");
@@ -37,30 +139,44 @@ const DetallesSorteo = () => {
         const respId = await fetch(`${API_GATEWAY_URL}/api/sorteos/usuarios/id?correo=${encodeURIComponent(usuarioLogueado.correo)}`);
 
         if (!respId.ok) {
-          throw new Error('No se pudo verificar tu cuenta de organizador para este sorteo (ID local no encontrado).');
+          throw new Error('No se pudo verificar tu cuenta de organizador (ID local no encontrado).');
         }
 
         const dataId = await respId.json();
         const idLocalUsuario = dataId.id;
 
-        const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        const [respInfo, respTablero] = await Promise.all([
+          fetch(`${API_GATEWAY_URL}/api/sorteos/${idSorteo}`),
+          fetch(`${API_GATEWAY_URL}/api/sorteos/tablero/${idSorteo}/usuario/${idLocalUsuario}`)
+        ]);
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.message || 'Error al obtener los detalles del tablero');
+        if (!respTablero.ok) {
+          const errData = await respTablero.json();
+          throw new Error(`${respTablero.status}: ${errData.message || 'Error al obtener tablero'}`);
         }
 
-        let data = await response.json();
-        setSorteo(data);
+        let infoData = {};
+        if (respInfo.ok) {
+          infoData = await respInfo.json();
+        }
+
+        const tableroData = await respTablero.json();
+
+        const inicioVenta = infoData.inicio_periodo_venta || tableroData.inicio_periodo_venta;
+        const finVenta = infoData.fin_periodo_venta || tableroData.fin_periodo_venta;
+
+        const estadoReal = getEstadoSorteo(inicioVenta, finVenta);
+
+        setSorteo({
+          ...tableroData,
+          estado: estadoReal,
+          fin_periodo_venta: tableroData.fin_periodo_venta,
+          fecha_realizacion: tableroData.fecha_realizacion
+        });
 
       } catch (error) {
         console.error('Error al cargar el sorteo:', error);
-        setError(error.message);
+        setError(getFriendlyErrorMessage(error));
         setSorteo(null);
       } finally {
         setIsloading(false);
@@ -85,15 +201,20 @@ const DetallesSorteo = () => {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Error al eliminar el sorteo');
+        let errorMessage = 'Error al eliminar el sorteo';
+        try {
+          const errData = await response.json();
+          errorMessage = errData.message || errorMessage;
+        } catch (e) { }
+
+        throw new Error(`${response.status}: ${errorMessage}`);
       }
 
       setShowSuccessModal(true);
 
     } catch (error) {
       console.error('Error al eliminar:', error);
-      setErrorMessage(error.message);
+      setErrorMessage(getFriendlyErrorMessage(error));
       setShowErrorModal(true);
     }
   };
@@ -119,13 +240,20 @@ const DetallesSorteo = () => {
   }
 
   const formatDate = (fecha) => {
-    if (!fecha) return '';
-    return fecha.split('T')[0];
+    if (!fecha) return 'Fecha no disponible';
+
+    const date = parseDate(fecha);
+
+    return date.toLocaleDateString('es-MX', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   };
 
-  const boletosVendidos = sorteoData.numeros_vendidos || 0;
-  const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosVendidos;
-  const pagoGenerado = boletosVendidos * (parseFloat(sorteoData.precio_numero) || 0);
+  const boletosPagados = sorteoData.numeros_pagados || 0;
+  const boletosRestantes = (sorteoData.rango_numeros || 0) - boletosPagados;
+  const pagoGenerado = boletosPagados * (parseFloat(sorteoData.precio_numero) || 0);
   const isActivo = sorteoData.estado === 'Activo';
 
   return (
@@ -144,12 +272,11 @@ const DetallesSorteo = () => {
               </button>
 
               <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-[32px] font-bold text-text-light">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-[32px] font-bold text-text-light break-all">
                     {sorteoData.titulo}
                   </h1>
-                  <span className={`px-4 py-2 text-xl font-bold rounded-full ${isActivo ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
-                    }`}>
+                  <span className={`px-4 py-2 text-xl font-bold rounded-full ${getBadgeColor(sorteoData.estado)}`}>
                     {sorteoData.estado}
                   </span>
                 </div>
@@ -212,9 +339,9 @@ const DetallesSorteo = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <p className="font-medium text-gray-500 mb-1">Boletos vendidos</p>
+            <p className="font-medium text-gray-500 mb-1">Boletos pagados</p>
             <p className="text-3xl font-bold text-text-light">
-              {sorteoData.boletos_vendidos}
+              {sorteoData.boletos_pagados}
             </p>
           </div>
 
@@ -249,7 +376,7 @@ const DetallesSorteo = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <button 
+          <button
             onClick={() => navigate(`/admin/comprobantesPago/${idSorteo}`)}
             className="flex items-center justify-center gap-3 px-6 py-4 bg-primary hover:bg-lime-500 text-text-light rounded-xl transition-all shadow-sm group cursor-pointer">
             <span className="material-symbols-outlined text-3xl transition-transform">
@@ -288,7 +415,7 @@ const DetallesSorteo = () => {
         <div className="mb-8">
           <DetallesSorteoCard
             descripcion={sorteoData.descripcion}
-            rangoNumeros={sorteoData.boletos_vendidos + sorteoData.boletos_apartados + sorteoData.boletos_disponibles}
+            rangoNumeros={sorteoData.boletos_pagados + sorteoData.boletos_apartados + sorteoData.boletos_disponibles}
             PrecioPorNumero={sorteoData.precio_numero}
             fechaInicio={formatDate(sorteoData.fin_periodo_venta)}
           />

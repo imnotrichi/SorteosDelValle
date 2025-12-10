@@ -7,33 +7,96 @@ import ErrorModal from "../components/mensajeError";
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
+const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
+  const ahora = new Date();
+  
+  const fechaInicio = parseDate(inicioPeriodoVenta);
+  const fechaFin = parseDate(finPeriodoVenta);
+
+  if (ahora < fechaInicio) {
+    return "Próximamente";
+  } else if (ahora > fechaFin) {
+    return "Finalizado";
+  } else {
+    return "Activo";
+  }
+}
+
 const parseDate = (dateString) => {
   if (!dateString) return new Date();
 
-  if (dateString.includes('T') || dateString.includes('-')) {
+  if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
     return new Date(dateString);
   }
 
   try {
-    const [datePart, timePart] = dateString.split(',');
-    const [day, month, year] = datePart.trim().split('/');
-    
-    return new Date(`${year}-${month}-${day}T23:59:59`); 
+    const parts = dateString.split(',');
+    const datePart = parts[0].trim();
+
+    const [day, month, year] = datePart.split('/').map(Number);
+
+    let hours = 0;
+    let minutes = 0;
+
+    if (parts[1]) {
+      const timePart = parts[1].trim().toLowerCase();
+
+      const match = timePart.match(/(\d{1,2}):(\d{2})\s*([ap].*)/);
+
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period.includes('p') && hours !== 12) {
+          hours += 12;
+        } else if (period.includes('a') && hours === 12) {
+          hours = 0;
+        }
+      } else {
+        if (hours === 0 && minutes === 0) {
+          hours = 23;
+          minutes = 59;
+        }
+      }
+    }
+
+    return new Date(year, month - 1, day, hours, minutes);
+
   } catch (e) {
     console.error("Error parseando fecha:", dateString);
-    return new Date(dateString); 
+    return new Date();
   }
 };
 
-const getEstadoSorteo = (finPeriodoVenta) => {
-  const ahora = new Date();
-  const fechaFin = parseDate(finPeriodoVenta);
-  return ahora < fechaFin ? "Activo" : "Finalizado";
-}
+const getFriendlyErrorMessage = (error) => {
+  const fullMessage = error.message || '';
+  
+  if (fullMessage.includes('Failed to fetch') || fullMessage.includes('NetworkError')) {
+    return "No hay conexión con el servidor. Verifica tu internet.";
+  }
+
+  if (fullMessage.includes(':')) {
+    const [statusCodeStr, ...msgParts] = fullMessage.split(':');
+    const serverMessage = msgParts.join(':').trim();
+    const statusCode = parseInt(statusCodeStr, 10);
+
+    if (statusCode >= 400 && statusCode < 500) {
+       if (serverMessage && serverMessage !== 'Object' && serverMessage.length > 0) {
+         return serverMessage;
+       }
+    }
+
+    if (statusCode >= 500) {
+      return "Tuvimos un problema técnico interno. Por favor intenta más tarde.";
+    }
+  }
+
+  return "Ocurrió un error inesperado. Intenta recargar la página.";
+};
 
 const MisSorteos = ({ onNavigate }) => {
   const navigate = useNavigate();
-  const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
 
   const [sorteos, setSorteos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,37 +108,51 @@ const MisSorteos = ({ onNavigate }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [idSorteoAEliminar, setIdSorteoAEliminar] = useState(null);
 
+  const getUsuarioSeguro = () => {
+    try {
+      const storedUser = localStorage.getItem('usuario');
+      if (!storedUser) return null;
+      return JSON.parse(storedUser);
+    } catch (e) {
+      console.error("");
+      return null;
+    }
+  };
+
   useEffect(() => {
     const fetchSorteos = async () => {
       setIsLoading(true);
       setError(null);
+
+      const usuarioLogueado = getUsuarioSeguro();
+
       try {
         if (!usuarioLogueado || !usuarioLogueado.correo) {
-            throw new Error('No se encontró la sesión del usuario.');
+          throw new Error('No se encontró la sesión del usuario.');
         }
 
-        const idOrganizador = usuarioLogueado.idusuario; 
-        
+        const idOrganizador = usuarioLogueado.idusuario;
+
         const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/propios?correo=${usuarioLogueado.correo}`);
 
         if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.message || 'Error al obtener los sorteos');
+          throw new Error(`Error al obtener datos`);
         }
 
         let data = await response.json();
 
         data = data.map(sorteo => ({
           ...sorteo,
-          estado: getEstadoSorteo(sorteo.fin_periodo_venta)
+          estado: getEstadoSorteo(sorteo.inicio_periodo_venta, sorteo.fin_periodo_venta)
         })).sort((a, b) => {
-          if (a.estado === "Activo" && b.estado !== "Activo") return -1;
-          if (a.estado !== "Activo" && b.estado === "Activo") return 1;
-          return 0;
+          const peso = { "Activo": 1, "Próximamente": 2, "Finalizado": 3 };
+          return peso[a.estado] - peso[b.estado];
         });
+
         setSorteos(data);
       } catch (error) {
-        setError(error.message);
+        console.error("");
+        setError(getFriendlyErrorMessage(error, 'fetch'));
       } finally {
         setIsLoading(false);
       }
@@ -99,8 +176,15 @@ const MisSorteos = ({ onNavigate }) => {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Error al eliminar el sorteo');
+        let errorMessage = 'Error al eliminar';
+        try {
+          const errData = await response.json();
+          errorMessage = errData.message || errorMessage;
+        } catch (e) {
+          console.error("");
+        }
+
+        throw new Error(`${response.status}: ${errorMessage}`);
       }
 
       setSorteos(sorteosActuales =>
@@ -110,7 +194,8 @@ const MisSorteos = ({ onNavigate }) => {
       setShowSuccessModal(true);
 
     } catch (error) {
-      setErrorMessage(error.message);
+      console.error("");
+      setErrorMessage(getFriendlyErrorMessage(error, 'delete'));
       setShowErrorModal(true);
     } finally {
       setIdSorteoAEliminar(null);

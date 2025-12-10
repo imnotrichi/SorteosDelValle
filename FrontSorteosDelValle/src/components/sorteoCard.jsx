@@ -3,6 +3,18 @@ import React from "react";
 export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoletoClick, onNavigateInfo}) {
   const isActivo = sorteo.estado === "Activo";
 
+  const getBadgeStyle = (estado) => {
+    switch (estado) {
+      case "Activo":
+        return "bg-green-500 text-white";
+      case "Próximamente":
+        return "bg-yellow-500 text-white";
+      case "Finalizado":
+      default:
+        return "bg-gray-500 text-white";
+    }
+  };
+
   return (
     <div 
       className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow"
@@ -20,11 +32,7 @@ export function SorteoCard({ sorteo, onEditarClick, onEliminarClick, onVerBoleto
           <span
             className={`
               inline-block px-3 py-1 text-xs font-bold rounded-full shadow-md
-              ${
-                isActivo
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-500 text-white"
-              }
+              ${getBadgeStyle(sorteo.estado)} 
             `}
           >
             {sorteo.estado}

@@ -47,7 +47,7 @@ const handleImageUpload = async (file) => {
     return data.secure_url;
 
   } catch (error) {
-    console.error('Error en handleImageUpload:', error);
+    console.error('');
     throw error;
   }
 };
@@ -252,19 +252,22 @@ const CrearSorteo = ({ currentUserEmail }) => {
     try {
       const imagenSorteoUrl = await handleImageUpload(formData.imagen);
 
-      let horaInicio = "00:00:00";
+      let horaInicio = "12:00:00"; 
       const fechaHoy = getTodayDate();
 
       if (formData.fechaInicioVenta === fechaHoy) {
         const ahora = new Date();
-        ahora.setMinutes(ahora.getMinutes() + 5);
-        
-        const horas = ahora.getHours().toString().padStart(2, '0');
-        const minutos = ahora.getMinutes().toString().padStart(2, '0');
-        const segundos = ahora.getSeconds().toString().padStart(2, '0');
-        
-        horaInicio = `${horas}:${minutos}:${segundos}`;
+        const pad = n => n.toString().padStart(2, '0');
+        horaInicio = `${pad(ahora.getHours())}:${pad(ahora.getMinutes())}:${pad(ahora.getSeconds())}`;
       }
+
+      const restar7Horas = (fechaStr) => {
+        const fecha = new Date(fechaStr);
+        fecha.setHours(fecha.getHours() - 7);
+        
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}:${pad(fecha.getSeconds())}`;
+      };
 
       const premiosConUrl = await Promise.all(
         premios.map(async (premio) => {
@@ -305,9 +308,9 @@ const CrearSorteo = ({ currentUserEmail }) => {
         imagen_url: imagenSorteoUrl,
         rango_numeros: parseInt(formData.rangoNumeros, 10),
         precio_numero: parseFloat(formData.precioNumero, 10),
-        inicio_periodo_venta: `${formData.fechaInicioVenta}T${horaInicio}`,
-        fin_periodo_venta: `${formData.fechaFinVenta}T00:00:00`,
-        fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`,
+        inicio_periodo_venta: restar7Horas(`${formData.fechaInicioVenta}T${horaInicio}`),
+        fin_periodo_venta: restar7Horas(`${formData.fechaFinVenta}T20:00:00`),
+        fecha_realizacion: restar7Horas(`${formData.fechaRealizacion}T20:00:00`),
         configuracionData: configuracionData,
         premiosData: premiosConUrl,
         organizadoresData: organizadoresData
@@ -331,15 +334,21 @@ const CrearSorteo = ({ currentUserEmail }) => {
                  errorMessage = errorData.message || errorMessage;
              }
         } catch (e) {
-             console.error("No se pudo leer el error del backend");
+             console.error("");
         }
         throw new Error(errorMessage);
       }
       setIsModalOpen(true);
 
     } catch (error) {
-      console.error('Error al crear sorteo:', error);
-      setError(error.message);
+      console.error('');
+      let msg = error.message;
+      
+      if (msg === 'Failed to fetch' || msg.includes('NetworkError')) {
+        msg = "No se pudo conectar con el servidor. Verifique su conexión.";
+      }
+      
+      setError(msg);
     } finally {
       setIsUploading(false);
     }
