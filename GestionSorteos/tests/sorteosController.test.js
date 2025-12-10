@@ -94,8 +94,20 @@ beforeAll(async () => {
         ]
     };
 
-    global.fetch = vi.fn(() =>
-        Promise.resolve({
+    global.fetch = vi.fn((url) => {
+        const urlString = url.toString();
+
+        if (urlString.includes('correofalso') || urlString.includes('falso.falacia')) {
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({
+                    esOrganizador: false,
+                    usuario: null
+                }),
+            });
+        }
+
+        return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({
                 esOrganizador: true,
@@ -107,8 +119,8 @@ beforeAll(async () => {
                     correo: "test@correo.com"
                 } 
             }),
-        })
-    );
+        });
+    });
 });
 
 beforeEach(async () => {
