@@ -146,7 +146,7 @@ const RegistrarComprobante = () => {
 
         } catch (error) {
             console.error(error)
-            setErrorModalMessage("Ocurrió un error al enviar tu comprobante. Inenta nuevamente");
+            setErrorModalMessage("Ocurrió un error al enviar tu comprobante. Intenta nuevamente");
         }
         finally {
             setIsUploading(false);
@@ -188,12 +188,23 @@ const RegistrarComprobante = () => {
 
             <div className="max-w-6xl mx-auto px-4 py-8">
 
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Registrar Comprobante</h1>
-                    <p className="text-gray-500 font-medium">Sube tu comprobante para confirmar el pago de tus números apartados</p>
-                    <p className="text-gray-500 mt-1">
-                        Sorteo: <span className="font-medium text-gray-800">{sorteoInfo.titulo}</span>
-                    </p>
+                <div className="flex items-center gap-4 mb-8">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light hover:bg-border-light/80 transition-colors shadow-sm"
+                    >
+                        <span className="text-base font-bold text-text-light">
+                            Cancelar
+                        </span>
+                    </button>
+                    
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-3xl font-bold text-gray-900">Registrar Comprobante</h1>
+                        <p className="text-gray-500 font-medium">Sube tu comprobante para confirmar el pago de tus números apartados</p>
+                        <p className="text-gray-500 mt-1">
+                            Sorteo: <span className="font-medium text-gray-800">{sorteoInfo.titulo}</span>
+                        </p>
+                    </div>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
