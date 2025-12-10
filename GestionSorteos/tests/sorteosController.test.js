@@ -93,6 +93,22 @@ beforeAll(async () => {
             { "correo": organizadorCorreo1 }
         ]
     };
+
+    global.fetch = vi.fn(() =>
+        Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+                esOrganizador: true,
+                ok: true,
+                usuario: {
+                    nombres: "Usuario",
+                    apellido_paterno: "Remoto",
+                    apellido_materno: "Test",
+                    correo: "test@correo.com"
+                } 
+            }),
+        })
+    );
 });
 
 beforeEach(async () => {
