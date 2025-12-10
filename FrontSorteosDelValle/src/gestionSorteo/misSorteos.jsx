@@ -9,8 +9,9 @@ const API_GATEWAY_URL = 'http://localhost:8080';
 
 const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
   const ahora = new Date();
-  const fechaInicio = new Date(inicioPeriodoVenta);
-  const fechaFin = new Date(finPeriodoVenta);
+  
+  const fechaInicio = parseDate(inicioPeriodoVenta);
+  const fechaFin = parseDate(finPeriodoVenta);
 
   if (ahora < fechaInicio) {
     return "Próximamente";
@@ -20,43 +21,78 @@ const getEstadoSorteo = (inicioPeriodoVenta, finPeriodoVenta) => {
     return "Activo";
   }
 }
-  
+
 const parseDate = (dateString) => {
   if (!dateString) return new Date();
 
-  if (dateString.includes('T') || dateString.includes('-')) {
+  if (dateString.includes('T') || (dateString.includes('-') && !dateString.includes('/'))) {
     return new Date(dateString);
   }
 
   try {
-    const [datePart, timePart] = dateString.split(',');
-    const [day, month, year] = datePart.trim().split('/');
-    
-    return new Date(`${year}-${month}-${day}T23:59:59`); 
+    const parts = dateString.split(',');
+    const datePart = parts[0].trim();
+
+    const [day, month, year] = datePart.split('/').map(Number);
+
+    let hours = 0;
+    let minutes = 0;
+
+    if (parts[1]) {
+      const timePart = parts[1].trim().toLowerCase();
+
+      const match = timePart.match(/(\d{1,2}):(\d{2})\s*([ap].*)/);
+
+      if (match) {
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period.includes('p') && hours !== 12) {
+          hours += 12;
+        } else if (period.includes('a') && hours === 12) {
+          hours = 0;
+        }
+      } else {
+        if (hours === 0 && minutes === 0) {
+          hours = 23;
+          minutes = 59;
+        }
+      }
+    }
+
+    return new Date(year, month - 1, day, hours, minutes);
+
   } catch (e) {
     console.error("Error parseando fecha:", dateString);
-    return new Date(dateString); 
+    return new Date();
   }
 };
 
-const getFriendlyErrorMessage = (error, context = 'general') => {
-  const message = error.message || '';
+const getFriendlyErrorMessage = (error) => {
+  const fullMessage = error.message || '';
   
-  if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
-    return "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.";
+  if (fullMessage.includes('Failed to fetch') || fullMessage.includes('NetworkError')) {
+    return "No hay conexión con el servidor. Verifica tu internet.";
   }
 
-  if (context === 'delete') {
-    if (message.includes('405')) return "No puedes eliminar este sorteo porque ya tiene boletos vendidos o el sorteo ya pasó.";
-    if (message.includes('404')) return "El sorteo que intentas eliminar ya no existe.";
+  if (fullMessage.includes(':')) {
+    const [statusCodeStr, ...msgParts] = fullMessage.split(':');
+    const serverMessage = msgParts.join(':').trim();
+    const statusCode = parseInt(statusCodeStr, 10);
+
+    if (statusCode >= 400 && statusCode < 500) {
+       if (serverMessage && serverMessage !== 'Object' && serverMessage.length > 0) {
+         return serverMessage;
+       }
+    }
+
+    if (statusCode >= 500) {
+      return "Tuvimos un problema técnico interno. Por favor intenta más tarde.";
+    }
   }
 
-  if (context === 'fetch') {
-    if (message.includes('401') || message.includes('403')) return "Tu sesión ha expirado o no tienes permisos. Por favor, inicia sesión nuevamente.";
-    if (message.includes('404')) return "No pudimos encontrar la información de tus sorteos.";
-  }
-
-  return "Ocurrió un problema inesperado. Por favor, intenta realizar la acción nuevamente más tarde.";
+  return "Ocurrió un error inesperado. Intenta recargar la página.";
 };
 
 const MisSorteos = ({ onNavigate }) => {
@@ -142,12 +178,12 @@ const MisSorteos = ({ onNavigate }) => {
       if (!response.ok) {
         let errorMessage = 'Error al eliminar';
         try {
-            const errData = await response.json();
-            errorMessage = errData.message || errorMessage;
+          const errData = await response.json();
+          errorMessage = errData.message || errorMessage;
         } catch (e) {
-            console.error("");
+          console.error("");
         }
-        
+
         throw new Error(`${response.status}: ${errorMessage}`);
       }
 

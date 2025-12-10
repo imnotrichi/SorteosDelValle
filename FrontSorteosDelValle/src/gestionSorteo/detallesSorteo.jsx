@@ -10,26 +10,32 @@ import volverIcon from '../assets/volver.png';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
-const getFriendlyErrorMessage = (error, context = 'general') => {
-  const message = error.message || '';
+const getFriendlyErrorMessage = (error) => {
+  const fullMessage = error.message || '';
 
-  if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
-    return "No se pudo conectar con el servidor. Por favor, verifica tu conexión.";
+  if (fullMessage.includes('Failed to fetch') || fullMessage.includes('NetworkError')) {
+    return "No hay conexión con el servidor. Verifica tu internet.";
   }
 
-  if (context === 'delete') {
-    if (message.includes('405')) return "No es posible eliminar este sorteo porque ya tiene boletos vendidos o ya finalizó.";
-    if (message.includes('404')) return "El sorteo que intentas eliminar no fue encontrado.";
-    if (message.includes('403')) return "No tienes permisos para eliminar este sorteo.";
+  if (fullMessage.includes(':')) {
+    const [statusCodeStr, ...msgParts] = fullMessage.split(':');
+    const serverMessage = msgParts.join(':').trim();
+    const statusCode = parseInt(statusCodeStr, 10);
+
+    if (statusCode >= 400 && statusCode < 500) {
+      if (serverMessage && serverMessage !== 'Object' && serverMessage.length > 0) {
+        return serverMessage;
+      }
+    }
+    if (statusCode >= 500) {
+      return "Tuvimos un problema técnico interno. Por favor intenta más tarde.";
+    }
   }
 
-  if (context === 'fetch') {
-    if (message.includes('403')) return "No tienes autorización para ver los detalles de este sorteo.";
-    if (message.includes('404')) return "No encontramos la información del sorteo solicitado.";
-    if (message.includes('401')) return "Tu sesión ha expirado. Por favor ingresa nuevamente.";
-  }
+  if (fullMessage.includes('401') || fullMessage.includes('403')) return "No tienes permisos para realizar esta acción.";
+  if (fullMessage.includes('404')) return "No encontramos la información solicitada.";
 
-  return "Ocurrió un error inesperado. Inténtalo más tarde.";
+  return "Ocurrió un error inesperado. Inténtalo de nuevo más tarde.";
 };
 
 const DetallesSorteo = () => {
@@ -71,7 +77,7 @@ const DetallesSorteo = () => {
         const respId = await fetch(`${API_GATEWAY_URL}/api/sorteos/usuarios/id?correo=${encodeURIComponent(usuarioLogueado.correo)}`);
 
         if (!respId.ok) {
-          throw new Error('No se pudo verificar tu cuenta de organizador para este sorteo (ID local no encontrado).');
+          throw new Error('No se pudo verificar tu cuenta de organizador (ID local no encontrado).');
         }
 
         const dataId = await respId.json();
@@ -86,7 +92,7 @@ const DetallesSorteo = () => {
 
         if (!response.ok) {
           const errData = await response.json();
-          throw new Error(errData.message || 'Error al obtener los detalles del tablero');
+          throw new Error(`${response.status}: ${errData.message || 'Error al obtener los detalles del tablero'}`);
         }
 
         let data = await response.json();
@@ -94,7 +100,7 @@ const DetallesSorteo = () => {
 
       } catch (error) {
         console.error('Error al cargar el sorteo:', error);
-        setError(error.message);
+        setError(getFriendlyErrorMessage(error)); 
         setSorteo(null);
       } finally {
         setIsloading(false);
@@ -119,15 +125,20 @@ const DetallesSorteo = () => {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Error al eliminar el sorteo');
+        let errorMessage = 'Error al eliminar el sorteo';
+        try {
+          const errData = await response.json();
+          errorMessage = errData.message || errorMessage;
+        } catch (e) { }
+
+        throw new Error(`${response.status}: ${errorMessage}`);
       }
 
       setShowSuccessModal(true);
 
     } catch (error) {
       console.error('Error al eliminar:', error);
-      setErrorMessage(error.message);
+      setErrorMessage(getFriendlyErrorMessage(error));
       setShowErrorModal(true);
     }
   };
@@ -283,7 +294,7 @@ const DetallesSorteo = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <button 
+          <button
             onClick={() => navigate(`/admin/comprobantesPago/${idSorteo}`)}
             className="flex items-center justify-center gap-3 px-6 py-4 bg-primary hover:bg-lime-500 text-text-light rounded-xl transition-all shadow-sm group cursor-pointer">
             <span className="material-symbols-outlined text-3xl transition-transform">
