@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuccessModal from '../components/mensajeExito';
 import ErrorModal from '../components/mensajeError';
@@ -26,42 +26,62 @@ const ImageModal = ({ isOpen, onClose, imageUrl }) => {
   );
 };
 
-const ComprobanteCard = ({ comprobante, isSelected, onToggle, onVerComprobante }) => {
+const ComprobanteCard = ({ comprobante, isSelected, onToggle, onVerComprobante, isDisabled }) => {
+  
+  const numerosLegibles = comprobante.numeros.map(n => n.numero).join(', ');
+
   return (
-    <div className={`bg-white rounded-lg shadow-sm border p-5 transition-colors ${isSelected ? 'border-primary ring-1 ring-primary' : 'border-gray-200'}`}>
+    <div className={`bg-white rounded-lg shadow-sm border p-5 transition-colors ${
+      isDisabled 
+        ? 'bg-gray-50 border-gray-200 opacity-70'
+        : isSelected ? 'border-primary ring-1 ring-primary' : 'border-gray-200'
+    }`}>
       <div className="flex items-start gap-4">
-        <button
-          onClick={() => onToggle(comprobante.id_pago)}
-          className={`flex-shrink-0 w-7 h-7 rounded-md border-2 transition-colors flex items-center justify-center mt-1 ${
-            isSelected
-              ? 'bg-primary border-primary'
-              : 'bg-white border-gray-300 hover:border-primary'
-          }`}
-        >
-          {isSelected && (
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          )}
-        </button>
+        {!isDisabled ? (
+          <button
+            onClick={() => onToggle(comprobante.id_pago)}
+            className={`flex-shrink-0 w-7 h-7 rounded-md border-2 transition-colors flex items-center justify-center mt-1 ${
+              isSelected
+                ? 'bg-primary border-primary'
+                : 'bg-white border-gray-300 hover:border-primary'
+            }`}
+          >
+            {isSelected && (
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </button>
+        ) : (
+          <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center mt-1 text-green-500" title="Ya pagado">
+             <span className="material-symbols-outlined">check_circle</span>
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
-          <div className="mb-3">
-            <h3 className="text-lg font-bold text-text-light mb-1">
-              {comprobante.nombres_cliente} {comprobante.apellido_paterno_cliente}
-            </h3>
-            <p className="text-sm text-gray-600">{comprobante.correo_cliente}</p>
-            <p className="text-sm text-gray-500 mt-1">Fecha de pago: {comprobante.fecha_pago}</p>
+          <div className="mb-3 flex justify-between items-start">
+            <div>
+                <h3 className={`text-lg font-bold mb-1 ${isDisabled ? 'text-gray-500' : 'text-text-light'}`}>
+                {comprobante.nombres_cliente} {comprobante.apellido_paterno_cliente}
+                </h3>
+                <p className="text-sm text-gray-600">{comprobante.correo_cliente}</p>
+                <p className="text-sm text-gray-500 mt-1">Fecha de pago: {comprobante.fecha_pago}</p>
+            </div>
+            {isDisabled && (
+                <span className="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded border border-green-200">
+                    PAGADO
+                </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <div className="bg-background-light rounded-lg p-3">
+            <div className={`rounded-lg p-3 ${isDisabled ? 'bg-gray-100' : 'bg-background-light'}`}>
               <p className="text-sm font-semibold text-text-light mb-1">Números:</p>
               <p className="text-base font-semibold text-text-light break-words">
-                {comprobante.numeros.join(', ')}
+                {numerosLegibles}
               </p>
             </div>
-            <div className="bg-background-light rounded-lg p-3">
+            <div className={`rounded-lg p-3 ${isDisabled ? 'bg-gray-100' : 'bg-background-light'}`}>
               <p className="text-sm font-semibold text-text-light mb-1">Total pagado:</p>
               <p className="text-base font-semibold text-text-light">
                 ${parseFloat(comprobante.total_esperado).toFixed(2)}
@@ -95,6 +115,7 @@ export default function LiberarComprobantesPago() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -107,6 +128,7 @@ export default function LiberarComprobantesPago() {
 
   const fetchPagos = async () => {
     setIsLoading(true);
+    setLoadError(false);
     try {
       const response = await fetch(`${API_GATEWAY_URL}/api/pagos/${id}`);
       if (!response.ok) {
@@ -117,13 +139,24 @@ export default function LiberarComprobantesPago() {
       setComprobantes(data);
     } catch (error) {
       console.error(error);
-      setErrorMsg("No se pudieron cargar los comprobantes.");
+      setLoadError(true);
+      const mensaje = error.message === 'Failed to fetch' 
+        ? 'No se pudo conectar con el servidor. Verifica tu conexión.' 
+        : 'Ocurrió un problema al cargar los comprobantes.';
+      setErrorMsg(mensaje);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const esComprobantePendiente = (comp) => {
+    return comp.numeros.some(n => n.estado === 'PENDIENTE');
+  };
+
   const handleToggle = (idPago) => {
+    const comp = comprobantes.find(c => c.id_pago === idPago);
+    if (!comp || !esComprobantePendiente(comp)) return;
+
     if (seleccionados.includes(idPago)) {
       setSeleccionados(seleccionados.filter(item => item !== idPago));
     } else {
@@ -141,14 +174,12 @@ export default function LiberarComprobantesPago() {
     setIsProcessing(true);
 
     try {
-      // 1. Necesitamos obtener TODOS los números de los pagos seleccionados
-      // Filtramos los comprobantes seleccionados
       const pagosSeleccionados = comprobantes.filter(c => seleccionados.includes(c.id_pago));
       
-      // Extraemos todos los números en un solo array plano
-      const numerosParaLiberar = pagosSeleccionados.flatMap(p => p.numeros);
+      const numerosParaLiberar = pagosSeleccionados
+        .flatMap(p => p.numeros)
+        .map(n => n.numero);
 
-      // 2. Enviar petición al backend
       const response = await fetch(`${API_GATEWAY_URL}/api/numeros/marcar-pagados`, {
         method: 'POST',
         headers: {
@@ -162,14 +193,18 @@ export default function LiberarComprobantesPago() {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.message || 'Error al procesar el pago');
+        throw new Error(errData.message || 'Hubo un error al liberar los números, inténtelo de nuevo.');
       }
 
       setShowSuccess(true);
       
     } catch (error) {
       console.error(error);
-      setErrorMsg(error.message || "Ocurrió un error al marcar como pagado.");
+      const mensajeUsuario = error.message === 'Failed to fetch'
+        ? 'Error de conexión. Intenta nuevamente.'
+        : error.message;
+        
+      setErrorMsg(mensajeUsuario);
     } finally {
       setIsProcessing(false);
     }
@@ -181,25 +216,94 @@ export default function LiberarComprobantesPago() {
     fetchPagos();
   };
 
-  const comprobantesFiltrados = comprobantes.filter(comp => {
-    const searchLower = busqueda.toLowerCase();
-    const nombreCompleto = `${comp.nombres_cliente} ${comp.apellido_paterno_cliente}`.toLowerCase();
-    
-    return (
-      nombreCompleto.includes(searchLower) ||
-      comp.correo_cliente.toLowerCase().includes(searchLower) ||
-      comp.numeros.some(num => num.toString().includes(busqueda))
-    );
-  });
+  const comprobantesProcesados = useMemo(() => {
+    let filtrados = comprobantes.filter(comp => {
+      const searchLower = busqueda.toLowerCase();
+      const nombreCompleto = `${comp.nombres_cliente} ${comp.apellido_paterno_cliente}`.toLowerCase();
+      const numerosString = comp.numeros.map(n => n.numero).join(' ');
+      
+      return (
+        nombreCompleto.includes(searchLower) ||
+        comp.correo_cliente.toLowerCase().includes(searchLower) ||
+        numerosString.includes(busqueda)
+      );
+    });
+
+    return filtrados.sort((a, b) => {
+        const aPendiente = esComprobantePendiente(a);
+        const bPendiente = esComprobantePendiente(b);
+
+        if (aPendiente && !bPendiente) return -1;
+        if (!aPendiente && bPendiente) return 1;
+        return 0;
+    });
+  }, [comprobantes, busqueda]);
 
   const obtenerNumerosSeleccionados = () => {
     return comprobantes
       .filter(c => seleccionados.includes(c.id_pago))
       .flatMap(c => c.numeros)
+      .map(n => n.numero)
       .sort((a, b) => a - b);
   };
 
   const listaNumerosSeleccionados = obtenerNumerosSeleccionados();
+
+  const renderContenidoPrincipal = () => {
+    if (isLoading) {
+      return (
+        <div className="p-12 text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className='text-gray-500 font-medium'>Cargando comprobantes...</p>
+        </div>
+      );
+    }
+
+    if (loadError) {
+      return (
+        <div className="p-12 text-center bg-red-50 rounded-xl border border-red-100">
+           <span className="material-symbols-outlined text-4xl text-red-400 mb-2">wifi_off</span>
+           <h3 className="text-lg font-bold text-red-700 mb-1">No pudimos cargar los datos</h3>
+           <p className="text-gray-600 mb-4">Verifica tu conexión o intenta nuevamente.</p>
+           <button 
+             onClick={fetchPagos}
+             className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg font-bold hover:bg-red-50 transition-colors shadow-sm"
+           >
+             Reintentar
+           </button>
+        </div>
+      );
+    }
+
+    if (comprobantesProcesados.length === 0) {
+      return (
+        <div className="p-12 text-center bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+          <span className="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</span>
+          <p className="text-gray-500 font-medium">
+            {busqueda ? 'No se encontraron coincidencias.' : 'Aún no hay comprobantes para revisar.'}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {comprobantesProcesados.map((comprobante) => {
+          const isPendiente = esComprobantePendiente(comprobante);
+          return (
+            <ComprobanteCard
+              key={comprobante.id_pago}
+              comprobante={comprobante}
+              isSelected={seleccionados.includes(comprobante.id_pago)}
+              isDisabled={!isPendiente}
+              onToggle={handleToggle}
+              onVerComprobante={handleVerComprobante}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background-light pb-32 font-display">
@@ -241,41 +345,22 @@ export default function LiberarComprobantesPago() {
                     placeholder="Buscar por nombre, correo o número..."
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full rounded-lg bg-gray-50 border border-gray-300 text-text-light placeholder:text-gray-400 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-12 pl-10 pr-4"
+                    disabled={isLoading || loadError}
+                    className="w-full rounded-lg bg-gray-50 border border-gray-300 text-text-light placeholder:text-gray-400 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-12 pl-10 pr-4 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end mb-4">
                 <p className="text-sm text-gray-600">
-                  Mostrando {comprobantesFiltrados.length} de {comprobantes.length} comprobantes
+                  {!isLoading && !loadError && (
+                    `Mostrando ${comprobantesProcesados.length} comprobantes`
+                  )}
                 </p>
               </div>
 
-              {isLoading ? (
-                 <div className="p-12 text-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className='text-gray-500'>Cargando comprobantes...</p>
-                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {comprobantesFiltrados.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
-                      No se encontraron comprobantes que coincidan con la búsqueda.
-                    </div>
-                  ) : (
-                    comprobantesFiltrados.map((comprobante) => (
-                      <ComprobanteCard
-                        key={comprobante.id_pago}
-                        comprobante={comprobante}
-                        isSelected={seleccionados.includes(comprobante.id_pago)}
-                        onToggle={handleToggle}
-                        onVerComprobante={handleVerComprobante}
-                      />
-                    ))
-                  )}
-                </div>
-              )}
+              {renderContenidoPrincipal()}
+
             </div>
           </div>
 
@@ -287,7 +372,7 @@ export default function LiberarComprobantesPago() {
               
               <div className="bg-background-light rounded-lg p-4 mb-6">
                 <p className="text-base text-gray-600 mb-3">
-                  Números seleccionados:
+                  Números a liberar:
                 </p>
                 <div className="max-h-60 overflow-y-auto mb-2 scrollbar-thin pr-2">
                     {listaNumerosSeleccionados.length > 0 ? (
@@ -353,7 +438,7 @@ export default function LiberarComprobantesPago() {
       <ErrorModal
         isOpen={!!errorMsg}
         onClose={() => setErrorMsg(null)}
-        title="Error"
+        title="Atención"
         message={errorMsg}
       />
     </div>

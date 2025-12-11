@@ -63,7 +63,7 @@ const FileUpload = ({ label, id = "dropzone-file", onChange, fileValue, initialI
     }
   };
 
-  let containerClasses = "flex flex-col items-center justify-center w-full h-44 border-2 border-dashed rounded-lg transition-all duration-200 ";
+  let containerClasses = "relative flex flex-col items-center justify-center w-full h-44 border-2 border-dashed rounded-lg transition-all duration-200 ";
 
   if (disabled) {
     containerClasses += "border-gray-300 bg-gray-100 opacity-50 cursor-not-allowed";

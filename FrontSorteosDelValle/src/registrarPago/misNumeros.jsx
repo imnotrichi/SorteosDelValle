@@ -127,8 +127,8 @@ const MisNumeros = () => {
             <HeaderCliente onNavigate={navigate} userName={nombreUsuario} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <h1 className="mb-3 text-3xl font-bold text-gray-900">Mis números</h1>
-                <p className="mb-5 text-gray-500 font-medium">Aquí puedes ver y gestionar los números que has apartado en nuestros sorteos. Completa tu pago para asegurar tu participación</p>
+                <h1 className="mb-3 text-3xl font-bold text-text-light">Mis números</h1>
+                <p className="mb-5 text-gray-600">Aquí puedes ver y gestionar los números que has apartado en nuestros sorteos, completa tu pago para asegurar tu participación</p>
 
 
                 {sorteos.length > 0 ? (

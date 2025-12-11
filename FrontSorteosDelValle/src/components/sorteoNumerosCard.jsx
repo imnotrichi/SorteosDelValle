@@ -29,28 +29,19 @@ export function SorteoNumerosCard({ sorteo }) {
         </div>
 
         <div className="flex-1 p-6 flex flex-col justify-center">
-          <span className="text-sm font-medium text-gray-900 mb-1">
+          <span className="text-sm font-medium text-text-light mb-1">
             Tus números:
           </span>
 
-          <h3 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
+          <h3 className="text-2xl font-bold text-text-light mb-2 leading-tight">
             {sorteo.titulo}
           </h3>
 
-          <p className="text-gray-500 text-sm font-medium mb-6">
+          <p className="text-gray-600 text-sm mb-6">
             Fecha del sorteo: {fechaFormateada}
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("Pagar en línea");
-              }}
-              className="px-6 py-2.5 bg-primary hover:bg-[#42c974] text-gray-900 font-semibold rounded-md transition-colors text-sm shadow-sm"
-            >
-              Pagar en línea
-            </button>
 
             <button
               onClick={(e) => {
@@ -58,7 +49,7 @@ export function SorteoNumerosCard({ sorteo }) {
                 const id = sorteo.id_sorteo || sorteo.id;
                 navigate(`/registrar-comprobante/${id}`);
               }}
-              className="px-6 py-2.5 bg-[#D4D4D4] hover:bg-gray-300 text-gray-800 font-medium rounded-md transition-colors text-sm"
+              className="px-6 py-2.5 bg-primary hover:bg-[#42c974] text-text-light font-semibold rounded-md transition-colors text-sm shadow-sm"
             >
               Registrar comprobante de pago
             </button>
@@ -66,13 +57,13 @@ export function SorteoNumerosCard({ sorteo }) {
         </div>
 
         <div className="w-full md:w-64 border-t md:border-t-0 md:border-l border-gray-200 p-6 flex flex-col justify-center md:items-start bg-white">
-          <span className="text-gray-900 font-medium mb-1">
+          <span className="text-text-light font-medium mb-1">
             Total a pagar:
           </span>
-          <span className="text-2xl font-bold text-gray-900 mb-1">
+          <span className="text-2xl font-bold text-text-light mb-1">
             ${totalPagar.toFixed(2)} MXN
           </span>
-          <span className="text-gray-500 font-medium">
+          <span className="text-gray-600">
             {boletosApartados} boletos
           </span>
         </div>
@@ -82,7 +73,7 @@ export function SorteoNumerosCard({ sorteo }) {
         onClick={() => setIsExpanded(!isExpanded)}
         className="bg-gray-50 border-t border-gray-200 p-4 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors group relative z-20"
       >
-        <span className="text-gray-900 font-medium text-lg group-hover:text-primary transition-colors">
+        <span className="text-text-light font-medium text-lg group-hover:text-primary transition-colors">
           {isExpanded ? 'Ocultar números' : `Ver números apartados (${boletosApartados})`}
         </span>
         <span className={`material-symbols-outlined text-gray-600 group-hover:text-primary transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
