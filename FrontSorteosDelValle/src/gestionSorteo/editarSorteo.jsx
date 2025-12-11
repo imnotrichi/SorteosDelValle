@@ -15,7 +15,7 @@ const API_GATEWAY_URL = 'http://localhost:8080';
 
 const CHAR_LIMITS = {
     TITULO: 255,
-    DESCRIPCION: 255,
+    DESCRIPCION: 2000,
     PREMIO_TITULO: 255,
     EMAIL: 50
 };

@@ -115,6 +115,7 @@ export default function LiberarComprobantesPago() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -127,6 +128,7 @@ export default function LiberarComprobantesPago() {
 
   const fetchPagos = async () => {
     setIsLoading(true);
+    setLoadError(false);
     try {
       const response = await fetch(`${API_GATEWAY_URL}/api/pagos/${id}`);
       if (!response.ok) {
@@ -137,7 +139,11 @@ export default function LiberarComprobantesPago() {
       setComprobantes(data);
     } catch (error) {
       console.error(error);
-      setErrorMsg("No se pudieron cargar los comprobantes.");
+      setLoadError(true);
+      const mensaje = error.message === 'Failed to fetch' 
+        ? 'No se pudo conectar con el servidor. Verifica tu conexión.' 
+        : 'Ocurrió un problema al cargar los comprobantes.';
+      setErrorMsg(mensaje);
     } finally {
       setIsLoading(false);
     }
@@ -187,14 +193,18 @@ export default function LiberarComprobantesPago() {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.message || 'Error al procesar el pago');
+        throw new Error(errData.message || 'Hubo un error al liberar los números, inténtelo de nuevo.');
       }
 
       setShowSuccess(true);
       
     } catch (error) {
       console.error(error);
-      setErrorMsg(error.message || "Ocurrió un error al marcar como pagado.");
+      const mensajeUsuario = error.message === 'Failed to fetch'
+        ? 'Error de conexión. Intenta nuevamente.'
+        : error.message;
+        
+      setErrorMsg(mensajeUsuario);
     } finally {
       setIsProcessing(false);
     }
@@ -239,6 +249,62 @@ export default function LiberarComprobantesPago() {
 
   const listaNumerosSeleccionados = obtenerNumerosSeleccionados();
 
+  const renderContenidoPrincipal = () => {
+    if (isLoading) {
+      return (
+        <div className="p-12 text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className='text-gray-500 font-medium'>Cargando comprobantes...</p>
+        </div>
+      );
+    }
+
+    if (loadError) {
+      return (
+        <div className="p-12 text-center bg-red-50 rounded-xl border border-red-100">
+           <span className="material-symbols-outlined text-4xl text-red-400 mb-2">wifi_off</span>
+           <h3 className="text-lg font-bold text-red-700 mb-1">No pudimos cargar los datos</h3>
+           <p className="text-gray-600 mb-4">Verifica tu conexión o intenta nuevamente.</p>
+           <button 
+             onClick={fetchPagos}
+             className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg font-bold hover:bg-red-50 transition-colors shadow-sm"
+           >
+             Reintentar
+           </button>
+        </div>
+      );
+    }
+
+    if (comprobantesProcesados.length === 0) {
+      return (
+        <div className="p-12 text-center bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+          <span className="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</span>
+          <p className="text-gray-500 font-medium">
+            {busqueda ? 'No se encontraron coincidencias.' : 'Aún no hay comprobantes para revisar.'}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {comprobantesProcesados.map((comprobante) => {
+          const isPendiente = esComprobantePendiente(comprobante);
+          return (
+            <ComprobanteCard
+              key={comprobante.id_pago}
+              comprobante={comprobante}
+              isSelected={seleccionados.includes(comprobante.id_pago)}
+              isDisabled={!isPendiente}
+              onToggle={handleToggle}
+              onVerComprobante={handleVerComprobante}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background-light pb-32 font-display">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -279,45 +345,22 @@ export default function LiberarComprobantesPago() {
                     placeholder="Buscar por nombre, correo o número..."
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full rounded-lg bg-gray-50 border border-gray-300 text-text-light placeholder:text-gray-400 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-12 pl-10 pr-4"
+                    disabled={isLoading || loadError}
+                    className="w-full rounded-lg bg-gray-50 border border-gray-300 text-text-light placeholder:text-gray-400 focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors h-12 pl-10 pr-4 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end mb-4">
                 <p className="text-sm text-gray-600">
-                  Mostrando {comprobantesProcesados.length} de {comprobantes.length} comprobantes
+                  {!isLoading && !loadError && (
+                    `Mostrando ${comprobantesProcesados.length} comprobantes`
+                  )}
                 </p>
               </div>
 
-              {isLoading ? (
-                 <div className="p-12 text-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className='text-gray-500'>Cargando comprobantes...</p>
-                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {comprobantesProcesados.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
-                      No se encontraron comprobantes que coincidan con la búsqueda.
-                    </div>
-                  ) : (
-                    comprobantesProcesados.map((comprobante) => {
-                        const isPendiente = esComprobantePendiente(comprobante);
-                        return (
-                            <ComprobanteCard
-                                key={comprobante.id_pago}
-                                comprobante={comprobante}
-                                isSelected={seleccionados.includes(comprobante.id_pago)}
-                                isDisabled={!isPendiente}
-                                onToggle={handleToggle}
-                                onVerComprobante={handleVerComprobante}
-                            />
-                        );
-                    })
-                  )}
-                </div>
-              )}
+              {renderContenidoPrincipal()}
+
             </div>
           </div>
 
@@ -395,7 +438,7 @@ export default function LiberarComprobantesPago() {
       <ErrorModal
         isOpen={!!errorMsg}
         onClose={() => setErrorMsg(null)}
-        title="Error"
+        title="Atención"
         message={errorMsg}
       />
     </div>
