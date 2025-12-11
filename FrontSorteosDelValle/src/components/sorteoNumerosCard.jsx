@@ -20,7 +20,7 @@ export function SorteoNumerosCard({ sorteo }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow mb-4">
       <div className="flex flex-col md:flex-row">
 
-        <div className="w-full md:w-1/3 h-48 md:h-auto relative">
+        <div className="w-full md:w-1/3 h-48 md:h-56 relative shrink-0">
           <img
             src={sorteo.imagen_url}
             alt={sorteo.titulo}

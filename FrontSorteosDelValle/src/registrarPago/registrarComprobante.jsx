@@ -197,11 +197,11 @@ const RegistrarComprobante = () => {
                             Cancelar
                         </span>
                     </button>
-                    
+
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-3xl font-bold text-gray-900">Registrar Comprobante</h1>
-                        <p className="text-gray-500 font-medium">Sube tu comprobante para confirmar el pago de tus números apartados</p>
-                        <p className="text-gray-500 mt-1">
+                        <h1 className="text-3xl font-bold text-text-light">Registrar Comprobante</h1>
+                        <p className="text-gray-600">Sube tu comprobante para confirmar el pago de tus números apartados</p>
+                        <p className="text-gray-600 mt-1">
                             Sorteo: <span className="font-medium text-gray-800">{sorteoInfo.titulo}</span>
                         </p>
                     </div>
@@ -211,7 +211,7 @@ const RegistrarComprobante = () => {
 
                     <div className="flex-1 flex flex-col gap-6">
 
-                        <FormSection title={`1. selecciona los números a pagar  $${precioUnitario}`}>
+                        <FormSection title={`1. Selecciona los números a pagar`}>
                             <div className="divide-y divide-gray-100">
                                 {listaNumeros.length > 0 ? (
                                     listaNumeros.map((item, index) => {
@@ -220,18 +220,18 @@ const RegistrarComprobante = () => {
                                         const isSelected = numerosSeleccionados.includes(item.numero);
 
                                         return (
-                                            <div key={index} className={`flex items-center justify-between p-4 ${isDisabled ? 'opacity-50 bg-gray-50' : 'hover:bg-gray-50 cursor-pointer'}`} onClick={() => !isDisabled && handleCheckboxChange(item.numero)}>
+                                            <div key={index} className={`flex items-center justify-between p-4 ${isDisabled ? 'opacity-50 bg-gray-50' : 'hover:bg-background-light cursor-pointer'}`} onClick={() => !isDisabled && handleCheckboxChange(item.numero)}>
                                                 <div className="flex items-center gap-4">
                                                     <input
                                                         type="checkbox"
-                                                        className="w-5 h-5 text-green-600 rounded focus:ring-green-500 cursor-pointer"
+                                                        className="w-5 h-5 rounded focus:ring-primary cursor-pointer text-primary accent-primary border-gray-300"
                                                         checked={isSelected}
                                                         onChange={() => handleCheckboxChange(item.numero)}
                                                         disabled={isDisabled}
                                                         onClick={(e) => e.stopPropagation()}
                                                     />
                                                     <div>
-                                                        <p className="font-bold text-gray-800 text-lg">Número {item.numero}</p>
+                                                        <p className="font-bold text-text-light text-lg">Número {item.numero}</p>
                                                         <p className="text-xs text-gray-500 capitalize">{item.estado}</p>
                                                     </div>
                                                 </div>
@@ -258,7 +258,7 @@ const RegistrarComprobante = () => {
 
                             {previewUrl && (
                                 <div className="mt-4">
-                                    <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
+                                    <p className="text-sm font-medium text-gray-600 mb-2">Vista previa:</p>
                                     <div className="relative w-full max-w-xs h-64 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                                         <img
                                             src={previewUrl}
@@ -273,7 +273,7 @@ const RegistrarComprobante = () => {
 
                     <div className="w-full lg:w-96">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-8">
-                            <h2 className="text-xl font-bold text-gray-900 mb-6">Resumen de pago</h2>
+                            <h2 className="text-xl font-bold text-text-light mb-6">Resumen de pago</h2>
 
                             <div className="flex justify-between mb-2 text-sm text-gray-500">
                                 <span>Números seleccionados</span>
@@ -286,15 +286,15 @@ const RegistrarComprobante = () => {
                             </div>
 
                             <div className="flex justify-between items-center mb-6">
-                                <span className="font-medium text-gray-700">Total a pagar:</span>
-                                <span className="text-3xl font-bold text-green-600">${totalPagar.toFixed(2)}</span>
+                                <span className="font-medium text-gray-900">Total a pagar:</span>
+                                <span className="text-3xl font-bold text-text-light">${totalPagar.toFixed(2)}</span>
                             </div>
 
                             <button
                                 onClick={handleSubmit}
-                                className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-colors ${numerosSeleccionados.length > 0 && imagenFile
-                                    ? 'bg-[#4ade80] hover:bg-[#42c974] text-gray-900'
-                                    : 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                className={`w-full py-3 px-4 rounded-lg font-bold transition-colors ${numerosSeleccionados.length > 0 && imagenFile
+                                    ? 'text-text-light bg-primary hover:bg-[#42c974]'
+                                    : 'text-gray-500 bg-gray-300 cursor-not-allowed'
                                     }`}
                                 disabled={numerosSeleccionados.length === 0 || !imagenFile || isUploading}
                             >
@@ -305,7 +305,7 @@ const RegistrarComprobante = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <span>Enviar Comprobante</span>
+                                        <span>Enviar comprobante</span>
                                     </>
                                 )}
                             </button>
