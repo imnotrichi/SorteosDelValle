@@ -6,8 +6,10 @@ import { ResumenCompraCard } from '../components/resumenCompraCard';
 import SuccessModal from '../components/mensajeExito';
 import ErrorModal from '../components/mensajeError';
 import SorteoNoDisponible from '../components/mensajeNoDisponible';
+import ConfirmationModal from '../components/mensajeConfirmacion';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
+const NUMEROS_POR_PAGINA = 100;
 
 const parseDate = (dateString) => {
   if (!dateString) return new Date();
@@ -42,6 +44,9 @@ const NumerosSorteo = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState(null);
   const [shouldReloadOnError, setShouldReloadOnError] = useState(false);
+
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [paginaActual, setPaginaActual] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,6 +93,10 @@ const NumerosSorteo = () => {
     if (id) fetchData();
   }, [id]);
 
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda]);
+
   const handleSeleccionarNumero = (numero) => {
     if (!esPeriodoVenta) return;
 
@@ -99,8 +108,18 @@ const NumerosSorteo = () => {
   };
 
   const handleCancelar = () => {
+    if (numerosSeleccionados.length > 0) {
+      setShowConfirmationModal(true);
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const handleConfirmarSalida = () => {
+    setShowConfirmationModal(false);
     navigate(-1);
   };
+
 
   const handleApartarNumeros = async () => {
     if (!esPeriodoVenta) {
@@ -123,8 +142,6 @@ const NumerosSorteo = () => {
 
     setIsProcessing(true);
     try {
-      // ELIMINAR O COMENTAR ESTA LÍNEA: const ID_CLIENTE_TEST = 3; 
-
       const response = await fetch(`${API_GATEWAY_URL}/api/numeros/apartar`, {
         method: 'POST',
         headers: {
@@ -324,6 +341,14 @@ const NumerosSorteo = () => {
         onClose={handleCloseError}
         title="Error al apartar números"
         message={errorModalMessage}
+      />
+
+      <ConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        onConfirm={handleConfirmarSalida}
+        title="¿Salir sin guardar?"
+        message="Tienes números seleccionados que aún no has apartado. Si sales ahora, se perderá tu selección. ¿Estás seguro de que deseas salir?"
       />
 
     </div>
