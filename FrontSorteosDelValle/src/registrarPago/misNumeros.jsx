@@ -145,13 +145,13 @@ const MisNumeros = () => {
                     <div className="text-center py-16">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-md mx-auto p-8">
                             <span className="material-symbols-outlined text-6xl text-gray-300 mb-4">
-                                sentiment_dissatisfied
+                                Confirmation_number
                             </span>
                             <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                No hay sorteos disponibles en este momento
+                                Aún no has apartado números
                             </h3>
                             <p className="text-gray-600 text-sm">
-                                Vuelve más tarde para ver nuevas rifas disponibles.
+                                Visita los sorteos disponibles y aparta tus números para verlos aquí
                             </p>
                         </div>
                     </div>

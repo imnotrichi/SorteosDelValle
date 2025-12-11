@@ -4,6 +4,7 @@ import { NumeroButton } from '../components/numeroButtonApartado.jsx';
 import { ResumenLiberacion } from '../components/resumenLiberacion.jsx';
 import SuccessModal from '../components/mensajeExito.jsx';
 import SorteoNoDisponible from '../components/mensajeNoDisponible.jsx';
+import ConfirmationModal from '../components/mensajeConfirmacion.jsx';
 
 const API_GATEWAY_URL = 'http://localhost:8080';
 
@@ -56,6 +57,7 @@ export default function LiberarNumerosUI() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState(null);
   const [isVentaFinalizada, setIsVentaFinalizada] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -118,6 +120,19 @@ export default function LiberarNumerosUI() {
     setNumerosSeleccionados([]);
   };
 
+  const handleCancelar = () => {
+    if (numerosSeleccionados.length > 0) {
+      setShowConfirmationModal(true);
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const handleConfirmarSalida = () => {
+    setShowConfirmationModal(false);
+    navigate(-1);
+  };
+
   const handleLiberarNumeros = async () => {
     if (numerosSeleccionados.length === 0) return;
 
@@ -168,6 +183,8 @@ export default function LiberarNumerosUI() {
     fetchNumerosApartados().catch(e => console.error("Error recargando lista:", e));
   };
 
+  
+
   const clientesAgrupados = numerosSeleccionados.map(numero => {
     const info = numerosApartados.find(n => n.numero === numero);
     return {
@@ -203,7 +220,7 @@ export default function LiberarNumerosUI() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleCancelar}
             className="flex items-center justify-center px-6 h-12 rounded-lg bg-border-light hover:bg-border-light/80 transition-colors"
           >
             <span className="text-base font-bold text-text-light">
@@ -268,11 +285,11 @@ export default function LiberarNumerosUI() {
 
               {numerosApartados.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  No hay números apartados en este sorteo.
+                  No hay números apartados en este sorteo
                 </div>
               ) : numerosFiltrados.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  No se encontraron números que coincidan con la búsqueda.
+                  No se encontraron números que coincidan con la búsqueda
                 </div>
               ) : (
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
@@ -320,6 +337,14 @@ export default function LiberarNumerosUI() {
         isOpen={!!errorModalMessage}
         onClose={() => setErrorModalMessage(null)}
         message={errorModalMessage}
+      />
+
+      <ConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        onConfirm={handleConfirmarSalida}
+        title="¿Salir sin guardar?"
+        message="Tienes números seleccionados para liberar. Si sales ahora, se perderá tu selección. ¿Estás seguro de que deseas salir?"
       />
     </div>
   );

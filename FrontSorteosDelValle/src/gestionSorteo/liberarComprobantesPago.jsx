@@ -278,9 +278,8 @@ export default function LiberarComprobantesPago() {
     if (comprobantesProcesados.length === 0) {
       return (
         <div className="p-12 text-center bg-gray-50 rounded-lg border border-gray-200 border-dashed">
-          <span className="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</span>
-          <p className="text-gray-500 font-medium">
-            {busqueda ? 'No se encontraron coincidencias.' : 'Aún no hay comprobantes para revisar.'}
+          <p className="text-gray-500">
+            {busqueda ? 'No se encontraron coincidencias' : 'Aún no hay comprobantes para revisar'}
           </p>
         </div>
       );
