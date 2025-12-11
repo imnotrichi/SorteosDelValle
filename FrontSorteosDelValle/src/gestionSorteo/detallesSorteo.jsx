@@ -378,7 +378,7 @@ const DetallesSorteo = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <button
             onClick={() => navigate(`/admin/comprobantesPago/${idSorteo}`)}
-            className="flex items-center justify-center gap-3 px-6 py-4 bg-primary hover:bg-lime-500 text-text-light rounded-xl transition-all shadow-sm group cursor-pointer">
+            className="flex items-center justify-center gap-3 px-6 py-4 bg-primary hover:bg-[#42c974] text-text-light rounded-xl transition-all shadow-sm group cursor-pointer">
             <span className="material-symbols-outlined text-3xl transition-transform">
               receipt_long
             </span>
