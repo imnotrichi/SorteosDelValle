@@ -292,7 +292,7 @@ const RegistrarComprobante = () => {
 
                             <button
                                 onClick={handleSubmit}
-                                className={`w-full py-3 px-4 rounded-lg font-bold transition-colors ${numerosSeleccionados.length > 0 && imagenFile
+                                className={`w-full py-3 px-4 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${numerosSeleccionados.length > 0 && imagenFile
                                     ? 'text-text-light bg-primary hover:bg-[#42c974]'
                                     : 'text-gray-500 bg-gray-300 cursor-not-allowed'
                                     }`}
