@@ -105,7 +105,7 @@ class PagosController {
                 };
             }
 
-            pagosData[idPago].numeros.push(pagoData.numero);
+            pagosData[idPago].numeros.push({ numero: pagoData.numero, estado: pagoData.estado });
         });
 
         return Object.values(pagosData).map(pago => {

@@ -12,7 +12,7 @@ class PagosDAO {
             }
 
             const pagos = await Numero.findAll({
-                where:{
+                where: {
                     id_sorteo: idSorteo
                 },
                 include: [
