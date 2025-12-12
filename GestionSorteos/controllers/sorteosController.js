@@ -375,11 +375,6 @@ class SorteosController {
                 fecha_realizacion, precio_numero, configuracionData, organizadoresData, premiosData
             } = req.body;
 
-            console.log('---> DATOS DEL FRONT:', {
-                descripcion, imagen_url, rango_numeros, inicio_periodo_venta, fin_periodo_venta,
-                fecha_realizacion, precio_numero, configuracionData, organizadoresData, premiosData
-            });
-
             if (!descripcion && !imagen_url && rango_numeros == null && !inicio_periodo_venta &&
                 !fin_periodo_venta && !fecha_realizacion && !configuracionData && !organizadoresData) {
                 return next(new AppError('No se proporcionó ningún dato para realizar la actualización.', 400));
