@@ -21,6 +21,7 @@ const CHAR_LIMITS = {
 };
 
 const MAX_FILE_SIZE_MB = 5;
+const MAX_NUMEROS_PERMITIDOS = 1000000;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
 
 const handleImageUpload = async (file) => {
@@ -100,8 +101,12 @@ const EditarSorteo = () => {
         tiempoRecordatorioPago: '',
     });
 
+    const [formDataOriginal, setFormDataOriginal] = useState({});
+
     const [premios, setPremios] = useState([]);
+    const [premiosOriginal, setPremiosOriginal] = useState([]);
     const [organizadores, setOrganizadores] = useState([]);
+    const [organizadoresOriginal, setOrganizadoresOriginal] = useState([]);
     const [useGlobalConfig, setUseGlobalConfig] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -139,6 +144,21 @@ const EditarSorteo = () => {
                     tiempoRecordatorioPago: usaGlobal ? '0' : convertirHorasADias(configData?.tiempo_recordatorio_pago) || '',
                 });
 
+
+                setFormDataOriginal({
+                    titulo: data.titulo || '',
+                    descripcion: data.descripcion || '',
+                    imagen: null,
+                    rangoNumeros: data.rango_numeros || '',
+                    precioNumero: parseFloat(data.precio_numero) || '',
+                    fechaInicioVenta: formatDateForInput(data.inicio_periodo_venta) || '',
+                    fechaFinVenta: formatDateForInput(data.fin_periodo_venta) || '',
+                    fechaRealizacion: formatDateForInput(data.fecha_realizacion) || '',
+                    tiempoLimiteApartado: usaGlobal ? '0' : convertirHorasADias(configData?.tiempo_limite_apartado) || '',
+                    tiempoRecordatorioPago: usaGlobal ? '0' : convertirHorasADias(configData?.tiempo_recordatorio_pago) || '',
+                });
+
+
                 setPremios((data.premiosData || []).map((p, idx) => ({
                     id: idx + 1,
                     id_api: p.id,
@@ -147,7 +167,21 @@ const EditarSorteo = () => {
                     imagen: null
                 })));
 
+                setPremiosOriginal((data.premiosData || []).map((p, idx) => ({
+                    id: idx + 1,
+                    id_api: p.id,
+                    titulo: p.titulo,
+                    imagen_premio_url: p.imagen_premio_url,
+                    imagen: null
+                })));
+
                 setOrganizadores((data.organizadoresData || []).map((o, idx) => ({
+                    id: idx + 1,
+                    id_api: o.id,
+                    email: o.correo
+                })));
+
+                setOrganizadoresOriginal((data.organizadoresData || []).map((o, idx) => ({
                     id: idx + 1,
                     id_api: o.id,
                     email: o.correo
@@ -224,9 +258,14 @@ const EditarSorteo = () => {
             setFormData({ ...formData, [field]: value });
         }
     };
-
     const handleRangoNumerosChange = (value) => {
-        if (value === '' || !isNaN(value)) {
+        if (value === '') {
+            setFormData({ ...formData, rangoNumeros: '' });
+            return;
+        }
+        const valorNumerico = parseInt(value, 10);
+
+        if (!isNaN(value) && valorNumerico <= MAX_NUMEROS_PERMITIDOS) {
             setFormData({ ...formData, rangoNumeros: value });
         }
     };
@@ -340,6 +379,10 @@ const EditarSorteo = () => {
             setError(`El rango de números debe ser al menos ${minRangePermitido}.`);
             return false;
         }
+        if (parseInt(formData.rangoNumeros, 10) > MAX_NUMEROS_PERMITIDOS) {
+            setError(`El rango de números no puede exceder los ${MAX_NUMEROS_PERMITIDOS}.`);
+            return false;
+        }
         if (!formData.precioNumero || parseFloat(formData.precioNumero) < 1) {
             setError('El precio por número debe ser al menos 1.');
             return false;
@@ -401,97 +444,124 @@ const EditarSorteo = () => {
 
 
     const handleSubmit = async (e) => {
-        //console.log("se ha presionado submit");
         e.preventDefault();
         setError(null);
 
-        if (!validateForm()) {
-            //console.log("error de formato");
-            return;
-        }
+        if (!validateForm()) return;
 
         setIsUploading(true);
 
         try {
-            // 1. Manejo de imágenes
-            const imagenSorteoUrl = formData.imagen
-                ? await handleImageUpload(formData.imagen)
-                : sorteoOriginal.imagen_url;
+            const payload = {};
+            let hayCambios = false;
 
-            const premiosConUrl = await Promise.all(
-                premios.map(async (premio) => {
-                    const imagenUrl = premio.imagen
-                        ? await handleImageUpload(premio.imagen)
-                        : premio.imagen_premio_url;
+            if (formData.titulo !== formDataOriginal.titulo) {
+                payload.titulo = formData.titulo;
+                hayCambios = true;
+            }
+            if (formData.descripcion !== formDataOriginal.descripcion) {
+                payload.descripcion = formData.descripcion;
+                hayCambios = true;
+            }
+            if (parseInt(formData.rangoNumeros, 10) !== parseInt(formDataOriginal.rangoNumeros, 10)) {
+                payload.rango_numeros = parseInt(formData.rangoNumeros, 10);
+                hayCambios = true;
+            }
+            if (parseFloat(formData.precioNumero) !== parseFloat(formDataOriginal.precioNumero)) {
+                payload.precio_numero = parseFloat(formData.precioNumero);
+                hayCambios = true;
+            }
+            if (formData.fechaInicioVenta !== formDataOriginal.fechaInicioVenta) {
+                payload.inicio_periodo_venta = `${formData.fechaInicioVenta}T00:00:00`;
+                hayCambios = true;
+            }
+            if (formData.fechaFinVenta !== formDataOriginal.fechaFinVenta) {
+                payload.fin_periodo_venta = `${formData.fechaFinVenta}T00:00:00`;
+                hayCambios = true;
+            }
+            if (formData.fechaRealizacion !== formDataOriginal.fechaRealizacion) {
+                payload.fecha_realizacion = `${formData.fechaRealizacion}T00:00:00`;
+                hayCambios = true;
+            }
 
-                    return {
-                        ...(premio.id_api && { id: premio.id_api }),
-                        titulo: premio.titulo,
-                        imagen_premio_url: imagenUrl,
-                    };
-                })
-            );
+            if (formData.imagen) {
+                const nuevaUrl = await handleImageUpload(formData.imagen);
+                payload.imagen_url = nuevaUrl;
+                hayCambios = true;
+            }
 
-            const inicioOriginalSimple = formatDateForInput(sorteoOriginal.inicio_periodo_venta);
-            const finOriginalSimple = formatDateForInput(sorteoOriginal.fin_periodo_venta);
-            const realizacionOriginalSimple = formatDateForInput(sorteoOriginal.fecha_realizacion);
+            const configHaCambiado =
+                useGlobalConfig !== (sorteoOriginal.configuracionData?.id === 1) ||
+                formData.tiempoLimiteApartado !== formDataOriginal.tiempoLimiteApartado ||
+                formData.tiempoRecordatorioPago !== formDataOriginal.tiempoRecordatorioPago;
 
-            //console.log("Comparando Inicio:", formData.fechaInicioVenta, "vs Original:", inicioOriginalSimple);
+            if (configHaCambiado) {
+                const correoOrg = organizadores.length > 0 ? organizadores[0].email : "";
 
-
-            const payload = {
-                titulo: formData.titulo,
-                descripcion: formData.descripcion,
-                imagen_url: imagenSorteoUrl,
-                rango_numeros: parseInt(formData.rangoNumeros, 10),
-                precio_numero: parseFloat(formData.precioNumero),
-
-                inicio_periodo_venta: `${formData.fechaInicioVenta}T00:00:00`,
-                fin_periodo_venta: `${formData.fechaFinVenta}T00:00:00`,
-                fecha_realizacion: `${formData.fechaRealizacion}T00:00:00`,
-                configuracionData: {
+                payload.configuracionData = {
                     global: useGlobalConfig,
                     tiempo_limite_apartado: useGlobalConfig ? "00:00:00" : convertirDiasAFormatoHoras(formData.tiempoLimiteApartado),
                     tiempo_recordatorio_pago: useGlobalConfig ? "00:00:00" : convertirDiasAFormatoHoras(formData.tiempoRecordatorioPago),
-                    correoOrganizador: organizadores[0].email
-                },
-                premiosData: premiosConUrl,
-                organizadoresData: organizadores.map(o => ({ correo: o.email }))
-            };
+                    correoOrganizador: correoOrg
+                };
+                hayCambios = true;
+            }
 
-            //console.log('Payload a enviar:', payload);
+            if (JSON.stringify(premios) !== JSON.stringify(premiosOriginal) || premios.some(p => p.imagen)) {
+                const premiosProcesados = await Promise.all(
+                    premios.map(async (premio) => {
+                        const imagenUrl = premio.imagen
+                            ? await handleImageUpload(premio.imagen)
+                            : premio.imagen_premio_url;
+
+                        return {
+                            ...(premio.id_api && { id: premio.id_api }),
+                            titulo: premio.titulo,
+                            imagen_premio_url: imagenUrl,
+                        };
+                    })
+                );
+                payload.premiosData = premiosProcesados;
+                hayCambios = true;
+            }
+
+            if (JSON.stringify(organizadores) !== JSON.stringify(organizadoresOriginal)) {
+                payload.organizadoresData = organizadores.map(o => ({
+                    ...(o.id_api && { id: o.id_api }),
+                    correo: o.email
+                }));
+                hayCambios = true;
+            }
+
+            if (!hayCambios) {
+                alert("No has realizado ningún cambio.");
+                setIsUploading(false);
+                return;
+            }
+
+            // console.log("PAYLOAD LIMPIO (Solo cambios):", payload);
 
             const response = await fetch(`${API_GATEWAY_URL}/api/sorteos/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
             const result = await response.json();
 
-
             if (!response.ok) {
                 throw new Error(result.message || 'Error al actualizar el sorteo');
             }
 
-            //console.log('Sorteo actualizado con éxito:', result);
             setIsModalOpen(true);
 
         } catch (error) {
-            //console.error('Error al actualizar el sorteo:', error);
-            // Mostrar mensajes específicos del backend
-            if (error.message.includes("No hay un organizador")) {
+            if (error.message && error.message.includes("No hay un organizador")) {
                 setError(error.message);
-            } else if (error.message.includes("No se puede modificar la fecha")) {
-                setError("El servidor no permite cambiar la fecha de este sorteo (posiblemente ya está activo o tiene registros internos). Intenta dejar la fecha original.");
-            }
-            else if (error.message.includes("un organizador autorizado")) {
-                setError(error.message)
-            }
-            else {
-                setError("Ocurrió un error en el servidor");
+            } else if (error.message && error.message.includes("No se puede modificar la fecha")) {
+                setError("El servidor no permite cambiar la fecha de este sorteo.");
+            } else {
+                setError(error.message);
             }
         } finally {
             setIsUploading(false);
@@ -685,7 +755,7 @@ const EditarSorteo = () => {
                                 {!hayBoletosVendidos && (
                                     <button
                                         type="button"
-                                        onClick={handleAnadirPremio} 
+                                        onClick={handleAnadirPremio}
                                         className="flex items-center justify-center gap-2 w-full rounded-lg h-12 px-4 bg-button-add-light hover:bg-button-add-light/90 text-white text-sm font-bold transition-colors font-body"
                                     >
                                         <img src={addIcon} alt="Añadir" className="w-5 h-5 brightness-0 invert" />

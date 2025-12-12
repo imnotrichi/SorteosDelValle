@@ -31,7 +31,7 @@ beforeAll(async () => {
         nombres: "Diego",
         apellido_paterno: "Valenzuela",
         apellido_materno: "Parra",
-        correo: "diegovalenzuela@gmail.com"
+        correo: "diegovalenzuelaparra@gmail.com"
     };
     const usuario1 = await Usuario.create({
         ...datosUsuario1
@@ -44,7 +44,7 @@ beforeAll(async () => {
         nombres: "Victoria",
         apellido_paterno: "Vega",
         apellido_materno: "Bernal",
-        correo: "victoriavega@gmail.com"
+        correo: "victoriavegabernal@gmail.com"
     };
     const usuario2 = await Usuario.create({
         ...datosUsuario2
@@ -787,7 +787,7 @@ describe('actualizarSorteo (Controller)', () => {
         expect(mockNext).toHaveBeenCalledTimes(1);
         const error = mockNext.mock.calls[0][0];
         expect(error.statusCode).toBe(400);
-        expect(error.message).toBe("El rango no puede ser menor a 1.");
+        expect(error.message).toBe("Se debe ingresar un rango de números mayor a 0.");
     });
 
     // GST-015

@@ -42,7 +42,7 @@ beforeAll(async () => {
         nombres: "Abel Eduardo",
         apellido_paterno: "Sánchez",
         apellido_materno: "Guerrerp",
-        correo: "abelsanchez@gmail.com"
+        correo: "abelsanchezguerrero@gmail.com"
     };
     const usuario2 = await Usuario.create({
         ...datosOrganizador2

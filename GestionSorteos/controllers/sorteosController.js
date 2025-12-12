@@ -61,6 +61,10 @@ class SorteosController {
                 return next(new AppError('La fecha de realización del sorteo debe ser válida.', 400));
             }
 
+            if (descripcion.lenght > 2000) {
+                return next(new AppError('La descripción no puede exceder los 2000 caracteres', 400));
+            }
+
             if (!Array.isArray(premiosData) || premiosData.length === 0) return next(new AppError('Se deben proporcionar datos válidos para los premios.', 400));
             if (!Array.isArray(organizadoresData) || organizadoresData.length === 0) return next(new AppError('Debe haber al menos un organizador para el sorteo.', 400));
 
@@ -97,7 +101,7 @@ class SorteosController {
                     console.log(`Replicando usuario organizador ${correoOrg} localmente...`);
                     organizadorLocal = await usuariosDAO.crearUsuarioReplicado(datosOrganizadorRemoto);
                 }
-                
+
                 await organizadoresDAO.registrarOrganizador(organizadorLocal.id);
                 organizadores.push({ id_organizador: organizadorLocal.id });
 
@@ -377,23 +381,34 @@ class SorteosController {
             }
 
             const numerosExist = await numerosDAO.obtenerNumerosPorSorteo(sorteoExists.id);
-            const existe = numerosExist.length > 0;
+            const existenNumerosVendidos = numerosExist.length > 0;
 
-            if (existe) {
-                if (rango_numeros < 1) return next(new AppError('Se debe ingresar un rango de números mayor a 0.', 400));
-                if (sorteoExists.rango_numeros > rango_numeros) return next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos.', 405));
+            if (!existenNumerosVendidos) {
+                if (rango_numeros < 1) {
+                    return next(new AppError('Se debe ingresar un rango de números mayor a 0.', 400));
+                }
+            }
+
+            if (existenNumerosVendidos) {
+                if (sorteoExists.rango_numeros > rango_numeros) {
+                    return next(new AppError('Solo se puede aumentar el rango de números ya que el sorteo cuenta con números vendidos.', 405));
+                }
             }
 
             if (premiosData) {
-                if (existe) {
+                if (existenNumerosVendidos) {
                     return next(new AppError('No se pueden modificar los premios del sorteo porque ya hay números vendidos.', 405));
                 }
             }
-            
+
             if (precio_numero) {
-                if (existe) {
+                if (existenNumerosVendidos) {
                     return next(new AppError('No se pueden modificar el precio del número porque ya hay números vendidos.', 405));
                 }
+            }
+
+            if (descripcion && descripcion.lenght > 2000) {
+                return next(new AppError('La descripción no puede exceder los 2000 caracteres', 400));
             }
 
             const fechaInicioVentaBoletosOriginal = new Date(sorteoExists.inicio_periodo_venta);
@@ -402,7 +417,7 @@ class SorteosController {
 
                 const seEstaCambiandoLaFecha = new Date(inicio_periodo_venta).getTime() !== fechaInicioVentaBoletosOriginal.getTime();
 
-                if (seEstaCambiandoLaFecha && existe) {
+                if (seEstaCambiandoLaFecha && existenNumerosVendidos) {
                     return next(new AppError('No se puede modificar la fecha de incio de venta de boletos ya que el sorteo cuenta con números vendidos.', 405));
                 }
             }
@@ -424,11 +439,13 @@ class SorteosController {
                     return next(new AppError('Debe haber al menos un organizador para el sorteo.', 400));
                 }
 
+                console.log('---> ORGANIZADORES:', organizadoresData.length);
                 for (let i = 0; i < organizadoresData.length; i++) {
                     const correoOrg = organizadoresData[i].correo;
                     if (!correoOrg) continue;
 
                     let organizadorObtenido = await usuariosDAO.obtenerUsuarioPorCorreo(correoOrg);
+                    console.log('---> ORGANIZADOR:', organizadorObtenido);
 
                     if (!organizadorObtenido) {
                         console.log(`Buscando ${correoOrg} en microservicio...`);
@@ -490,7 +507,7 @@ class SorteosController {
 
             const sorteoActualizadoCompleto = await sorteosDAO.obtenerSorteoPorId(idSorteo);
 
-            const respuestaJSON = this.#formatearJsonSorteo(sorteoActualizadoCompleto, existe);
+            const respuestaJSON = this.#formatearJsonSorteo(sorteoActualizadoCompleto, existenNumerosVendidos);
             res.status(200).json(respuestaJSON);
         } catch (error) {
             console.log(error);
